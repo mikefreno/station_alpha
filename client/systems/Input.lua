@@ -8,6 +8,8 @@ function InputSystem.new()
     return self
 end
 
+---comment
+---@param entityManager EntityManager
 function InputSystem:update(entityManager)
     for _, e in ipairs(self:query(entityManager, ComponentType.VELOCITY)) do
         local v = entityManager:getComponent(e, ComponentType.VELOCITY)
@@ -19,13 +21,17 @@ function InputSystem:update(entityManager)
     end
 end
 
+---comment
+---@param entityManager EntityManager
+---@param ... unknown
+---@return table
 function InputSystem:query(entityManager, ...)
     local required = { ... }
     local result = {}
     for e, _ in pairs(entityManager.entities) do
         local ok = true
         for _, t in ipairs(required) do
-            if not entityManager.comps[t] or not entityManager.comps[t][e] then ok = false break end
+            if not entityManager.components[t] or not entityManager.components[t][e] then ok = false break end
         end
         if ok then result[#result + 1] = e end
     end

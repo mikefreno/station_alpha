@@ -238,7 +238,7 @@ end
 
 function Logger:toggle()
     self.visible = not self.visible
-    self:debug(string.format("Logger visibility: %s", self.visible and "shown" or "hidden"))
+    --self:debug(string.format("Logger visibility: %s", self.visible and "shown" or "hidden"))
 end
 
 function Logger:wheelmoved(_, y_delta)
