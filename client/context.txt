@@ -1,0 +1,901 @@
+--- START OF FILE: logger.lua ---
+--- @enum Log_Level
+Log_Level = {
+    ERROR = {name = "ERROR", color = {1, 0, 0, 1}},    -- Red
+    WARN = {name = "WARN", color = {1, 1, 0, 1}},      -- Yellow
+    INFO = {name = "INFO", color = {1, 1, 1, 1}},      -- White
+    DEBUG = {name = "DEBUG", color = {0, 1, 1, 1}}     -- Cyan
+}
+
+--- @class Logger
+--- @field logs table
+--- @field visible boolean
+--- @field max_logs number
+--- @field font love.Font
+--- @field line_height number
+--- @field scroll number
+local Logger = {
+    logs = {},
+    visible = false,
+    max_logs = 100,
+    font = nil,
+    line_height = 0, -- Will be set based on font in init
+    scroll = 0
+}
+
+--- Recursively builds a string representation of a table.
+--- @param t table The table to print.
+--- @param indent_str string The string used for one level of indentation.
+--- @param current_indent string The accumulated indentation for the current level.
+--- @param visited table A table to track visited tables to prevent infinite loops.
+--- @return string
+function Logger:_pretty_print_table_recursive(t, indent_str, current_indent, visited)
+    if visited[t] then
+        return "<circular reference>"
+    end
+    visited[t] = true
+
+    local result_parts = {"{\n"}
+    local next_indent = current_indent .. indent_str
+    local entries = {}
+    local keys_sorted = {}
+    for k, _ in pairs(t) do table.insert(keys_sorted, k) end
+    table.sort(keys_sorted, function(a,b) return tostring(a) < tostring(b) end)
+
+    for _, k in ipairs(keys_sorted) do
+        local v = t[k]
+        local key_str
+        if type(k) == "string" then
+            key_str = "[\"" .. tostring(k) .. "\"]"
+        else
+            key_str = "[" .. tostring(k) .. "]"
+        end
+
+        local value_str
+        if type(v) == "table" and v.x ~= nil and v.y ~= nil and getmetatable(v) and getmetatable(v).__index.add then
+             value_str = string.format("Vec2(%.2f, %.2f)", v.x, v.y)
+        elseif type(v) == "table" then
+            value_str = self:_pretty_print_table_recursive(v, indent_str, next_indent, visited)
+        elseif type(v) == "string" then
+            value_str = "\"" .. string.gsub(tostring(v), "\"", "\\\"") .. "\""
+        elseif type(v) == "function" then
+            value_str = "function: " .. tostring(v)
+        elseif type(v) == "userdata" then
+            local v_type_str = ""
+            if v and type(v.typeOf) == "function" then
+                local status, type_name = pcall(function() return v:typeOf() end)
+                if status and type_name then
+                    v_type_str = " (" .. tostring(type_name) .. ")"
+                end
+            end
+            value_str = "userdata" .. v_type_str .. ": " .. tostring(v)
+        else
+            value_str = tostring(v)
+        end
+        table.insert(entries, next_indent .. key_str .. " = " .. value_str)
+    end
+
+    if #entries > 0 then
+        table.insert(result_parts, table.concat(entries, ",\n"))
+        table.insert(result_parts, "\n")
+    end
+    table.insert(result_parts, current_indent .. "}")
+
+    visited[t] = nil
+    return table.concat(result_parts)
+end
+
+--- Generates a pretty-printed string representation of a table.
+--- @param t table The table to pretty print.
+--- @return string
+function Logger:_pretty_print_table(t)
+    if type(t) ~= "table" then return tostring(t) end
+    return self:_pretty_print_table_recursive(t, "  ", "", {})
+end
+
+function Logger:init()
+    if not self.font then
+        self.font = love.graphics.newFont(12) -- Default font
+    end
+    self.line_height = self.font:getHeight()
+
+    self:info("Logger initialized")
+    self:debug("Debug mode active")
+    return self
+end
+
+--- Logs a message or a table. If a table, it's pretty-printed.
+--- @param message string | table The message string or table.
+--- @param level Log_Level The logging level.
+function Logger:log(message, level)
+    local formatted_message
+    -- >>> MODIFICATION START <<<
+    -- Special case for Vec2 objects passed directly to the logger
+    if type(message) == "table" and message.x ~= nil and message.y ~= nil and getmetatable(message) and getmetatable(message).__index.add then
+        formatted_message = string.format("Vec2(%.2f, %.2f)", message.x, message.y)
+    -- >>> MODIFICATION END <<<
+    elseif type(message) == "table" then
+        formatted_message = self:_pretty_print_table(message)
+    else
+        formatted_message = tostring(message)
+    end
+
+    table.insert(self.logs, {
+        message = formatted_message,
+        timestamp = os.date("%H:%M:%S"),
+        level = level
+    })
+
+    if #self.logs > self.max_logs then
+        table.remove(self.logs, 1)
+        local screen_h = love.graphics.getHeight()
+        if screen_h then
+             local console_view_h = screen_h / 3
+             local total_content_h = self:_calculate_total_content_height()
+             local max_scroll_value = math.max(0, total_content_h - console_view_h)
+             if total_content_h <= console_view_h then max_scroll_value = 0 end
+             self.scroll = math.min(self.scroll, max_scroll_value)
+        end
+    end
+end
+
+function Logger:error(message) self:log(message, Log_Level.ERROR) end
+function Logger:warn(message) self:log(message, Log_Level.WARN) end
+function Logger:info(message) self:log(message, Log_Level.INFO) end
+function Logger:debug(message) self:log(message, Log_Level.DEBUG) end
+
+function Logger:printf(level, fmt, ...)
+    local args = {...}
+    local processed_args = {}
+    for i = 1, #args do
+        if type(args[i]) == "table" and args[i].x ~= nil and args[i].y ~= nil and getmetatable(args[i]) and getmetatable(args[i]).__index.add then
+            processed_args[i] = string.format("(%.2f, %.2f)", args[i].x, args[i].y)
+        elseif type(args[i]) == "table" then
+            processed_args[i] = self:_pretty_print_table(args[i])
+        else
+            processed_args[i] = args[i]
+        end
+    end
+    self:log(string.format(fmt, unpack(processed_args)), level)
+end
+
+--- Calculates the total pixel height of all log entries.
+--- @return number
+function Logger:_calculate_total_content_height()
+    if not self.font then return 0 end
+    local total_h = 0
+    local current_line_height = self.font:getHeight()
+    if #self.logs == 0 then return 0 end
+
+    for i = 1, #self.logs do
+        local log_item = self.logs[i]
+        local full_text_message = string.format("[%s][%s] %s",
+            log_item.timestamp,
+            log_item.level.name,
+            log_item.message)
+
+        local num_lines_in_block = 1
+        for _ in string.gmatch(full_text_message, "\n") do
+            num_lines_in_block = num_lines_in_block + 1
+        end
+        total_h = total_h + (num_lines_in_block * current_line_height)
+    end
+    return total_h
+end
+
+function Logger:draw()
+    if not self.visible or not self.font then return end
+
+    local screen_w, screen_h = love.graphics.getDimensions()
+    local console_view_h = screen_h / 3
+    local console_view_y_top = screen_h - console_view_h
+
+    love.graphics.setColor(0, 0, 0, 0.8)
+    love.graphics.rectangle("fill", 0, console_view_y_top, screen_w, console_view_h)
+
+    love.graphics.setScissor(0, console_view_y_top, screen_w, console_view_h)
+
+    local old_font = love.graphics.getFont()
+    love.graphics.setFont(self.font)
+    local current_line_height = self.font:getHeight()
+
+    local current_block_bottom_y = console_view_y_top + console_view_h + self.scroll
+
+    for i = #self.logs, 1, -1 do
+        local log_item = self.logs[i]
+        local full_text_message = string.format("[%s][%s] %s",
+            log_item.timestamp,
+            log_item.level.name,
+            log_item.message)
+
+        local num_lines_in_block = 1
+        for _ in string.gmatch(full_text_message, "\n") do
+            num_lines_in_block = num_lines_in_block + 1
+        end
+        local block_actual_height = num_lines_in_block * current_line_height
+
+        local y_for_this_block_print = current_block_bottom_y - block_actual_height
+
+        local block_top_y = y_for_this_block_print
+        local block_bottom_y_for_cull = y_for_this_block_print + block_actual_height
+
+        if block_top_y < console_view_y_top + console_view_h and
+           block_bottom_y_for_cull > console_view_y_top then
+            love.graphics.setColor(unpack(log_item.level.color))
+            love.graphics.print(full_text_message, 10, y_for_this_block_print)
+        end
+
+        current_block_bottom_y = y_for_this_block_print
+
+        if current_block_bottom_y < console_view_y_top then
+            break
+        end
+    end
+
+    love.graphics.setScissor()
+    love.graphics.setFont(old_font)
+    love.graphics.setColor(1, 1, 1, 1)
+end
+
+function Logger:toggle()
+    self.visible = not self.visible
+    --self:debug(string.format("Logger visibility: %s", self.visible and "shown" or "hidden"))
+end
+
+function Logger:wheelmoved(_, y_delta)
+    if not self.visible or not self.font then return end
+
+    local current_line_height = self.font:getHeight()
+    self.scroll = self.scroll - (y_delta * current_line_height * 3)
+
+    local screen_h = love.graphics.getHeight()
+    local console_view_h = screen_h / 3
+    local total_content_h = self:_calculate_total_content_height()
+
+    self.scroll = math.max(0, self.scroll)
+
+    local max_scroll_value = 0
+    if total_content_h > console_view_h then
+        max_scroll_value = total_content_h - console_view_h
+    end
+    self.scroll = math.min(self.scroll, max_scroll_value)
+end
+
+function Logger:keypressed(_, scancode)
+    if scancode == "`" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
+        self:toggle()
+    end
+end
+
+return Logger
+
+
+--- END OF FILE: logger.lua ---
+
+--- START OF FILE: main.lua ---
+local enums = require("utils.enums")
+local ComponentType = enums.ComponentType
+local Shapes = enums.Shapes
+local EntityManager = require("systems.EntityManager")
+local InputSystem = require("systems.Input")
+local PositionSystem = require("systems.Position")
+local RenderSystem = require("systems.Render")
+local Camera = require("components.Camera")
+local helperFunctions = require("utils.helperFunctions")
+local createLevelMap = helperFunctions.createLevelMap
+
+local overlayStats = require("libs.OverlayStats")
+local Logger = require("logger"):init()
+
+function love.load()
+	love.window.setTitle("ECS Dot Demo")
+	love.window.setMode(800, 600)
+	Camera = Camera.new()
+	createLevelMap(EntityManager, 150, 150)
+
+	---temporary for demoing purposes---
+	local dot = EntityManager:createEntity()
+	EntityManager:addComponent(dot, ComponentType.POSITION, { x = 400, y = 300 })
+	EntityManager:addComponent(dot, ComponentType.VELOCITY, { x = 0, y = 0 })
+	EntityManager:addComponent(dot, ComponentType.TEXTURE, { color = { r = 1, g = 0.5, b = 0 } })
+	EntityManager:addComponent(dot, ComponentType.SHAPE, { shape = Shapes.CIRCLE, size = 10 })
+	---temporary for demoing purposes---
+
+	overlayStats.load()
+end
+
+function love.update(dt)
+	--InputSystem:update(EntityManager)
+	PositionSystem:update(dt, EntityManager)
+	Camera:update(dt)
+
+	overlayStats.update(dt)
+end
+
+function love.keypressed(key, scancode, isrepeat)
+	overlayStats.handleKeyboard(key)
+	Logger:keypressed(key, scancode)
+end
+
+function love.wheelmoved(x, y)
+	Camera:wheelmoved(x, y)
+end
+
+function love.draw()
+	Camera:apply()
+	RenderSystem:update(EntityManager)
+	Camera:unapply()
+
+	Logger:draw()
+	overlayStats.draw()
+end
+
+--- END OF FILE: main.lua ---
+
+--- START OF FILE: utils/Vec2.lua ---
+--- @class Vec2
+--- @field x number
+--- @field y number
+local Vec2 = {}
+Vec2.__index = Vec2
+
+--- @param x? number Position x (default: 0)
+--- @param y? number Position y (default: 0)
+--- @return Vec2
+function Vec2.new(x, y)
+    local self = setmetatable({}, { __index = Vec2 })
+    self.x = x or 0
+    self.y = y or 0
+    return self
+end
+
+--- Add two vectors together. Useful for:
+--- - Combining position and velocity (movement)
+--- - Adding forces together
+--- - Offsetting positions
+--- @param other Vec2
+--- @return Vec2
+function Vec2:add(other)
+    return Vec2.new(self.x + other.x, self.y + other.y)
+end
+
+--- Subtract one vector from another. Useful for:
+--- - Getting direction between two points
+--- - Finding relative position
+--- - Calculating distance vectors
+--- @param other Vec2
+--- @return Vec2
+function Vec2:sub(other)
+    return Vec2.new(self.x - other.x, self.y - other.y)
+end
+
+--- Multiply vector by a scalar. Useful for:
+--- - Scaling velocity by delta time
+--- - Applying speed multipliers
+--- - Scaling forces or movement
+--- @param scalar number
+--- @return Vec2
+function Vec2:mul(scalar)
+    return Vec2.new(self.x * scalar, self.y * scalar)
+end
+
+--- Divide vector by a scalar. Useful for:
+--- - Averaging positions
+--- - Reducing vectors
+--- - Part of normalization
+--- @param scalar number
+--- @return Vec2
+function Vec2:div(scalar)
+    if scalar == 0 then
+        return Vec2.new(0, 0)
+    end
+    return Vec2.new(self.x / scalar, self.y / scalar)
+end
+
+--- Get the length (magnitude) of the vector. Useful for:
+--- - Checking distances
+--- - Testing ranges
+--- - Comparing vector sizes
+--- @return number
+function Vec2:length()
+    return math.sqrt(self.x * self.x + self.y * self.y)
+end
+
+--- Get the normalized vector (length of 1). Useful for:
+--- - Getting pure direction without magnitude
+--- - Ensuring consistent movement speeds
+--- - Creating unit vectors for calculations
+--- @return Vec2
+function Vec2:normalize()
+    local len = self:length()
+    if len > 0 then
+        return self:div(len)
+    end
+    return self
+end
+
+--- Get dot product of two vectors. Useful for:
+--- - Checking if vectors are facing same direction
+--- - Testing angles between vectors
+--- - Projecting one vector onto another
+--- @param other Vec2
+--- @return number
+function Vec2:dot(other)
+    return self.x * other.x + self.y * other.y
+end
+
+--- Linearly interpolate between this vector and another.
+--- Creates a new vector positioned between the two.
+--- Useful for smoothing movement, creating easing effects, or interpolating camera positions.
+--- @param target Vec2 The target vector to interpolate towards.
+--- @param amount number The interpolation factor (typically 0.0 to 1.0).
+--- @return Vec2 A new Vec2 instance with the interpolated coordinates.
+function Vec2:lerp(target, amount)
+    local newX = self.x + (target.x - self.x) * amount
+    local newY = self.y + (target.y - self.y) * amount
+    return Vec2.new(newX, newY)
+end
+
+return Vec2
+
+--- END OF FILE: utils/Vec2.lua ---
+
+--- START OF FILE: utils/enums.lua ---
+local Enums = {}
+
+--- @enum ComponentType
+Enums.ComponentType = {
+    POSITION = 1,
+    VELOCITY = 2,
+    TASKQUEUE = 3,
+    TEXTURE = 4,
+    SHAPE = 5
+}
+
+--- @enum Tasks
+Enums.Tasks = {
+    MOVETO = 1,
+}
+
+--- @enum Shapes
+Enums.Shapes = {
+    CIRCLE = 1,
+    SQUARE = 2
+}
+
+return Enums
+
+--- END OF FILE: utils/enums.lua ---
+
+--- START OF FILE: utils/helperFunctions.lua ---
+local MapCell = require("components.MapCell")
+
+---@param entityManager EntityManager
+---@param width integer
+---@param height integer
+---@return table
+local function createLevelMap(entityManager, width, height)
+	local tiles = {}
+	for y = 1, height do
+		for x = 1, width do
+			local tileId = MapCell.new(entityManager, x, y)
+			table.insert(tiles, tileId)
+		end
+	end
+	return tiles
+end
+
+return {
+	createLevelMap = createLevelMap,
+}
+
+--- END OF FILE: utils/helperFunctions.lua ---
+
+--- START OF FILE: utils/constants.lua ---
+local TILE_SIZE = 25
+
+return {
+    TILE_SIZE = TILE_SIZE
+}
+
+--- END OF FILE: utils/constants.lua ---
+
+--- START OF FILE: components/MapCell.lua ---
+local enums = require("utils.enums")
+local ComponentType = enums.ComponentType
+local Shapes = enums.Shapes
+local TILE_SIZE = require("utils.constants").TILE_SIZE
+local Vec2 = require("utils.Vec2")
+
+---@class MapCell
+---@field position Vec2
+local MapCell = {}
+MapCell.__index = MapCell
+
+---comment
+---@param entityManager any
+---@param xIndex integer
+---@param yIndex integer
+---@return unknown
+function MapCell.new(entityManager, xIndex, yIndex)
+	local tileId = entityManager:createEntity()
+	entityManager:addComponent(
+		tileId,
+		ComponentType.POSITION,
+		Vec2.new((xIndex - 1) * TILE_SIZE, (yIndex - 1) * TILE_SIZE)
+	)
+	entityManager:addComponent(tileId, ComponentType.TEXTURE, { color = { r = 0.5, g = 0.5, b = 0.5 } })
+	entityManager:addComponent(
+		tileId,
+		ComponentType.SHAPE,
+		{ shape = Shapes.SQUARE, size = TILE_SIZE, border_only = true }
+	)
+	return tileId
+end
+
+return MapCell
+
+--- END OF FILE: components/MapCell.lua ---
+
+--- START OF FILE: components/Camera.lua ---
+---@class Camera
+local Camera = {}
+Camera.__index = Camera
+
+function Camera.new()
+    local self = setmetatable({}, Camera)
+    self.x, self.y = 0, 0 -- Initial position of the camera
+    self.zoom = 1        -- Initial zoom level
+    return self
+end
+
+--- Moves the camera by a given amount in x and y direction.
+---@param dx number -- Amount to move along the x-axis
+---@param dy number -- Amount to move along the y-axis
+function Camera:move(dx, dy)
+    self.x = self.x + dx
+    self.y = self.y + dy
+end
+
+--- Sets the zoom level of the camera.
+---@param z number -- New zoom level
+function Camera:setZoom(z)
+    if z > 0 then
+        self.zoom = z
+    end
+end
+
+--- Applies the camera transformation to love.graphics
+function Camera:apply()
+    love.graphics.push("all")
+    love.graphics.translate(-self.x, -self.y)
+    love.graphics.scale(self.zoom, self.zoom)
+end
+
+--- Resets the camera transformation after rendering
+function Camera:unapply()
+    love.graphics.pop()
+end
+
+--- Handles input for camera movement and zoom.
+---@param dt number -- Delta time since last frame
+function Camera:update(dt)
+    local speed = 300 -- Movement speed of the camera
+
+    if love.keyboard.isDown("w") then
+        self:move(0, -speed * dt)
+    end
+    if love.keyboard.isDown("s") then
+        self:move(0, speed * dt)
+    end
+    if love.keyboard.isDown("a") then
+        self:move(-speed * dt, 0)
+    end
+    if love.keyboard.isDown("d") then
+        self:move(speed * dt, 0)
+    end
+
+    if(self.x < 0) then
+        self.x = 0
+    end
+    if(self.y < 0) then
+        self.y = 0
+    end
+end
+
+function Camera:wheelmoved(x, y)
+    local newZoom = math.max(1, self.zoom - (y * 0.1)) -- Adjust the factor as needed
+    self:setZoom(newZoom)
+end
+
+
+return Camera.new()
+
+--- END OF FILE: components/Camera.lua ---
+
+--- START OF FILE: systems/Position.lua ---
+local ComponentType = require("utils.enums").ComponentType
+
+local PositionSystem = {}
+PositionSystem.__index = PositionSystem
+
+function PositionSystem.new()
+    local self = setmetatable({}, PositionSystem)
+    return self
+end
+
+---comment
+---@param dt number
+---@param entityManager EntityManager
+function PositionSystem:update(dt, entityManager)
+    for _, e in ipairs(self:query(entityManager, ComponentType.POSITION, ComponentType.VELOCITY)) do
+        local p = entityManager:getComponent(e, ComponentType.POSITION)
+        local v = entityManager:getComponent(e, ComponentType.VELOCITY)
+        p.x = p.x + v.x * dt
+        p.y = p.y + v.y * dt
+    end
+end
+
+
+---@param entityManager EntityManager
+function PositionSystem:query(entityManager, ...)
+    local required = { ... }
+    local result = {}
+    for e, _ in pairs(entityManager.entities) do
+        local ok = true
+        for _, t in ipairs(required) do
+            if not entityManager.components[t] or not entityManager.components[t][e] then ok = false break end
+        end
+        if ok then result[#result + 1] = e end
+    end
+    return result
+end
+
+
+---@param entityManager EntityManager
+---@param entityToMove integer
+---@param targetEntity integer
+function PositionSystem:createTask(entityManager, entityToMove, targetEntity)
+    local origin = entityManager:getComponent(entityToMove, ComponentType.POSITION)
+    local target = entityManager:getComponent(targetEntity, ComponentType.POSITION)
+
+
+end
+
+
+return PositionSystem.new()
+
+--- END OF FILE: systems/Position.lua ---
+
+--- START OF FILE: systems/TaskQueue.lua ---
+local TaskQueue = {}
+
+function TaskQueue.new()
+    local self = setmetatable({}, { __index = TaskQueue })
+    self.queue = {}
+    return self
+end
+
+function TaskQueue:push(task)
+    table.insert(self.queue, task)
+end
+
+function TaskQueue:pop()
+    return table.remove(self.queue, 1)
+end
+
+return TaskQueue
+
+--- END OF FILE: systems/TaskQueue.lua ---
+
+--- START OF FILE: systems/Persistence.lua ---
+---@class Persistence
+---@field game_saves {}
+---@field user_configuration {}
+local Persistence = {}
+Persistence.__index = Persistence
+
+function Persistence.new()
+    local self = setmetatable({}, Persistence)
+    self.game_saves = {}
+    self.user_configuration = {}
+    return self
+end
+
+---comment
+---@param name string --user specified name for the save
+---@param entityManager EntityManager
+function Persistence:createGameSave(name, entityManager)
+end
+
+
+function Persistence:loadGameSaves()
+end
+
+--- END OF FILE: systems/Persistence.lua ---
+
+--- START OF FILE: systems/Input.lua ---
+local ComponentType = require("utils.enums").ComponentType
+
+local InputSystem = {}
+InputSystem.__index = InputSystem
+
+function InputSystem.new()
+    local self = setmetatable({}, InputSystem)
+    return self
+end
+
+---comment
+---@param entityManager EntityManager
+function InputSystem:update(entityManager)
+    for _, e in ipairs(self:query(entityManager, ComponentType.VELOCITY)) do
+        local v = entityManager:getComponent(e, ComponentType.VELOCITY)
+        v.x, v.y = 0, 0
+        if love.keyboard.isDown("left") then v.x = v.x - 200 end
+        if love.keyboard.isDown("right") then v.x = v.x + 200 end
+        if love.keyboard.isDown("up") then v.y = v.y - 200 end
+        if love.keyboard.isDown("down") then v.y = v.y + 200 end
+    end
+end
+
+---comment
+---@param entityManager EntityManager
+---@param ... unknown
+---@return table
+function InputSystem:query(entityManager, ...)
+    local required = { ... }
+    local result = {}
+    for e, _ in pairs(entityManager.entities) do
+        local ok = true
+        for _, t in ipairs(required) do
+            if not entityManager.components[t] or not entityManager.components[t][e] then ok = false break end
+        end
+        if ok then result[#result + 1] = e end
+    end
+    return result
+end
+
+return InputSystem.new()
+
+--- END OF FILE: systems/Input.lua ---
+
+--- START OF FILE: systems/EntityManager.lua ---
+---@class EntityManager
+---@field entities {}
+---@field components {}
+local EntityManager = {}
+EntityManager.__index = EntityManager
+
+function EntityManager.new()
+    local self = setmetatable({}, EntityManager)
+    self.entities = {}
+    self.components = {}
+    return self
+end
+
+function EntityManager:createEntity()
+    local id = #self.entities + 1
+    self.entities[id] = true
+    return id
+end
+
+---comment
+---@param entityId integer 
+---@param type ComponentType
+---@param data any
+function EntityManager:addComponent(entityId, type, data)
+    if not self.components[type] then
+        self.components[type] = {}
+    end
+    self.components[type][entityId] = data
+end
+
+---comment
+---@param entityId integer
+---@param type ComponentType
+---@return unknown
+function EntityManager:getComponent(entityId, type)
+    return self.components[type] and self.components[type][entityId]
+end
+
+return EntityManager.new()
+
+--- END OF FILE: systems/EntityManager.lua ---
+
+--- START OF FILE: systems/Render.lua ---
+local ComponentType = require("utils.enums").ComponentType
+local Shapes        = require("utils.enums").Shapes
+local helper        = require("utils.helperFunctions")
+local TILE_SIZE     = helper.TILE_SIZE      -- default 10
+
+local RenderSystem  = {}
+RenderSystem.__index = RenderSystem
+
+function RenderSystem.new()
+    return setmetatable({}, RenderSystem)
+end
+
+--- Draw every entity that has a POSITION component.
+function RenderSystem:update(entityManager)
+    love.graphics.clear(0.1, 0.1, 0.1)
+
+    for _, e in ipairs(self:query(entityManager, ComponentType.POSITION)) do
+        local pos   = entityManager:getComponent(e, ComponentType.POSITION)
+        local tex   = entityManager:getComponent(e, ComponentType.TEXTURE)
+        local shape = entityManager:getComponent(e, ComponentType.SHAPE)
+
+        -- Colour
+        local r, g, b = 1, 1, 1
+        if tex and tex.color then
+            r, g, b = tex.color.r, tex.color.g, tex.color.b
+        end
+        love.graphics.setColor(r, g, b)
+
+        -- -------------------------------------------------------
+        -- 1️⃣  Tiles / Squares that may be border‑only
+        -- -------------------------------------------------------
+        if shape and shape.shape == Shapes.SQUARE then
+            local size  = shape.size or 10
+            local half  = size / 2
+            local x, y  = pos.x - half, pos.y - half
+            local mode  = shape.border_only and "line" or "fill"
+
+            -- Optional line width – you can tweak or expose as a component
+            local lineWidth = shape.border_width or 1
+            love.graphics.setLineWidth(lineWidth)
+
+            love.graphics.rectangle(mode, x, y, size, size)
+            goto continue        -- skip the generic “continue” label
+        end
+
+        -- -------------------------------------------------------
+        -- 2️⃣  Circles (dot, etc.) – always filled unless border_only
+        -- -------------------------------------------------------
+        if shape and shape.shape == Shapes.CIRCLE then
+            local radius = shape.size or 10
+            local mode   = shape.border_only and "line" or "fill"
+            local lineWidth = shape.border_width or 1
+            love.graphics.setLineWidth(lineWidth)
+
+            love.graphics.circle(mode, pos.x, pos.y, radius)
+            goto continue
+        end
+
+        -- -------------------------------------------------------
+        -- 3️⃣  Tiles that **only** have POSITION + TEXTURE
+        -- -------------------------------------------------------
+        if not shape then
+            love.graphics.rectangle("fill",
+                pos.x, pos.y,
+                TILE_SIZE, TILE_SIZE)
+            goto continue
+        end
+
+        ::continue::
+    end
+end
+
+------------------------------------------------------------------
+-- Helper – return all entities that contain the required types
+------------------------------------------------------------------
+function RenderSystem:query(entityManager, ...)
+    local required = { ... }
+    local result   = {}
+    for e, _ in pairs(entityManager.entities) do
+        local ok = true
+        for _, t in ipairs(required) do
+            if not entityManager.components[t] or
+               not entityManager.components[t][e] then
+                ok = false
+                break
+            end
+        end
+        if ok then table.insert(result, e) end
+    end
+    return result
+end
+
+return RenderSystem.new()
+
+--- END OF FILE: systems/Render.lua ---
+
