@@ -1,7 +1,8 @@
 local Vec2 = require("utils.Vec2")
 local TILE_SIZE = require("utils.constants").TILE_SIZE
-local Shapes = require("utils.enums").Shapes
-local ComponentType = require("utils.enums").ComponentType
+local enums = require("utils.enums")
+local Shapes = enums.Shapes
+local ComponentType = enums.ComponentType
 
 local PathFinder = {}
 PathFinder.__index = PathFinder
@@ -13,7 +14,7 @@ end
 
 --- @param entityManager EntityManager
 --- @param startEntity integer  -- entity that should start moving
---- @param goalEntity integer   -- entity that represents the target (must have POSITION)
+--- @param goalEntity integer|Vec2   -- entity that represents the target (must have POSITION)
 --- @return table
 function PathFinder:findPath(entityManager, startEntity, goalEntity)
 	local function getPosition(id)
@@ -43,7 +44,10 @@ function PathFinder:findPath(entityManager, startEntity, goalEntity)
 	end
 
 	local startPos = getPosition(startEntity)
-	local goalPos = getPosition(goalEntity)
+	local goalPos = goalEntity
+	if type(goalEntity) == "number" then
+		goalPos = getPosition(goalEntity)
+	end
 	local startTile = worldToTile(startPos)
 	local goalTile = worldToTile(goalPos)
 
@@ -75,6 +79,15 @@ function PathFinder:findPath(entityManager, startEntity, goalEntity)
 		return t.x .. "," .. t.y
 	end
 
+	local function costOf(cell)
+		if cell.speedMultiplier == 0 then
+			return math.huge -- block the tile
+		end
+		-- you can decide whether to use integer or floating cost
+		return 1 / cell.speedMultiplier -- float
+		-- or: return math.ceil(1 / cell.speedMultiplier)  -- integer
+	end
+
 	-- init
 	push(frontier, startTile, 0)
 	cameFrom[key(startTile)] = nil
@@ -91,17 +104,26 @@ function PathFinder:findPath(entityManager, startEntity, goalEntity)
 		end
 
 		for _, d in ipairs(neighbours) do
-			local nextT = { x = current.x + d.dx, y = current.y + d.dy }
-			if nextT.x >= 1 and nextT.x <= width and nextT.y >= 1 and nextT.y <= height then
-				-- No obstacle check for now (you can add collision mask)
-				local newCost = costSoFar[key(current)] + 1
-				if not costSoFar[key(nextT)] or newCost < costSoFar[key(nextT)] then
-					costSoFar[key(nextT)] = newCost
-					local priority = newCost + (math.abs(goalTile.x - nextT.x) + math.abs(goalTile.y - nextT.y))
-					push(frontier, nextT, priority)
-					cameFrom[key(nextT)] = current
+			local nx, ny = current.x + d.dx, current.y + d.dy
+			if nx >= 1 and nx <= width and ny >= 1 and ny <= height then
+				local neighbour = { x = nx, y = ny }
+				local cell = entityManager:find(ComponentType.POSITION, neighbour) -- fetch the MapCell
+				local stepCost = costOf(cell)
+
+				-- skip impassable tiles
+				if stepCost == math.huge then
+					goto continue
+				end
+
+				local newCost = costSoFar[key(current)] + stepCost
+				if not costSoFar[key(neighbour)] or newCost < costSoFar[key(neighbour)] then
+					costSoFar[key(neighbour)] = newCost
+					local priority = newCost + (math.abs(goalTile.x - nx) + math.abs(goalTile.y - ny))
+					push(frontier, neighbour, priority)
+					cameFrom[key(neighbour)] = current
 				end
 			end
+			::continue::
 		end
 	end
 
