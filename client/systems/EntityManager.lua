@@ -1,4 +1,6 @@
 local compareTables = require("utils.helperFunctions").compareTables
+local enums = require("utils.enums")
+local ComponentType = enums.ComponentType
 
 ---@class EntityManager
 ---@field entities {}
@@ -34,15 +36,16 @@ end
 ---@param data any
 function EntityManager:find(type, data)
 	local compTable = self.components[type]
+
 	if not compTable then
 		return nil -- no entity has this component type
 	end
 
-	-- iterate over the *component* table directly – safe even if some
-	-- entity IDs are missing (sparse arrays).
 	for id, comp in pairs(compTable) do
-		if compareTables(comp, data) then
-			return id -- first match found
+		if ComponentType.POSITION then
+			if comp.x == data.x and comp.y == data.y then
+				return id
+			end
 		end
 	end
 

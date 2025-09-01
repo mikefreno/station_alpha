@@ -79,7 +79,8 @@ function PathFinder:findPath(entityManager, startEntity, goalEntity)
 		return t.x .. "," .. t.y
 	end
 
-	local function costOf(cell)
+	local function costOf(entityId)
+		local cell = entityManager:getComponent(entityId, ComponentType.TRAVERSAL)
 		if cell.speedMultiplier == 0 then
 			return math.huge -- block the tile
 		end
@@ -106,9 +107,10 @@ function PathFinder:findPath(entityManager, startEntity, goalEntity)
 		for _, d in ipairs(neighbours) do
 			local nx, ny = current.x + d.dx, current.y + d.dy
 			if nx >= 1 and nx <= width and ny >= 1 and ny <= height then
-				local neighbour = { x = nx, y = ny }
-				local cell = entityManager:find(ComponentType.POSITION, neighbour) -- fetch the MapCell
-				local stepCost = costOf(cell)
+				local neighbour = { x = nx * TILE_SIZE, y = ny * TILE_SIZE }
+				local entityId = entityManager:find(ComponentType.POSITION, neighbour) -- fetch the MapCell
+
+				local stepCost = costOf(entityId)
 
 				-- skip impassable tiles
 				if stepCost == math.huge then

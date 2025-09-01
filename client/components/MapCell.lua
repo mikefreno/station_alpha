@@ -19,11 +19,12 @@ function MapCell.new(entityManager, xIndex, yIndex)
 	local topography = self:randomTopography()
 
 	local tileId = entityManager:createEntity()
-	entityManager:addComponent(
-		tileId,
-		ComponentType.POSITION,
-		Vec2.new((xIndex - 1) * TILE_SIZE, (yIndex - 1) * TILE_SIZE)
-	)
+	local pos = Vec2.new((xIndex - 1) * TILE_SIZE, (yIndex - 1) * TILE_SIZE)
+
+	Logger:debug("creation at " .. pos.x .. "," .. pos.y)
+
+	entityManager:addComponent(tileId, ComponentType.POSITION, pos)
+
 	local color = { r = 0.0, g = 1.0, b = 0.0 } -- OPEN
 	if topography.style == Topography.ROUGH then
 		color = { r = 0.0, g = 0.0, b = 1.0 }
@@ -41,15 +42,15 @@ function MapCell.new(entityManager, xIndex, yIndex)
 	return tileId
 end
 
----@return {style:Topography, speed_multiplier:number}
+---@return {style:Topography, speedMultiplier:number}
 function MapCell:randomTopography()
 	local val = math.random()
 	if val < 0.5 then
-		return { style = Topography.OPEN, speed_multiplier = 1.0 }
+		return { style = Topography.OPEN, speedMultiplier = 1.0 }
 	elseif val < 0.85 then
-		return { style = Topography.ROUGH, speed_multiplier = 0.5 }
+		return { style = Topography.ROUGH, speedMultiplier = 0.5 }
 	else
-		return { style = Topography.INACCESSIBLE, speed_multiplier = 0.0 }
+		return { style = Topography.INACCESSIBLE, speedMultiplier = 0.0 }
 	end
 end
 

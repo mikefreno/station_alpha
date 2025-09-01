@@ -10,16 +10,17 @@ local helperFunctions = require("utils.helperFunctions")
 local createLevelMap = helperFunctions.createLevelMap
 local Vec2 = require("utils.Vec2")
 local pathfinder = require("systems.PathFinder")
+local TILE_SIZE = require("utils.constants").TILE_SIZE
 
 local overlayStats = require("libs.OverlayStats")
-local Logger = require("logger"):init()
+Logger = require("logger"):init()
 local taskQueue = require("systems.TaskQueue")
 
 function love.load()
 	love.window.setTitle("ECS Dot Demo")
 	love.window.setMode(800, 600)
 	Camera = Camera.new()
-	createLevelMap(EntityManager, 150, 150)
+	createLevelMap(EntityManager, 20, 20)
 
 	---temporary for demoing purposes---
 	Dot = EntityManager:createEntity()
@@ -47,13 +48,15 @@ end
 
 function love.mousepressed(x, y, button, istouch)
 	if button == 1 then -- left‑click
-		-- 1. turn screen → world (camera zoom / translate)
+		local function closestMultiple(n, k)
+			return math.floor(n / k) * k
+		end
+
 		local worldX = (x / Camera.zoom) + Camera.x
 		local worldY = (y / Camera.zoom) + Camera.y
 
-		-- 2. store the destination as a temporary "entity"
-		--    you can just keep the Vec2 if you don’t need an Entity id
-		local clickVec = Vec2.new(worldX, worldY)
+		local clickVec = Vec2.new(closestMultiple(worldX, TILE_SIZE), closestMultiple(worldY, TILE_SIZE))
+		Logger:debug("click at " .. clickVec.x .. "," .. clickVec.y)
 
 		-- 3. compute a path
 		local path = pathfinder:findPath(EntityManager, Dot, clickVec)
@@ -66,7 +69,11 @@ function love.mousepressed(x, y, button, istouch)
 end
 
 function love.wheelmoved(x, y)
-	Camera:wheelmoved(x, y)
+	if love.keyboard.isDown("lctrl") then
+		Logger:wheelmoved(x, y)
+	else
+		Camera:wheelmoved(x, y)
+	end
 end
 
 function love.draw()
