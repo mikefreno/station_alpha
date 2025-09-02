@@ -4,14 +4,16 @@ local Vec2 = require("utils.Vec2")
 ---@class Camera
 ---@field position Vec2
 ---@field zoom number
+---@field zoomRate number
 ---@field borderPadding number
 local Camera = {}
 Camera.__index = Camera
 
 function Camera.new()
   local self = setmetatable({}, Camera)
-  self.position = Vec2.new()
-  self.zoom = 1   -- Initial zoom level
+  self.position = Vec2.new(-TILE_SIZE / 2, -TILE_SIZE / 2)
+  self.zoom = 1
+  self.zoomRate = 0.1
   self.borderPadding = TILE_SIZE / 2
   return self
 end
@@ -20,7 +22,7 @@ end
 ---@param dx number -- Amount to move along the x-axis
 ---@param dy number -- Amount to move along the y-axis
 function Camera:move(dx, dy)
-  self.position.new
+  self.position:mutAdd(dx, dy)
 end
 
 --- Sets the zoom level of the camera.
@@ -34,7 +36,7 @@ end
 --- Applies the camera transformation to love.graphics
 function Camera:apply()
   love.graphics.push("all")
-  love.graphics.translate(-self.x, -self.y)
+  love.graphics.translate(-self.position.x, -self.position.y)
   love.graphics.scale(self.zoom, self.zoom)
 end
 
@@ -46,7 +48,7 @@ end
 --- Handles input for camera movement and zoom.
 ---@param dt number -- Delta time since last frame
 function Camera:update(dt)
-  local speed = 300   -- Movement speed of the camera
+  local speed = 300 -- Movement speed of the camera
 
   if love.keyboard.isDown("w") then
     self:move(0, -speed * dt)
@@ -61,16 +63,16 @@ function Camera:update(dt)
     self:move(speed * dt, 0)
   end
 
-  if (self.x < 0) then
-    self.x = 0
+  if self.position.x < -self.borderPadding then
+    self.position.x = -self.borderPadding
   end
-  if (self.y < 0) then
-    self.y = 0
+  if self.position.y < -self.borderPadding then
+    self.position.y = -self.borderPadding
   end
 end
 
-function Camera:wheelmoved(x, y)
-  local newZoom = math.max(1, self.zoom - (y * 0.1))   -- Adjust the factor as needed
+function Camera:wheelmoved(_, y)
+  local newZoom = math.max(1, self.zoom - (y * self.zoomRate))
   self:setZoom(newZoom)
 end
 
