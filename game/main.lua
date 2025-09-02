@@ -18,7 +18,7 @@ Logger = require("logger"):init()
 local TaskQueue = require("systems.TaskQueue")
 
 function love.load()
-  love.window.setTitle("ECS Dot Demo")
+  love.window.setTitle("Station Alpha")
   love.window.setMode(800, 600)
   Camera = Camera.new()
   createLevelMap(EntityManager, 150, 150)
