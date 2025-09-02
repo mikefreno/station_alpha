@@ -45,7 +45,7 @@ local overlayStats = {
     cornerSize = 80, -- Size of the activation area in pixels
     lastTapTime = 0, -- Time of the last tap
     doubleTapThreshold = 0.5, -- Maximum time between taps to register as double-tap
-    overlayArea = {x = 10, y = 10, width = 280, height = 340}, -- Will be updated in draw
+    overlayArea = { x = 10, y = 10, width = 280, height = 340 }, -- Will be updated in draw
   },
 }
 
@@ -132,8 +132,7 @@ end
 ---@return boolean insideOverlay True if touch is inside the overlay area
 local function isTouchInsideOverlay(x, y)
   local area = overlayStats.touch.overlayArea
-  return x >= area.x and x <= area.x + area.width and
-         y >= area.y and y <= area.y + area.height
+  return x >= area.x and x <= area.x + area.width and y >= area.y and y <= area.y + area.height
 end
 
 ---Processes touch input for the overlay toggle
@@ -196,14 +195,13 @@ function overlayStats.draw()
   local font = love.graphics.setNewFont(16)
 
   -- Calculate dynamic width based on renderer version and other content
-  local padding = 20    -- 10px padding on each side
+  local padding = 20 -- 10px padding on each side
   local baseWidth = 280 -- Minimum width
 
   -- Check width needed for the renderer version text
   local versionTextWidth = font:getWidth(string.format("%s", overlayStats.renderInfo.version))
-  local rendererInfoWidth = font:getWidth(
-    string.format("Renderer: %s (%s)", overlayStats.renderInfo.name, overlayStats.renderInfo.vendor)
-  )
+  local rendererInfoWidth =
+    font:getWidth(string.format("Renderer: %s (%s)", overlayStats.renderInfo.name, overlayStats.renderInfo.vendor))
   local systemInfoWidth = font:getWidth(
     overlayStats.sysInfo.os .. " " .. overlayStats.sysInfo.arch .. ": " .. overlayStats.sysInfo.cpuCount .. "x CPU"
   )
@@ -217,7 +215,7 @@ function overlayStats.draw()
     x = 10,
     y = 10,
     width = rectangleWidth,
-    height = 340
+    height = 340,
   }
 
   -- Draw background rectangle with dynamic width
@@ -298,7 +296,11 @@ function overlayStats.draw()
 
   -- Add pixel shader highp support indicator
   love.graphics.setColor(overlayStats.supportedFeatures.pixelShaderHighp and { 0, 1, 0, 1 } or { 1, 0, 0, 1 })
-  love.graphics.print(string.format("Pixel Shader highp: %s", overlayStats.supportedFeatures.pixelShaderHighp and "Yes" or "No"), 20, y)
+  love.graphics.print(
+    string.format("Pixel Shader highp: %s", overlayStats.supportedFeatures.pixelShaderHighp and "Yes" or "No"),
+    20,
+    y
+  )
   y = y + 20
 
   -- Add VSync status with color indication
