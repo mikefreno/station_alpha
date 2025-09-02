@@ -1,10 +1,9 @@
-local compareTables = require("utils.helperFunctions").compareTables
 local enums = require("utils.enums")
 local ComponentType = enums.ComponentType
 
 ---@class EntityManager
----@field entities {}
----@field components {}
+---@field entities   table<number, boolean>
+---@field components table<ComponentType, table<number, any>>
 local EntityManager = {}
 EntityManager.__index = EntityManager
 
@@ -21,7 +20,6 @@ function EntityManager:createEntity()
 	return id
 end
 
----comment
 ---@param entityId integer
 ---@param type ComponentType
 ---@param data any
@@ -34,30 +32,31 @@ end
 
 ---@param type ComponentType
 ---@param data any
+---@return integer?
 function EntityManager:find(type, data)
 	local compTable = self.components[type]
-
 	if not compTable then
-		return nil -- no entity has this component type
+		return nil
 	end
 
 	for id, comp in pairs(compTable) do
-		if ComponentType.POSITION then
-			if comp.x == data.x and comp.y == data.y then
-				return id
-			end
+		if type == ComponentType.POSITION and comp.x == data.x and comp.y == data.y then
+			return id
 		end
 	end
 
-	return nil -- nothing matched
+	return nil
 end
 
----comment
 ---@param entityId integer
 ---@param type ComponentType
 ---@return unknown
 function EntityManager:getComponent(entityId, type)
-	return self.components[type] and self.components[type][entityId]
+	local byType = self.components[type]
+	if not byType then
+		return nil
+	end
+	return byType[entityId]
 end
 
 return EntityManager.new()

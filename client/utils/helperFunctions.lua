@@ -1,4 +1,4 @@
-local MapCell = require("components.MapCell")
+local MapNode = require("components.MapNode")
 
 ---@param entityManager EntityManager
 ---@param width integer
@@ -8,7 +8,7 @@ local function createLevelMap(entityManager, width, height)
 	local tiles = {}
 	for y = 1, height do
 		for x = 1, width do
-			local tileId = MapCell.new(entityManager, x, y)
+			local tileId = MapNode.new(entityManager, x, y)
 			table.insert(tiles, tileId)
 		end
 	end

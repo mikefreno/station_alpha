@@ -8,21 +8,22 @@ Enums.ComponentType = {
 	TEXTURE = 4,
 	SHAPE = 5,
 	TRAVERSAL = 6,
+	MAPCELL = 7,
 }
 
---- @enum Tasks
-Enums.Tasks = {
+--- @enum TaskType
+Enums.TaskType = {
 	MOVETO = 1,
 }
 
---- @enum Shapes
-Enums.Shapes = {
+--- @enum ShapeType
+Enums.ShapeType = {
 	CIRCLE = 1,
 	SQUARE = 2,
 }
 
---- @enum Topography
-Enums.Topography = {
+--- @enum TopographyType
+Enums.TopographType = {
 	OPEN = 1,
 	ROUGH = 2,
 	INACCESSIBLE = 3,
