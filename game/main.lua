@@ -10,6 +10,8 @@ local Camera = require("components.Camera")
 local helperFunctions = require("utils.helperFunctions")
 local createLevelMap = helperFunctions.createLevelMap
 local Vec2 = require("utils.Vec2")
+local Texture = require("components.Texture")
+local Shape = require("components.Shape")
 local pathfinder = require("systems.PathFinder")
 local TILE_SIZE = require("utils.constants").TILE_SIZE
 
@@ -27,8 +29,8 @@ function love.load()
   Dot = EntityManager:createEntity()
   EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(400, 300))
   EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new(0, 0))
-  EntityManager:addComponent(Dot, ComponentType.TEXTURE, { color = { r = 1, g = 0.5, b = 0 } })
-  EntityManager:addComponent(Dot, ComponentType.SHAPE, { shape = ShapeType.CIRCLE, size = 10 })
+  EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
+  EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 10))
   EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new())
   ---temporary for demoing purposes---
 
@@ -55,22 +57,18 @@ function love.keypressed(key, scancode, isrepeat)
   overlayStats.handleKeyboard(key)
 end
 
-function love.touchpressed(id, x, y, dx, dy, pressure)
-  overlayStats.handleTouch(id, x, y, dx, dy, pressure) -- Should always be called last
-end
-
 function love.mousepressed(x, y, button, istouch)
   if button == 1 then -- left‑click
     local function closestMultiple(n, k)
       return math.floor(n / k) * k
     end
 
-    local worldX = (x / Camera.zoom) + Camera.x
-    local worldY = (y / Camera.zoom) + Camera.y
+    local worldX = (x / Camera.zoom) + Camera.position.x
+    local worldY = (y / Camera.zoom) + Camera.position.y
 
     local clickVec = Vec2.new(closestMultiple(worldX, TILE_SIZE), closestMultiple(worldY, TILE_SIZE))
 
-    local path = pathfinder:findPath(EntityManager, Dot, clickVec)
+    local path = pathfinder:findPath(EntityManager, , clickVec)
     Logger:debug(#path)
 
     if path and #path > 0 then
@@ -94,6 +92,10 @@ function love.wheelmoved(x, y)
   else
     Camera:wheelmoved(x, y)
   end
+end
+
+function love.touchpressed(id, x, y, dx, dy, pressure)
+  overlayStats.handleTouch(id, x, y, dx, dy, pressure)
 end
 
 function love.draw()
