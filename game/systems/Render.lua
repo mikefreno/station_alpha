@@ -1,7 +1,6 @@
 local ComponentType = require("utils.enums").ComponentType
 local ShapeType = require("utils.enums").ShapeType
-local helper = require("utils.helperFunctions")
-local TILE_SIZE = helper.TILE_SIZE -- default 10
+local TILE_SIZE = require("utils.constants").TILE_SIZE
 
 local RenderSystem = {}
 RenderSystem.__index = RenderSystem
@@ -19,7 +18,6 @@ function RenderSystem:update(entityManager)
 		local tex = entityManager:getComponent(e, ComponentType.TEXTURE)
 		local shape = entityManager:getComponent(e, ComponentType.SHAPE)
 
-		-- Colour
 		local r, g, b = 1, 1, 1
 		if tex and tex.color then
 			r, g, b = tex.color.r, tex.color.g, tex.color.b
