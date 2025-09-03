@@ -50,16 +50,46 @@ function EntityManager:find(type, data)
   return nil
 end
 
----@param type ComponentType.POSITION
----@param data Vec2
----@return integer?
+---@param type ComponentType.POSITION | ComponentType.MAPTILETAG
+---@param data  Vec2 – the world point you want to search from
+---@return integer?  The entity id of the nearest matching tile, or nil
 function EntityManager:findNearest(type, data)
-  local xdif = math.huge
-  local ydif = math.huge
-  local nearest = -1
-  local byType = self.components[type]
-  for id, component in pairs(byType) do
+  if not data or not data.x or not data.y then
+    return nil
   end
+
+  local nearest = nil
+  local minDistSq = math.huge
+
+  -- ------------------------------------------------------------------
+  -- Helper that checks a single entity id against the data point.
+  local function check(id, pos)
+    local dx = pos.x - data.x
+    local dy = pos.y - data.y
+    local distSq = dx * dx + dy * dy
+    if distSq < minDistSq then
+      minDistSq = distSq
+      nearest = id
+    end
+  end
+  -- ------------------------------------------------------------------
+  if type == ComponentType.POSITION then
+    local positions = self.components[ComponentType.POSITION]
+    for id, pos in pairs(positions) do
+      check(id, pos)
+    end
+  elseif type == ComponentType.MAPTILETAG then
+    local positions = self.components[ComponentType.POSITION]
+    local tags = self.components[ComponentType.MAPTILETAG]
+
+    for id, pos in pairs(positions) do
+      if tags[id] then
+        check(id, pos)
+      end
+    end
+  end
+
+  return nearest
 end
 
 ---@param entityId integer
