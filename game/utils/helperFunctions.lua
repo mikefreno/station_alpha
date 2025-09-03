@@ -54,12 +54,76 @@ local function createCell(entityManager, xIndex, yIndex)
   entityManager:addComponent(tileId, ComponentType.TEXTURE, Texture.new(result.color))
   entityManager:addComponent(tileId, ComponentType.SHAPE, Shape.new(ShapeType.SQUARE, TILE_SIZE))
   entityManager:addComponent(tileId, ComponentType.TOPOGRAPHY, Topography.new(result.style, result.speedMultiplier))
+  entityManager:addComponent(tileId, ComponentType.MAPTILETAG, Vec2.new(xIndex, yIndex))
   return tileId
 end
 
+local function buildGraph(entityManager)
+  local pos = entityManager.components[ComponentType.POSITION]
+  local topo = entityManager.components[ComponentType.TOPOGRAPHY]
+  local tag = entityManager.components[ComponentType.MAPTILETAG]
+
+  -- determine bounds
+  local width, height = 0, 0
+  for id, p in pairs(pos) do
+    if tag[id] then
+      width = math.max(width, p.x)
+      height = math.max(height, p.y)
+    end
+  end
+
+  -- allocate contiguous arrays
+  local graph = {
+    nodes = {}, -- nodes[i] = {entityId, walkable, neighbors = {…}}
+    width = width,
+    height = height,
+  }
+
+  -- fill nodes array
+  for x = 1, width do
+    graph.nodes[x] = {}
+    for y = 1, height do
+      local id = tileGrid[x][y] -- you already built this during spawn
+      if id and topo[id] and topo[id].style ~= TopographyType.INACCESSIBLE then
+        -- walkable
+        graph.nodes[x][y] = {
+          id = id,
+          pos = pos[id], -- world position
+          neighbors = {}, -- to be filled
+        }
+      end
+    end
+  end
+
+  -- pre‑compute the neighbor lists (static!)
+  for x = 1, width do
+    for y = 1, height do
+      local node = graph.nodes[x][y]
+      if node then
+        for dx = -1, 1 do
+          for dy = -1, 1 do
+            if not (dx == 0 and dy == 0) then
+              local nx, ny = x + dx, y + dy
+              if nx >= 1 and nx <= width and ny >= 1 and ny <= height then
+                local nb = graph.nodes[nx][ny]
+                if nb then
+                  table.insert(node.neighbors, nb)
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  return graph
+end
+---
 ---@param entityManager EntityManager
 ---@param width integer
 ---@param height integer
+---@return table -- Graph of the created map
 local function createLevelMap(entityManager, width, height)
   local tiles = {}
   for y = 1, height do
@@ -68,6 +132,7 @@ local function createLevelMap(entityManager, width, height)
       table.insert(tiles, tileId)
     end
   end
+  return buildGraph(entityManager)
 end
 
 local function compareTables(a, b)
@@ -96,4 +161,5 @@ end
 return {
   createLevelMap = createLevelMap,
   compareTables = compareTables,
+  buildGraph = buildGraph,
 }
