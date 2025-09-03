@@ -8,6 +8,7 @@ Enums.ComponentType = {
   TEXTURE = 4,
   SHAPE = 5,
   TOPOGRAPHY = 6,
+  MAPTILETAG = 7,
 }
 
 --- @enum TaskType

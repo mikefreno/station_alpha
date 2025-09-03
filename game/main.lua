@@ -23,7 +23,7 @@ function love.load()
   love.window.setTitle("Station Alpha")
   love.window.setMode(800, 600)
   Camera = Camera.new()
-  createLevelMap(EntityManager, 150, 150)
+  MapGraph = createLevelMap(EntityManager, 150, 150)
 
   ---temporary for demoing purposes---
   Dot = EntityManager:createEntity()
@@ -67,8 +67,9 @@ function love.mousepressed(x, y, button, istouch)
     local worldY = (y / Camera.zoom) + Camera.position.y
 
     local clickVec = Vec2.new(closestMultiple(worldX, TILE_SIZE), closestMultiple(worldY, TILE_SIZE))
+    local currentDotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
 
-    local path = pathfinder:findPath(EntityManager, , clickVec)
+    local path = pathfinder:findPath(currentDotPos, clickVec)
     Logger:debug(#path)
 
     if path and #path > 0 then
