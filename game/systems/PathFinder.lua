@@ -1,9 +1,8 @@
 local Vec2 = require("utils.Vec2")
-local TILE_SIZE = require("utils.constants").TILE_SIZE
-local enums = require("utils.enums")
-local ShapeType = enums.ShapeType
-local ComponentType = enums.ComponentType
-local PathNode = require("utils.PathNode")
+local constants = require("utils.constants")
+local PathNode = require("components.PathNode")
+local helpers = require("utils.helperFunctions")
+local worldToGrid = helpers.worldToGrid
 
 ---@class Pathfinder
 ---@field nodePool table<integer, PathNode>
@@ -95,13 +94,6 @@ end
 ---@param graph any
 ---@return nil
 function PathFinder:findPath(startWorldPos, endWorldPos, graph)
-  local function worldToGrid(v)
-    return {
-      x = math.floor(v.x / TILE_SIZE) + 1,
-      y = math.floor(v.y / TILE_SIZE) + 1,
-    }
-  end
-
   local startIdx = worldToGrid(startWorldPos)
   local endIdx = worldToGrid(endWorldPos)
 

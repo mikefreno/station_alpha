@@ -1,4 +1,0 @@
---secret-file=$HOME/.config/act/secrets
---artifact-server-path=./builds
---container-architecture=linux/amd64
---pull=false

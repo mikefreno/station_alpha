@@ -1,4 +1,5 @@
 local enums = require("utils.enums")
+local MapManager = require("systems.MapManager")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 local TaskType = enums.TaskType
@@ -7,103 +8,103 @@ local InputSystem = require("systems.Input")
 local PositionSystem = require("systems.Position")
 local RenderSystem = require("systems.Render")
 local Camera = require("components.Camera")
-local helperFunctions = require("utils.helperFunctions")
-local createLevelMap = helperFunctions.createLevelMap
 local Vec2 = require("utils.Vec2")
 local Texture = require("components.Texture")
 local Shape = require("components.Shape")
 local pathfinder = require("systems.PathFinder")
-local TILE_SIZE = require("utils.constants").TILE_SIZE
+local constants = require("utils.constants")
 
 local overlayStats = require("libs.OverlayStats")
 Logger = require("logger"):init()
 local TaskQueue = require("systems.TaskQueue")
 
 function love.load()
-  love.window.setTitle("Station Alpha")
-  love.window.setMode(800, 600)
-  Camera = Camera.new()
-  MapGraph = createLevelMap(EntityManager, 150, 150)
+	love.window.setTitle("Station Alpha")
+	love.window.setMode(800, 600)
+	Camera = Camera.new()
+	MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
 
-  ---temporary for demoing purposes---
-  Dot = EntityManager:createEntity()
-  EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(400, 300))
-  EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new(0, 0))
-  EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
-  EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 10))
-  EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new())
-  ---temporary for demoing purposes---
+	---temporary for demoing purposes---
+	Dot = EntityManager:createEntity()
+	EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(400, 300))
+	EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new(0, 0))
+	EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
+	EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 10))
+	EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new())
+	---temporary for demoing purposes---
 
-  overlayStats.load()
+	overlayStats.load()
 end
 
 function love.update(dt)
-  --InputSystem:update(EntityManager)
-  PositionSystem:update(dt, EntityManager)
-  Camera:update(dt)
+	MapManager:update()
+	--InputSystem:update(EntityManager)
+	PositionSystem:update(dt, EntityManager)
+	Camera:update(dt)
 
-  for e, _ in pairs(EntityManager.entities) do
-    local tq = EntityManager:getComponent(e, ComponentType.TASKQUEUE)
-    if tq and #tq.queue > 0 then
-      tq:update(dt, e, EntityManager)
-    end
-  end
+	for e, _ in pairs(EntityManager.entities) do
+		local tq = EntityManager:getComponent(e, ComponentType.TASKQUEUE)
+		if tq and #tq.queue > 0 then
+			tq:update(dt, e, EntityManager)
+		end
+	end
 
-  overlayStats.update(dt)
+	overlayStats.update(dt)
 end
 
 function love.keypressed(key, scancode, isrepeat)
-  Logger:keypressed(key, scancode)
-  overlayStats.handleKeyboard(key)
+	Logger:keypressed(key, scancode)
+	overlayStats.handleKeyboard(key)
 end
 
 function love.mousepressed(x, y, button, istouch)
-  if button == 1 then -- left‑click
-    local function closestMultiple(n, k)
-      return math.floor(n / k) * k
-    end
+	if button == 1 then -- left‑click
+		local function closestMultiple(n, k)
+			return math.floor(n / k) * k
+		end
 
-    local worldX = (x / Camera.zoom) + Camera.position.x
-    local worldY = (y / Camera.zoom) + Camera.position.y
+		local worldX = (x / Camera.zoom) + Camera.position.x
+		local worldY = (y / Camera.zoom) + Camera.position.y
 
-    local clickVec = Vec2.new(closestMultiple(worldX, TILE_SIZE), closestMultiple(worldY, TILE_SIZE))
-    local currentDotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
+		local clickVec =
+			Vec2.new(closestMultiple(worldX, constants.pixelSize), closestMultiple(worldY, constants.pixelSize))
+		local currentDotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
 
-    local path = pathfinder:findPath(currentDotPos, clickVec)
-    Logger:debug(#path)
+		local path = pathfinder:findPath(currentDotPos, clickVec)
+		Logger:debug(#path)
 
-    if path and #path > 0 then
-      local taskQueue = EntityManager:getComponent(Dot, ComponentType.TASKQUEUE)
-      if taskQueue then
-        for _, wp in ipairs(path) do
-          Logger:debug("adding: " .. wp)
-          taskQueue:push({
-            type = TaskType.MOVETO,
-            target = { x = wp.x, y = wp.y }, -- a plain Vec2 table
-          })
-        end
-      end
-    end
-  end
+		if path and #path > 0 then
+			local taskQueue = EntityManager:getComponent(Dot, ComponentType.TASKQUEUE)
+			if taskQueue then
+				for _, wp in ipairs(path) do
+					Logger:debug("adding: " .. wp)
+					taskQueue:push({
+						type = TaskType.MOVETO,
+						target = { x = wp.x, y = wp.y }, -- a plain Vec2 table
+					})
+				end
+			end
+		end
+	end
 end
 
 function love.wheelmoved(x, y)
-  if love.keyboard.isDown("lctrl") then
-    Logger:wheelmoved(x, y)
-  else
-    Camera:wheelmoved(x, y)
-  end
+	if love.keyboard.isDown("lctrl") then
+		Logger:wheelmoved(x, y)
+	else
+		Camera:wheelmoved(x, y)
+	end
 end
 
 function love.touchpressed(id, x, y, dx, dy, pressure)
-  overlayStats.handleTouch(id, x, y, dx, dy, pressure)
+	overlayStats.handleTouch(id, x, y, dx, dy, pressure)
 end
 
 function love.draw()
-  Camera:apply()
-  RenderSystem:update(EntityManager)
-  Camera:unapply()
+	Camera:apply()
+	RenderSystem:update(EntityManager)
+	Camera:unapply()
 
-  Logger:draw()
-  overlayStats.draw()
+	Logger:draw()
+	overlayStats.draw()
 end
