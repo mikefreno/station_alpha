@@ -14,10 +14,9 @@ local Shape = require("components.Shape")
 local pathfinder = require("systems.PathFinder")
 local constants = require("utils.constants")
 local LoadingIndicator = require("components.LoadingIndicator")
-
+local TaskQueue = require("components.TaskQueue")
 local overlayStats = require("libs.OverlayStats")
 Logger = require("logger"):init()
-local TaskQueue = require("systems.TaskQueue")
 
 local mapManager
 
@@ -34,11 +33,7 @@ function love.load()
 
     ---temporary for demoing purposes---
     Dot = EntityManager:createEntity()
-    EntityManager:addComponent(
-        Dot,
-        ComponentType.POSITION,
-        Vec2.new(4 * constants.pixelSize, 3 * constants.pixelSize)
-    )
+    EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(4, 3))
     EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
     EntityManager:addComponent(
         Dot,
@@ -52,7 +47,13 @@ function love.load()
     overlayStats.load()
 end
 
+local lastPos
 function love.update(dt)
+    --local dotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
+    --if not lastPos or lastPos ~= dotPos then
+    --Logger:debug("previous dot position: "
+    --lastPos =dotPos
+    --end
     MapManager:update()
     --InputSystem:update(EntityManager)
     PositionSystem:update(dt, EntityManager)
@@ -70,7 +71,7 @@ function love.update(dt)
 
     for e, _ in pairs(EntityManager.entities) do
         local tq = EntityManager:getComponent(e, ComponentType.TASKQUEUE)
-        if tq and #tq.queue > 0 then
+        if tq then
             tq:update(dt, EntityManager)
         end
     end

@@ -1,15 +1,11 @@
-local Vec2 = require("utils.Vec2")
-local constants = require("utils.constants")
 local Tile = require("components.Tile")
 
 ---@class Pathfinder
----@field nodePool table<integer, Tile>
+---@field nodePool table<integer, table> -- pool of plain node tables
 ---@field poolIndex integer
 local PathFinder = {}
 PathFinder.__index = PathFinder
 
---- Create a new, empty Pathfinder instance.
---- @return Pathfinder
 function PathFinder.new()
     local self = setmetatable({}, PathFinder)
     self.nodePool = {}
@@ -17,34 +13,27 @@ function PathFinder.new()
     return self
 end
 
----Return all pooled nodes to the pool and reset the index.
 function PathFinder:releaseAll()
     self.nodePool = {}
     self.poolIndex = 1
 end
 
----Grab a node from the pool (or create a new one) and init its bookkeeping fields.
----@param parent Tile?          -- parent node (nil for the start node)
----@param position Vec2          -- world position of the node
----@return table node            -- a reused node table
+-- obtainNode creates/reuses plain node tables (do NOT call Tile.new here)
 function PathFinder:obtainNode(parent, position)
     local n = self.nodePool[self.poolIndex]
     if n then
         self.poolIndex = self.poolIndex + 1
     else
-        n = Tile.new(parent, position) -- first use, node creation
+        n = { parent = nil, position = nil, g = 0, h = 0, f = 0 }
     end
     n.parent = parent
-    n.position = position
+    n.position = position -- position is a Vec2 grid index (tile.position)
     n.g = 0
     n.h = 0
     n.f = 0
     return n
 end
 
----Insert a node into the min‑heap.
----@param heap   table<integer,Tile>   -- binary heap (min‑heap on `f`)
----@param node   table                  -- node to insert
 function PathFinder:heapPush(heap, node)
     local i = #heap + 1
     heap[i] = node
@@ -58,8 +47,6 @@ function PathFinder:heapPush(heap, node)
     end
 end
 
----@param heap table<integer,table>   -- binary heap
----@return table? -- node with the smallest `f` value
 function PathFinder:heapPop(heap)
     if #heap == 0 then
         return nil
@@ -96,51 +83,50 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         return nil
     end
 
-    local startVec = mapManager:worldToGrid(startWorldPos)
-    local endVec = mapManager:worldToGrid(endWorldPos)
-
-    if not startVec or not endVec then
+    local startGrid = mapManager:worldToGrid(startWorldPos)
+    local endGrid = mapManager:worldToGrid(endWorldPos)
+    if not startGrid or not endGrid then
         Logger:error("start/end vec error")
         return nil
     end
 
-    -- Check bounds before accessing graph
     if
-        not mapManager.graph[startVec.x]
-        or not mapManager.graph[startVec.y]
-        or not mapManager.graph[endVec.x]
-        or not mapManager.graph[endVec.y]
+        startGrid.x < 1
+        or startGrid.x > mapManager.width
+        or startGrid.y < 1
+        or startGrid.y > mapManager.height
+        or endGrid.x < 1
+        or endGrid.x > mapManager.width
+        or endGrid.y < 1
+        or endGrid.y > mapManager.height
     then
-        Logger:error("bounds error")
+        Logger:error("bounds exceeded")
         return nil
     end
 
-    local startNode = mapManager.graph[startVec.x][startVec.y]
-    local goalNode = mapManager.graph[endVec.x][endVec.y]
-
-    if not startNode or not goalNode then
+    -- get start/goal tiles (graph[x][y])
+    local startTile = mapManager.graph[startGrid.x]
+        and mapManager.graph[startGrid.x][startGrid.y]
+    local goalTile = mapManager.graph[endGrid.x]
+        and mapManager.graph[endGrid.x][endGrid.y]
+    if not startTile or not goalTile then
         Logger:error("start/end node error")
         return nil
     end
 
-    -- Open / closed sets
+    -- open list and closed set (closedSet[x][y])
     local open = {}
     local closedSet = {}
-
-    -- Initialize closedSet properly
-    for x = 1, #mapManager.graph do
+    for x = 1, mapManager.width do
         closedSet[x] = {}
-        for y = 1, #mapManager.graph[x] do
+        for y = 1, mapManager.height do
             closedSet[x][y] = false
         end
     end
 
-    local function isInOpenSet(node)
-        for _, openNode in ipairs(open) do
-            if
-                openNode.position.x == node.position.x
-                and openNode.position.y == node.position.y
-            then
+    local function isInOpen(px, py)
+        for _, n in ipairs(open) do
+            if n.position.x == px and n.position.y == py then
                 return true
             end
         end
@@ -149,48 +135,42 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 
     local function pushNode(node)
         node.g = node.parent and node.parent.g + 1 or 0
-        node.h = (node.position.x - goalNode.position.x) ^ 2
-            + (node.position.y - goalNode.position.y) ^ 2
+        node.h = (node.position.x - goalTile.position.x) ^ 2
+            + (node.position.y - goalTile.position.y) ^ 2
         node.f = node.g + node.h
         self:heapPush(open, node)
     end
 
-    local start = self:obtainNode(nil, startNode.position)
-    pushNode(start)
+    -- Start node uses tile.position (grid Vec2)
+    local startNode = self:obtainNode(nil, startTile.position)
+    pushNode(startNode)
 
     while #open > 0 do
         local current = self:heapPop(open)
-        if current == nil then
-            Logger:error("There was no node in the open set, this should never happen")
+        if not current then
+            Logger:error("empty open set")
             return nil
         end
 
-        -- Bounds check for current position
-        if
-            closedSet[current.position.x] == nil
-            or closedSet[current.position.x][current.position.y] == nil
-        then
+        local cx, cy = current.position.x, current.position.y
+        if not closedSet[cx] or closedSet[cx][cy] == nil then
             Logger:error(
-                "Invalid position in closedSet: "
-                    .. "x:"
-                    .. current.position.x
-                    .. ","
-                    .. "y:"
-                    .. current.position.y
+                "Invalid position in closedSet: x:"
+                    .. tostring(cx)
+                    .. ", y:"
+                    .. tostring(cy)
             )
             return nil
         end
 
-        closedSet[current.position.x][current.position.y] = true
+        closedSet[cx][cy] = true
 
-        -- Check if we reached the goal
-        if
-            current.position.x == goalNode.position.x
-            and current.position.y == goalNode.position.y
-        then
+        -- goal reached?
+        if cx == goalTile.position.x and cy == goalTile.position.y then
             local path = {}
             local n = current
             while n do
+                -- return tile.position Vec2s (grid indices); caller converts to world if needed
                 table.insert(path, 1, n.position)
                 n = n.parent
             end
@@ -198,45 +178,37 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
             return path
         end
 
-        local currentNode = mapManager.graph[current.position.x][current.position.y]
+        local currentTile = mapManager.graph[cx] and mapManager.graph[cx][cy]
+        if not currentTile then
+            goto continue_main
+        end
 
-        for _, nbNode in ipairs(currentNode.neighbors or {}) do
-            -- Validate neighbor node position
-            if not nbNode.position then
-                Logger:error("Missing position on neighbor node")
-                Logger:error(nbNode)
-                return nil
-            end
-
-            -- Bounds check for neighbor position
-            if
-                not mapManager.graph[nbNode.position.x]
-                or not mapManager.graph[nbNode.position.x][nbNode.position.y]
-            then
-                Logger:debug(
-                    "Neighbor node out of bounds: "
-                        .. nbNode.position.x
-                        .. ","
-                        .. nbNode.position.y
-                )
+        for _, nb in ipairs(currentTile.neighbors or {}) do
+            -- neighbor.position is Tile.position (Vec2 of grid indices)
+            if not nb.position or not nb.position.x or not nb.position.y then
+                Logger:debug("Neighbor missing position; skipping")
                 goto continue_neighbor
             end
 
-            -- Check if neighbor is already closed or in open set
-            if
-                not closedSet[nbNode.position.x][nbNode.position.y]
-                and not isInOpenSet(nbNode)
-            then
-                local child = self:obtainNode(current, nbNode.position)
+            local nx, ny = nb.position.x, nb.position.y
+
+            if not mapManager.graph[nx] or not mapManager.graph[nx][ny] then
+                goto continue_neighbor
+            end
+
+            if not closedSet[nx][ny] and not isInOpen(nx, ny) then
+                local child = self:obtainNode(current, nb.position)
                 pushNode(child)
             end
 
             ::continue_neighbor::
         end
+
+        ::continue_main::
     end
 
     self:releaseAll()
-    return nil -- Explicitly return nil if no path found
+    return nil
 end
 
 return PathFinder.new()
