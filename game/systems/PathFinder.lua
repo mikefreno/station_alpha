@@ -92,9 +92,7 @@ end
 ---@param mapManager MapManager
 function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 	local startVec = mapManager:worldToGrid(startWorldPos)
-	Logger:debug(endWorldPos)
 	local endVec = mapManager:worldToGrid(endWorldPos)
-	Logger:debug(endVec)
 
 	local startNode = mapManager.graph[startVec.x][startVec.y]
 	local goalNode = mapManager.graph[endVec.x][endVec.y]
@@ -108,6 +106,15 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 	local closedSet = {}
 	for x = 1, #mapManager.graph do
 		closedSet[x] = {}
+	end
+
+	local function isInOpenSet(node)
+		for _, openNode in ipairs(open) do
+			if openNode.position.x == node.position.x and openNode.position.y == node.position.y then
+				return true
+			end
+		end
+		return false
 	end
 
 	local function pushNode(node)
@@ -126,8 +133,8 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 			Logger:error("There was no node in the open set, this should never happen")
 			return nil
 		end
-		local idx = mapManager:worldToGrid(current.position)
-		closedSet[idx.x][idx.y] = true
+
+		closedSet[current.position.x][current.position.y] = true
 
 		if current.position.x == goalNode.position.x and current.position.y == goalNode.position.y then
 			local path = {}
@@ -140,10 +147,9 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 			return path
 		end
 
-		local currentNode = mapManager.graph[idx.x][idx.y]
+		local currentNode = mapManager.graph[current.position.x][current.position.y]
 		for _, nbNode in ipairs(currentNode.neighbors or {}) do
-			local nIdx = mapManager:worldToGrid(nbNode.position)
-			if not closedSet[nIdx.x][nIdx.y] then
+			if not closedSet[nbNode.position.x][nbNode.position.y] and not isInOpenSet(nbNode) then
 				local child = self:obtainNode(current, nbNode.position)
 				pushNode(child)
 			end
@@ -151,6 +157,7 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 	end
 
 	self:releaseAll()
+	return nil -- Explicitly return nil if no path is found
 end
 
 return PathFinder.new()
