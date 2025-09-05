@@ -14,9 +14,6 @@ end
 ---comment
 ---@param name string --user specified name for the save
 ---@param entityManager EntityManager
-function Persistence:createGameSave(name, entityManager)
-end
+function Persistence:createGameSave(name, entityManager) end
 
-
-function Persistence:loadGameSaves()
-end
+function Persistence:loadGameSaves() end

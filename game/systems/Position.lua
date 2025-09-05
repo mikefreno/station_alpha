@@ -12,14 +12,15 @@ end
 ---@param dt number
 ---@param entityManager EntityManager
 function PositionSystem:update(dt, entityManager)
-    for _, e in ipairs(self:query(entityManager, ComponentType.POSITION, ComponentType.VELOCITY)) do
+    for _, e in
+        ipairs(self:query(entityManager, ComponentType.POSITION, ComponentType.VELOCITY))
+    do
         local p = entityManager:getComponent(e, ComponentType.POSITION)
         local v = entityManager:getComponent(e, ComponentType.VELOCITY)
         p.x = p.x + v.x * dt
         p.y = p.y + v.y * dt
     end
 end
-
 
 ---@param entityManager EntityManager
 function PositionSystem:query(entityManager, ...)
@@ -28,13 +29,17 @@ function PositionSystem:query(entityManager, ...)
     for e, _ in pairs(entityManager.entities) do
         local ok = true
         for _, t in ipairs(required) do
-            if not entityManager.components[t] or not entityManager.components[t][e] then ok = false break end
+            if not entityManager.components[t] or not entityManager.components[t][e] then
+                ok = false
+                break
+            end
         end
-        if ok then result[#result + 1] = e end
+        if ok then
+            result[#result + 1] = e
+        end
     end
     return result
 end
-
 
 ---@param entityManager EntityManager
 ---@param entityToMove integer
@@ -42,9 +47,6 @@ end
 function PositionSystem:createTask(entityManager, entityToMove, targetEntity)
     local origin = entityManager:getComponent(entityToMove, ComponentType.POSITION)
     local target = entityManager:getComponent(targetEntity, ComponentType.POSITION)
-
-
 end
-
 
 return PositionSystem.new()
