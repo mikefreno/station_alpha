@@ -30,11 +30,13 @@ local timer = 1.0
 ---@param dt number
 ---@param entityMgr EntityManager
 function TaskQueue:update(dt, entityMgr)
+    if #self.queue == 0 then
+        return
+    end
     timer = timer - dt
     if timer > 0 then
         return
     end
-    Logger:debug(#self.queue)
     local currentTask = self:pop()
 
     if not currentTask then

@@ -48,8 +48,8 @@ function RenderSystem:update(entityManager)
         if shape and shape.shape == ShapeType.CIRCLE then
             love.graphics.circle(
                 shape.border_only and "line" or "fill",
-                pos.x - constants.pixelSize / 2,
-                pos.y - constants.pixelSize / 2,
+                pos.x + constants.pixelSize / 2,
+                pos.y + constants.pixelSize / 2,
                 shape.size or 10
             )
             goto continue
