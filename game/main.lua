@@ -13,16 +13,26 @@ local Texture = require("components.Texture")
 local Shape = require("components.Shape")
 local pathfinder = require("systems.PathFinder")
 local constants = require("utils.constants")
+local LoadingIndicator = require("components.LoadingIndicator")
 
 local overlayStats = require("libs.OverlayStats")
 Logger = require("logger"):init()
 local TaskQueue = require("systems.TaskQueue")
 
+local mapManager
+
+local function isLoading()
+	if mapManager.dirtyGraph == true then
+		return true
+	end
+end
+
 function love.load()
 	love.window.setTitle("Station Alpha")
 	love.window.setMode(800, 600)
 	Camera = Camera.new()
-	MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
+	mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
+	mapManager:createLevelMap()
 
 	---temporary for demoing purposes---
 	Dot = EntityManager:createEntity()
@@ -42,6 +52,16 @@ function love.update(dt)
 	PositionSystem:update(dt, EntityManager)
 	Camera:update(dt)
 
+	if isLoading() == true and LoadingIndicator.isVisible == false then
+		LoadingIndicator:show()
+	elseif isLoading() == false and LoadingIndicator.isVisible == true then
+		LoadingIndicator:hide()
+	end
+
+	if LoadingIndicator.isVisible then
+		LoadingIndicator:update(dt)
+	end
+
 	for e, _ in pairs(EntityManager.entities) do
 		local tq = EntityManager:getComponent(e, ComponentType.TASKQUEUE)
 		if tq and #tq.queue > 0 then
@@ -59,18 +79,13 @@ end
 
 function love.mousepressed(x, y, button, istouch)
 	if button == 1 then -- left‑click
-		local function closestMultiple(n, k)
-			return math.floor(n / k) * k
-		end
-
 		local worldX = (x / Camera.zoom) + Camera.position.x
 		local worldY = (y / Camera.zoom) + Camera.position.y
 
-		local clickVec =
-			Vec2.new(closestMultiple(worldX, constants.pixelSize), closestMultiple(worldY, constants.pixelSize))
+		local clickVec = Vec2.new(worldX, worldY)
 		local currentDotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
 
-		local path = pathfinder:findPath(currentDotPos, clickVec)
+		local path = pathfinder:findPath(currentDotPos, clickVec, mapManager)
 		Logger:debug(#path)
 
 		if path and #path > 0 then
@@ -104,7 +119,7 @@ function love.draw()
 	Camera:apply()
 	RenderSystem:update(EntityManager)
 	Camera:unapply()
-
+	LoadingIndicator:draw()
 	Logger:draw()
 	overlayStats.draw()
 end

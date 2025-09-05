@@ -1,26 +1,19 @@
 local Vec2 = require("utils.Vec2")
 local constants = require("utils.constants")
-local PathNode = require("components.PathNode")
 local Topography = require("components.Topography")
 local Shape = require("components.Shape")
 local Texture = require("components.Texture")
 local enums = require("utils.enums")
+local Tile = require("components.Tile")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 local TopographyType = enums.TopographyType
 
---- @class Graph
---- @field width  integer
---- @field height integer
---- @field nodes  table<number, table<number, PathNode>>
-
 --- @class MapManager
 --- @field entityManager     EntityManager
---- @field grid          table<number, table<number, number>>  -- [x][y] → entity‑id
 --- @field width         integer
 --- @field height        integer
---- @field tiles		 integer[]
---- @field graph         Graph?          -- nil until built
+--- @field graph         table<number, table<number, Tile>>?          -- nil until built
 --- @field dirtyGraph    boolean
 local MapManager = {}
 MapManager.__index = MapManager
@@ -31,8 +24,6 @@ MapManager.__index = MapManager
 function MapManager.new(entityManager, width, height)
 	local self = setmetatable({}, MapManager)
 	self.entityManager = entityManager
-	self.tiles = {}
-	self.grid = {} -- grid[x][y] → entity‑id
 	self.width = width
 	self.height = height
 	self.graph = nil -- will hold the A* graph
@@ -54,7 +45,7 @@ function MapManager:rollTopography()
 			speedMultiplier = TopographyMap[TopographyType.OPEN],
 			color = { r = 0.0, g = 1.0, b = 0.0 },
 		}
-	elseif val < 0.85 then
+	elseif val < 0.99 then
 		return {
 			style = TopographyType.ROUGH,
 			speedMultiplier = TopographyMap[TopographyType.ROUGH],
@@ -93,97 +84,37 @@ function MapManager:createCell(xIndex, yIndex)
 	return tileId
 end
 
----@param entityManager EntityManager
----@param width integer
----@param height integer
-function MapManager:createLevelMap(width, height)
+function MapManager:createLevelMap()
 	local tiles = {}
-	for y = 1, height do
-		for x = 1, width do
+	for y = 1, self.height do
+		tiles[y] = {}
+		for x = 1, self.width do
 			local tileId = self:createCell(x, y)
-			table.insert(tiles, tileId)
+			local tile = Tile.new(x, y, tileId)
+			tiles[y][x] = tile
 		end
 	end
-	self.tiles = tiles
+	self.graph = tiles -- Now it's a 2D grid of Tiles
 	self:buildGraph()
 end
 
---- Spawn a new tile entity at (x, y).
---- @param x      integer
---- @param y      integer
---- @param style  TopographyType
---- @return number   entity‑id of the new tile
-function MapManager:spawnTile(x, y, style)
-	local entityId = self.entityManager:createEntity()
-	self.entityManager:addComponent(entityId, ComponentType.POSITION, Vec2.new(x, y))
-	self.entityManager:addComponent(entityId, ComponentType.TOPOGRAPHY, style)
-
-	self.grid[x] = self.grid[x] or {}
-	self.grid[x][y] = entityId
-
-	self.dirtyGraph = true
-	return entityId
-end
-
---- @param x          integer
---- @param y          integer
---- @param newStyle   TopographyType
-function MapManager:updateTileStyle(x, y, newStyle)
-	local tileId = self.grid[x] and self.grid[x][y]
-	if not tileId then
-		return
-	end
-
-	local tile = self.entityManager:getComponent(tileId, ComponentType.TOPOGRAPHY)
-	tile.components.Topography.style = newStyle
-
-	self.dirtyGraph = true
-end
-
---- Build (or rebuild) the entire graph from the current grid.
---- @return nil
 function MapManager:buildGraph()
-	local graph = {
-		width = self.width,
-		height = self.height,
-		nodes = {}, -- [x][y] → PathNode
-	}
-
-	-- 1️⃣ Create a node for every tile
-	for x = 1, self.width do
-		graph.nodes[x] = {}
-		for y = 1, self.height do
-			local tileId = self.grid[x] and self.grid[x][y]
-			local node = PathNode.new(nil, Vec2.new(x, y))
-			node.tileId = tileId
-
-			-- Pull style from the entity (or a cached map)
-			local style = self:getTileStyle(x, y) or Top
-			node.style = style
-			graph.nodes[x][y] = node
-		end
-	end
-
-	-- 2️⃣ Compute 4‑way adjacency lists
 	local dirs = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }
-	for x = 1, self.width do
-		for y = 1, self.height do
-			local node = graph.nodes[x][y]
-			node.neighbors = {}
-
+	for y = 1, self.height do
+		for x = 1, self.width do
+			local tile = self.graph[y][x]
+			tile.neighbors = {}
 			for _, d in ipairs(dirs) do
 				local nx, ny = x + d[1], y + d[2]
 				if nx >= 1 and nx <= self.width and ny >= 1 and ny <= self.height then
-					local neighbour = graph.nodes[nx][ny]
-					if neighbour.style.walkable then
-						table.insert(node.neighbors, neighbour)
+					local neighbor = self.graph[ny][nx]
+					if neighbor.style ~= TopographyType.INACCESSIBLE then
+						table.insert(tile.neighbors, neighbor)
 					end
 				end
 			end
 		end
 	end
-
-	self.graph = graph
 	self.dirtyGraph = false
 end
 
@@ -198,9 +129,9 @@ end
 --- Retrieve a node from the current graph.
 --- @param x integer
 --- @param y integer
---- @return PathNode|nil
+--- @return Tile|nil
 function MapManager:getNode(x, y)
-	return self.graph and self.graph.nodes[x] and self.graph.nodes[x][y]
+	return self.graph and self.graph[x] and self.graph[x][y]
 end
 
 --- Convert a world position to grid indices.
@@ -222,19 +153,34 @@ function MapManager:gridToWorld(x, y)
 	return Vec2.new(wx, wy)
 end
 
+--- @param x          integer
+--- @param y          integer
+--- @param newStyle   TopographyType
+function MapManager:updateTileStyle(x, y, newStyle)
+	local tile = self.graph[x] and self.graph[x][y]
+	if not tile then
+		return
+	end
+
+	local entity = self.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
+	self.entityManager:addComponent(entity, ComponentType.TOPOGRAPHY, newStyle)
+
+	self.dirtyGraph = true
+end
+
 --- Get the style table for a tile (cached or read from its entity).
 --- @param x integer
 --- @param y integer
 --- @return TopographyType|nil
 function MapManager:getTileStyle(x, y)
-	local tileId = self.grid[x] and self.grid[x][y]
-	if not tileId then
+	local tile = self.graph[x] and self.graph[x][y]
+	if not tile then
 		return nil
 	end
 
-	local tile = self.entityManager:getComponent(tileId, ComponentType.TOPOGRAPHY)
+	local topography = self.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
 
-	return tile.components.Topography
+	return topography
 end
 
 return MapManager
