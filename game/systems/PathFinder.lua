@@ -91,21 +91,48 @@ end
 ---@param endWorldPos Vec2
 ---@param mapManager MapManager
 function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
+	if not mapManager or not mapManager.graph or not mapManager.graph[1] then
+		Logger:error("mapManager error")
+		return nil
+	end
+
 	local startVec = mapManager:worldToGrid(startWorldPos)
 	local endVec = mapManager:worldToGrid(endWorldPos)
+
+	if not startVec or not endVec then
+		Logger:error("start/end vec error")
+		return nil
+	end
+
+	-- Check bounds before accessing graph
+	if
+		not mapManager.graph[startVec.x]
+		or not mapManager.graph[startVec.y]
+		or not mapManager.graph[endVec.x]
+		or not mapManager.graph[endVec.y]
+	then
+		Logger:error("bounds error")
+		return nil
+	end
 
 	local startNode = mapManager.graph[startVec.x][startVec.y]
 	local goalNode = mapManager.graph[endVec.x][endVec.y]
 
 	if not startNode or not goalNode then
+		Logger:error("start/end node error")
 		return nil
 	end
 
 	-- Open / closed sets
 	local open = {}
 	local closedSet = {}
+
+	-- Initialize closedSet properly
 	for x = 1, #mapManager.graph do
 		closedSet[x] = {}
+		for y = 1, #mapManager.graph[x] do
+			closedSet[x][y] = false
+		end
 	end
 
 	local function isInOpenSet(node)
@@ -134,8 +161,17 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 			return nil
 		end
 
+		-- Bounds check for current position
+		if closedSet[current.position.x] == nil or closedSet[current.position.x][current.position.y] == nil then
+			Logger:error(
+				"Invalid position in closedSet: " .. "x:" .. current.position.x .. "," .. "y:" .. current.position.y
+			)
+			return nil
+		end
+
 		closedSet[current.position.x][current.position.y] = true
 
+		-- Check if we reached the goal
 		if current.position.x == goalNode.position.x and current.position.y == goalNode.position.y then
 			local path = {}
 			local n = current
@@ -148,16 +184,35 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 		end
 
 		local currentNode = mapManager.graph[current.position.x][current.position.y]
+
 		for _, nbNode in ipairs(currentNode.neighbors or {}) do
+			-- Validate neighbor node position
+			if not nbNode.position then
+				Logger:error("Missing position on neighbor node")
+				Logger:error(nbNode)
+				return nil
+			end
+
+			-- Bounds check for neighbor position
+			if
+				not mapManager.graph[nbNode.position.x] or not mapManager.graph[nbNode.position.x][nbNode.position.y]
+			then
+				Logger:debug("Neighbor node out of bounds: " .. nbNode.position.x .. "," .. nbNode.position.y)
+				goto continue_neighbor
+			end
+
+			-- Check if neighbor is already closed or in open set
 			if not closedSet[nbNode.position.x][nbNode.position.y] and not isInOpenSet(nbNode) then
 				local child = self:obtainNode(current, nbNode.position)
 				pushNode(child)
 			end
+
+			::continue_neighbor::
 		end
 	end
 
 	self:releaseAll()
-	return nil -- Explicitly return nil if no path is found
+	return nil -- Explicitly return nil if no path found
 end
 
 return PathFinder.new()

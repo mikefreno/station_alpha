@@ -14,6 +14,7 @@ enums.ComponentType = {
 --- @enum TaskType
 enums.TaskType = {
 	MOVETO = 1,
+	WORK = 2,
 }
 
 --- @enum ShapeType

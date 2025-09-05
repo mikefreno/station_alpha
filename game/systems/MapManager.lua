@@ -13,7 +13,7 @@ local TopographyType = enums.TopographyType
 --- @field entityManager     EntityManager
 --- @field width         integer
 --- @field height        integer
---- @field graph         table<number, table<number, Tile>>?          -- nil until built
+--- @field graph         table<number, table<number, Tile>>
 --- @field dirtyGraph    boolean
 local MapManager = {}
 MapManager.__index = MapManager
@@ -26,7 +26,7 @@ function MapManager.new(entityManager, width, height)
 	self.entityManager = entityManager
 	self.width = width
 	self.height = height
-	self.graph = nil -- will hold the A* graph
+	self.graph = {} -- will hold the A* graph
 	self.dirtyGraph = true -- first build is required
 	return self
 end
