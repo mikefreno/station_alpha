@@ -6,13 +6,13 @@ local LOGICAL_TO_PIXEL = 32 -- 32 pixels per tile (default)
 local pixelSize = LOGICAL_TO_PIXEL
 
 local function recalcPixelSize()
-  Logger:error("Called recalcPixelSize, this function is not yet implemented")
+    Logger:error("Called recalcPixelSize, this function is not yet implemented")
 end
 
 return {
-  MAP_W = MAP_W,
-  MAP_H = MAP_H,
-  LOGICAL_TILE_SIZE = LOGICAL_TILE_SIZE,
-  pixelSize = pixelSize,
-  recalcPixelSize = recalcPixelSize,
+    MAP_W = MAP_W,
+    MAP_H = MAP_H,
+    LOGICAL_TILE_SIZE = LOGICAL_TILE_SIZE,
+    pixelSize = pixelSize,
+    recalcPixelSize = recalcPixelSize,
 }
