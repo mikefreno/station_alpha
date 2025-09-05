@@ -92,7 +92,6 @@ function love.mousepressed(x, y, button, istouch)
 			local taskQueue = EntityManager:getComponent(Dot, ComponentType.TASKQUEUE)
 			if taskQueue then
 				for _, wp in ipairs(path) do
-					Logger:debug("adding: " .. wp)
 					taskQueue:push({
 						type = TaskType.MOVETO,
 						target = { x = wp.x, y = wp.y }, -- a plain Vec2 table
