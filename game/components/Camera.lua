@@ -5,7 +5,6 @@ local Vec2 = require("utils.Vec2")
 ---@field position Vec2  --Top Left
 ---@field zoom number     -- Scale factor (pure number)
 ---@field zoomRate number -- Speed of zooming
----@field borderPadding number
 local Camera = {}
 Camera.__index = Camera
 
@@ -13,11 +12,10 @@ Camera.__index = Camera
 function Camera.new()
 	local self = setmetatable({}, Camera)
 
-	self.position = Vec2.new(-0.5, -0.5)
+	self.position = Vec2.new()
 
 	self.zoom = 1
 	self.zoomRate = 0.1
-	self.borderPadding = 0.5
 
 	return self
 end
@@ -28,12 +26,11 @@ end
 function Camera:move(dx, dy)
 	self.position:mutAdd(dx, dy)
 
-	-- Clamp to left / top borders (if you want a “no‑negative‑world‑coords” behaviour)
-	if self.position.x < -self.borderPadding then
-		self.position.x = -self.borderPadding
+	if self.position.x < 0 then
+		self.position.x = 0
 	end
-	if self.position.y < -self.borderPadding then
-		self.position.y = -self.borderPadding
+	if self.position.y < 0 then
+		self.position.y = 0
 	end
 end
 

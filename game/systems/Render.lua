@@ -1,6 +1,6 @@
 local ComponentType = require("utils.enums").ComponentType
 local ShapeType = require("utils.enums").ShapeType
-local pixelSize = require("utils.constants").pixelSize
+local constants = require("utils.constants")
 
 local RenderSystem = {}
 RenderSystem.__index = RenderSystem
@@ -19,6 +19,7 @@ function RenderSystem:update(entityManager)
 		local pos = entityManager:getComponent(e, ComponentType.POSITION)
 		local tex = entityManager:getComponent(e, ComponentType.TEXTURE)
 		local shape = entityManager:getComponent(e, ComponentType.SHAPE)
+		local mapTile = entityManager:getComponent(e, ComponentType.MAPTILETAG)
 
 		local r, g, b = 1, 1, 1
 		if tex and tex.color then
@@ -28,13 +29,23 @@ function RenderSystem:update(entityManager)
 
 		if shape and shape.shape == ShapeType.SQUARE then
 			local size = shape.size or 10
-			local half = size / 2
-			love.graphics.rectangle(shape.border_only and "line" or "fill", pos.x - half, pos.y - half, size, size)
+			love.graphics.rectangle(shape.border_only and "line" or "fill", pos.x, pos.y, size, size)
+			if mapTile then
+				local centerX = pos.x + constants.pixelSize / 2
+				local centerY = pos.y + constants.pixelSize / 2
+				love.graphics.setColor(1, 1, 1)
+				love.graphics.print(mapTile.x .. "," .. mapTile.y, centerX, centerY)
+			end
 			goto continue
 		end
 
 		if shape and shape.shape == ShapeType.CIRCLE then
-			love.graphics.circle(shape.border_only and "line" or "fill", pos.x, pos.y, shape.size or 10)
+			love.graphics.circle(
+				shape.border_only and "line" or "fill",
+				pos.x - constants.pixelSize / 2,
+				pos.y - constants.pixelSize / 2,
+				shape.size or 10
+			)
 			goto continue
 		end
 

@@ -22,7 +22,7 @@ local TaskQueue = require("systems.TaskQueue")
 local mapManager
 
 local function isLoading()
-	if mapManager.dirtyGraph == true then
+	if not mapManager.graph or mapManager.dirtyGraph == true then
 		return true
 	end
 end
@@ -31,16 +31,16 @@ function love.load()
 	love.window.setTitle("Station Alpha")
 	love.window.setMode(800, 600)
 	Camera = Camera.new()
-	mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
+	mapManager = MapManager.new(EntityManager, constants.MAP_W / 10, constants.MAP_H / 10)
 	mapManager:createLevelMap()
 
 	---temporary for demoing purposes---
 	Dot = EntityManager:createEntity()
-	EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(400, 300))
-	EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new(0, 0))
+	EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(4 * constants.pixelSize, 3 * constants.pixelSize))
+	EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
 	EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
 	EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 10))
-	EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new())
+	EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
 	---temporary for demoing purposes---
 
 	overlayStats.load()
@@ -65,7 +65,7 @@ function love.update(dt)
 	for e, _ in pairs(EntityManager.entities) do
 		local tq = EntityManager:getComponent(e, ComponentType.TASKQUEUE)
 		if tq and #tq.queue > 0 then
-			tq:update(dt, e, EntityManager)
+			tq:update(dt, EntityManager)
 		end
 	end
 
@@ -86,16 +86,16 @@ function love.mousepressed(x, y, button, istouch)
 		local currentDotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
 
 		local path = pathfinder:findPath(currentDotPos, clickVec, mapManager)
-		Logger:debug(#path)
+		if path == nil then
+			return
+		end
 
 		if path and #path > 0 then
 			local taskQueue = EntityManager:getComponent(Dot, ComponentType.TASKQUEUE)
 			if taskQueue then
 				for _, wp in ipairs(path) do
-					taskQueue:push({
-						type = TaskType.MOVETO,
-						target = { x = wp.x, y = wp.y }, -- a plain Vec2 table
-					})
+					wp:mutMul(constants.pixelSize)
+					taskQueue:push({ type = TaskType.MOVETO, data = wp })
 				end
 			end
 		end
