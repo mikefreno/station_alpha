@@ -16,7 +16,7 @@ function RenderSystem:update(entityManager)
     love.graphics.push()
 
     for _, e in ipairs(self:query(entityManager, ComponentType.POSITION)) do
-        local pos = entityManager:getComponent(e, ComponentType.POSITION)
+        local pos = entityManager:getComponent(e, ComponentType.POSITION) -- logical tile coords
         local tex = entityManager:getComponent(e, ComponentType.TEXTURE)
         local shape = entityManager:getComponent(e, ComponentType.SHAPE)
         local mapTile = entityManager:getComponent(e, ComponentType.MAPTILETAG)
@@ -27,20 +27,30 @@ function RenderSystem:update(entityManager)
         end
         love.graphics.setColor(r, g, b)
 
+        -- Convert logical tile coords to pixels for rendering
+        local px = pos.x * constants.pixelSize
+        local py = pos.y * constants.pixelSize
+
         if shape and shape.shape == ShapeType.SQUARE then
-            local size = shape.size or 10
+            local size = shape.size or constants.pixelSize
             love.graphics.rectangle(
                 shape.border_only and "line" or "fill",
-                pos.x,
-                pos.y,
+                px,
+                py,
                 size,
                 size
             )
             if mapTile then
-                local centerX = pos.x + constants.pixelSize / 2
-                local centerY = pos.y + constants.pixelSize / 2
+                local centerX = px + constants.pixelSize / 2
+                local centerY = py + constants.pixelSize / 2
                 love.graphics.setColor(1, 1, 1)
-                love.graphics.print(mapTile.x .. "," .. mapTile.y, centerX, centerY)
+                love.graphics.print(
+                    mapTile.x .. "," .. mapTile.y,
+                    centerX,
+                    centerY,
+                    0,
+                    0.5
+                )
             end
             goto continue
         end
@@ -48,15 +58,22 @@ function RenderSystem:update(entityManager)
         if shape and shape.shape == ShapeType.CIRCLE then
             love.graphics.circle(
                 shape.border_only and "line" or "fill",
-                pos.x + constants.pixelSize / 2,
-                pos.y + constants.pixelSize / 2,
+                px + constants.pixelSize / 2,
+                py + constants.pixelSize / 2,
                 shape.size or 10
             )
             goto continue
         end
 
         if not shape then
-            love.graphics.rectangle("fill", pos.x, pos.y, 1, 1) -- 1 tile = 1 logical unit
+            -- draw a full tile sized rectangle for logical units
+            love.graphics.rectangle(
+                "fill",
+                px,
+                py,
+                constants.pixelSize,
+                constants.pixelSize
+            )
             goto continue
         end
 

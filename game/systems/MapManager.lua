@@ -39,8 +39,8 @@ local TopographyMap = {
 
 function MapManager:rollTopography()
     local val = math.random()
-    -- for simple testing purposes, as even this is failing
-    if val < 1 then
+    --for simple testing purposes, as even this is failing
+    if val < 0.5 then
         return {
             style = TopographyType.OPEN,
             speedMultiplier = TopographyMap[TopographyType.OPEN],
@@ -69,11 +69,12 @@ function MapManager:createCell(xIndex, yIndex)
 
     local tileId = self.entityManager:createEntity()
 
-    -- store world position as top-left of tile (consistent with tests / createCell usage)
+    -- Store POSITION component as logical grid coords (xIndex, yIndex).
+    -- Rendering will multiply by pixelSize. This prevents mixing pixels into logic.
     self.entityManager:addComponent(
         tileId,
         ComponentType.POSITION,
-        Vec2.new((xIndex - 1) * constants.pixelSize, (yIndex - 1) * constants.pixelSize)
+        Vec2.new(xIndex, yIndex)
     )
     self.entityManager:addComponent(
         tileId,
@@ -106,10 +107,10 @@ function MapManager:createLevelMap()
         tiles[x] = {}
         for y = 1, self.height do
             local tileId = self:createCell(x, y)
-            local tile = Tile.new(x, y, tileId)
-            -- Ensure tile exposes grid indices (x,y) so consumers can read them easily
-            tile.x = x
-            tile.y = y
+            local topography =
+                self.entityManager:getComponent(tileId, ComponentType.TOPOGRAPHY)
+            local tile =
+                Tile.new(x, y, tileId, topography.style, topography.speedMultiplier)
             tiles[x][y] = tile
         end
     end
@@ -171,19 +172,19 @@ function MapManager:getNode(x, y)
     return self.graph and self.graph[x] and self.graph[x][y]
 end
 
---- Convert a world position to grid indices.
---- @param pos Vec2
+--- Convert a world (pixel) position to grid indices.
+--- @param pos Vec2 (pixel space)
 --- @return Vec2 (grid indices)
 function MapManager:worldToGrid(pos)
-    local x = math.floor(pos.x / constants.pixelSize) + 1
-    local y = math.floor(pos.y / constants.pixelSize) + 1
+    local x = math.floor(pos.x / constants.pixelSize)
+    local y = math.floor(pos.y / constants.pixelSize)
     return Vec2.new(x, y)
 end
 
 --- Convert grid indices back to world coordinates (center of tile).
 --- @param x integer
 --- @param y integer
---- @return Vec2 world coordinate (center)
+--- @return Vec2 world coordinate (center, in pixels)
 function MapManager:gridToWorld(x, y)
     local wx = (x - 1) * constants.pixelSize + constants.pixelSize / 2
     local wy = (y - 1) * constants.pixelSize + constants.pixelSize / 2
@@ -193,7 +194,7 @@ end
 --- Convert grid indices back to top-left world coordinate (helper).
 --- @param x integer
 --- @param y integer
---- @return Vec2 world coordinate (top-left)
+--- @return Vec2 world coordinate (top-left, in pixels)
 function MapManager:gridToWorldTopLeft(x, y)
     local wx = (x - 1) * constants.pixelSize
     local wy = (y - 1) * constants.pixelSize
@@ -209,22 +210,11 @@ function MapManager:updateTileStyle(x, y, newStyle)
         return
     end
 
-    local entity = self.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
-    if entity then
-        -- Overwrite the topography component properly (Topography component expected)
-        self.entityManager:addComponent(
-            tile.id,
-            ComponentType.TOPOGRAPHY,
-            Topography.new(newStyle, TopographyMap[newStyle] or 0)
-        )
-    else
-        -- Fallback: try adding a component using provided newStyle value
-        self.entityManager:addComponent(
-            tile.id,
-            ComponentType.TOPOGRAPHY,
-            Topography.new(newStyle, TopographyMap[newStyle] or 0)
-        )
-    end
+    self.entityManager:addComponent(
+        tile.id,
+        ComponentType.TOPOGRAPHY,
+        Topography.new(newStyle, TopographyMap[newStyle] or 0)
+    )
 
     self.dirtyGraph = true
 end
@@ -239,17 +229,14 @@ function MapManager:getTileStyle(x, y)
         return nil
     end
 
-    local topography = nil
     if tile.id and self.entityManager then
-        topography = self.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
+        local topoComp =
+            self.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
+        if topoComp and topoComp.style ~= nil then
+            return topoComp.style
+        end
     end
 
-    -- If the component was returned directly, it may be a Topography object with a .style field.
-    if topography and topography.style ~= nil then
-        return topography.style
-    end
-
-    -- Fallback: if Tile stores style directly
     return tile.style
 end
 
