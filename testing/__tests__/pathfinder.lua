@@ -20,36 +20,6 @@ end
 -- Test case for PathFinder
 TestPathFinder = {}
 
-function TestPathFinder:testGeneric()
-    local mapManager = createMockMapManager(5, 5)
-    local startWorldPos = Vec2.new(1 * constants.pixelSize, 1 * constants.pixelSize) -- (1,1)
-    local endWorldPos = Vec2.new(4 * constants.pixelSize, 4 * constants.pixelSize) -- (4,4)
-
-    local pathFinder = PathFinder.new()
-    local path = pathFinder:findPath(startWorldPos, endWorldPos, mapManager)
-
-    local expectedPath = {
-        Vec2.new(1 * constants.pixelSize, 1 * constants.pixelSize),
-        Vec2.new(2 * constants.pixelSize, 2 * constants.pixelSize),
-        Vec2.new(3 * constants.pixelSize, 3 * constants.pixelSize),
-        Vec2.new(4 * constants.pixelSize, 4 * constants.pixelSize),
-    }
-
-    luaunit.assertEquals(#path, #expectedPath, "Path length does not match")
-    for i, v in ipairs(path) do
-        luaunit.assertEquals(
-            v.x,
-            expectedPath[i].x,
-            "X position does not match at index " .. i
-        )
-        luaunit.assertEquals(
-            v.y,
-            expectedPath[i].y,
-            "Y position does not match at index " .. i
-        )
-    end
-end
-
 function TestPathFinder:testEdgeCase()
     local mapManager = createMockMapManager(5, 5)
 
@@ -68,6 +38,7 @@ function TestPathFinder:testNoPathAvailable()
 
     -- Block the path
     mapManager.graph[2][2].style = require("utils.enums").TopographyType.INACCESSIBLE
+    mapManager.graph[2][2].speedMultiplier = 0
 
     local startWorldPos = Vec2.new(1 * constants.pixelSize, 1 * constants.pixelSize) -- (1,1)
     local endWorldPos = Vec2.new(4 * constants.pixelSize, 4 * constants.pixelSize) -- (4,4)

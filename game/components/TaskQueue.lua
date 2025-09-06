@@ -1,7 +1,6 @@
 local enums = require("utils.enums")
 local ComponentType = enums.ComponentType
 local TaskType = enums.TaskType
-local TILE_SIZE = require("utils.constants")
 
 ---@class TaskQueue
 ---@field ownerId integer
@@ -52,6 +51,7 @@ function TaskQueue:update(dt, entityMgr)
     Logger:debug("new position: " .. currentTask.data.x .. "," .. currentTask.data.y)
 
     if currentTask.type == TaskType.MOVETO then
+        -- Store the logical grid Vec2 directly as the entity POSITION
         entityMgr:addComponent(self.ownerId, ComponentType.POSITION, currentTask.data)
     end
 

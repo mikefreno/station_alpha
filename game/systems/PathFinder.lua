@@ -74,8 +74,8 @@ function PathFinder:heapPop(heap)
     return min
 end
 
----@param startWorldPos Vec2
----@param endWorldPos Vec2
+---@param startWorldPos Vec2  -- can be grid Vec2 (preferred) or pixel Vec2 (will be converted)
+---@param endWorldPos Vec2    -- same as above
 ---@param mapManager MapManager
 function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
     if not mapManager or not mapManager.graph or not mapManager.graph[1] then
@@ -83,8 +83,25 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         return nil
     end
 
-    local startGrid = mapManager:worldToGrid(startWorldPos)
-    local endGrid = mapManager:worldToGrid(endWorldPos)
+    local function ensureGrid(v)
+        if not v then
+            return nil
+        end
+        if
+            v.x
+            and v.y
+            and v.x >= 1
+            and v.x <= mapManager.width
+            and v.y >= 1
+            and v.y <= mapManager.height
+        then
+            return v
+        end
+        return mapManager:worldToGrid(v)
+    end
+
+    local startGrid = ensureGrid(startWorldPos)
+    local endGrid = ensureGrid(endWorldPos)
     if not startGrid or not endGrid then
         Logger:error("start/end vec error")
         return nil
@@ -104,7 +121,6 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         return nil
     end
 
-    -- get start/goal tiles (graph[x][y])
     local startTile = mapManager.graph[startGrid.x]
         and mapManager.graph[startGrid.x][startGrid.y]
     local goalTile = mapManager.graph[endGrid.x]
@@ -114,7 +130,44 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         return nil
     end
 
-    -- open list and closed set (closedSet[x][y])
+    -- Helper: get tile speed multiplier (returns number > 0). Prefer Tile.speedMultiplier, fallback to entity component.
+    local function getSpeedMultiplier(tile)
+        if not tile then
+            return 0
+        end
+        if tile.speedMultiplier and type(tile.speedMultiplier) == "number" then
+            return tile.speedMultiplier
+        end
+        if tile.id and mapManager.entityManager then
+            local topo =
+                mapManager.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
+            if topo and topo.speedMultiplier then
+                return topo.speedMultiplier
+            end
+        end
+        -- default to OPEN speed 1.0 if missing
+        return 1.0
+    end
+
+    -- movement cost per step when traversing a tile = 1 / speedMultiplier
+    local function moveCostForTile(tile)
+        local sm = getSpeedMultiplier(tile)
+        if not sm or sm <= 0 then
+            return math.huge -- impassable or invalid
+        end
+        return 1.0 / sm
+    end
+
+    -- heuristic: use Manhattan distance times minimum move cost (admissible).
+    -- Minimum move cost is 1 / maxSpeedMultiplier. We assume maxSpeedMultiplier is 1.0 (OPEN).
+    local minMoveCost = 1.0 -- if OPEN is fastest (speedMultiplier==1), moveCost = 1
+    local function heuristic(px, py)
+        local dx = math.abs(px - goalTile.position.x)
+        local dy = math.abs(py - goalTile.position.y)
+        return (dx + dy) * minMoveCost
+    end
+
+    -- open list and closed set
     local open = {}
     local closedSet = {}
     for x = 1, mapManager.width do
@@ -133,17 +186,29 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         return false
     end
 
+    -- push node must compute g using parent's g + moveCost into this node
     local function pushNode(node)
-        node.g = node.parent and node.parent.g + 1 or 0
-        node.h = (node.position.x - goalTile.position.x) ^ 2
-            + (node.position.y - goalTile.position.y) ^ 2
+        -- compute g: if node.parent exists, add move cost for node (i.e., cost to enter node)
+        if node.parent then
+            -- node.position corresponds to the tile we're entering
+            local x, y = node.position.x, node.position.y
+            local tile = mapManager.graph[x] and mapManager.graph[x][y]
+            local cost = moveCostForTile(tile)
+            node.g = (node.parent.g or 0) + cost
+        else
+            node.g = 0
+        end
+        node.h = heuristic(node.position.x, node.position.y)
         node.f = node.g + node.h
         self:heapPush(open, node)
     end
 
-    -- Start node uses tile.position (grid Vec2)
+    -- start node: position should be startTile.position (grid)
     local startNode = self:obtainNode(nil, startTile.position)
-    pushNode(startNode)
+    startNode.g = 0
+    startNode.h = heuristic(startNode.position.x, startNode.position.y)
+    startNode.f = startNode.g + startNode.h
+    self:heapPush(open, startNode)
 
     while #open > 0 do
         local current = self:heapPop(open)
@@ -165,12 +230,10 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 
         closedSet[cx][cy] = true
 
-        -- goal reached?
         if cx == goalTile.position.x and cy == goalTile.position.y then
             local path = {}
             local n = current
             while n do
-                -- return tile.position Vec2s (grid indices); caller converts to world if needed
                 table.insert(path, 1, n.position)
                 n = n.parent
             end
@@ -184,21 +247,43 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         end
 
         for _, nb in ipairs(currentTile.neighbors or {}) do
-            -- neighbor.position is Tile.position (Vec2 of grid indices)
             if not nb.position or not nb.position.x or not nb.position.y then
-                Logger:debug("Neighbor missing position; skipping")
                 goto continue_neighbor
             end
-
             local nx, ny = nb.position.x, nb.position.y
-
             if not mapManager.graph[nx] or not mapManager.graph[nx][ny] then
                 goto continue_neighbor
             end
+            if closedSet[nx][ny] then
+                goto continue_neighbor
+            end
 
-            if not closedSet[nx][ny] and not isInOpen(nx, ny) then
+            -- compute tentative g using move cost to enter neighbor
+            local tentativeCost = current.g + moveCostForTile(nb)
+            -- check if neighbor already in open with better g
+            local inOpen = false
+            for _, on in ipairs(open) do
+                if on.position.x == nx and on.position.y == ny then
+                    inOpen = true
+                    if tentativeCost < (on.g or math.huge) then
+                        -- better path found: update parent and costs, then re-heapify by pushing updated node
+                        on.parent = current
+                        on.g = tentativeCost
+                        on.h = heuristic(nx, ny)
+                        on.f = on.g + on.h
+                        -- reinsert: simplest is to push again (heap may contain old node but comparator uses f)
+                        self:heapPush(open, on)
+                    end
+                    break
+                end
+            end
+
+            if not inOpen then
                 local child = self:obtainNode(current, nb.position)
-                pushNode(child)
+                child.g = tentativeCost
+                child.h = heuristic(nx, ny)
+                child.f = child.g + child.h
+                self:heapPush(open, child)
             end
 
             ::continue_neighbor::

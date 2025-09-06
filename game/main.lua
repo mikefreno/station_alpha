@@ -28,12 +28,12 @@ end
 
 function love.load()
     Camera = Camera.new()
-    mapManager = MapManager.new(EntityManager, constants.MAP_W / 10, constants.MAP_H / 10)
+    mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
     mapManager:createLevelMap()
 
     ---temporary for demoing purposes---
     Dot = EntityManager:createEntity()
-    EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(4, 3))
+    EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(1, 1))
     EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
     EntityManager:addComponent(
         Dot,
@@ -49,11 +49,6 @@ end
 
 local lastPos
 function love.update(dt)
-    --local dotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
-    --if not lastPos or lastPos ~= dotPos then
-    --Logger:debug("previous dot position: "
-    --lastPos =dotPos
-    --end
     MapManager:update()
     --InputSystem:update(EntityManager)
     PositionSystem:update(dt, EntityManager)
@@ -85,14 +80,23 @@ function love.keypressed(key, scancode, isrepeat)
 end
 
 function love.mousepressed(x, y, button, istouch)
-    if button == 1 then -- left‑click
-        local worldX = (x / Camera.zoom) + Camera.position.x
-        local worldY = (y / Camera.zoom) + Camera.position.y
+    if button == 1 then
+        local sx, sy = x, y
 
-        local clickVec = Vec2.new(worldX, worldY)
+        local worldX = (sx / Camera.zoom) + (Camera.position.x * constants.pixelSize)
+        local worldY = (sy / Camera.zoom) + (Camera.position.y * constants.pixelSize)
+
+        -- Convert pixel world to grid indices
+        local clickGrid = mapManager:worldToGrid(Vec2.new(worldX, worldY))
+        local DotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
+
+        Logger:debug(DotPos)
+        Logger:debug(clickGrid)
+
+        -- Current dot position stored as logical grid coords
         local currentDotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
 
-        local path = pathfinder:findPath(currentDotPos, clickVec, mapManager)
+        local path = pathfinder:findPath(currentDotPos, clickGrid, mapManager)
         if path == nil then
             return
         end
@@ -101,8 +105,7 @@ function love.mousepressed(x, y, button, istouch)
             local taskQueue = EntityManager:getComponent(Dot, ComponentType.TASKQUEUE)
             if taskQueue then
                 for _, wp in ipairs(path) do
-                    wp:mutMul(constants.pixelSize)
-                    taskQueue:push({ type = TaskType.MOVETO, data = wp })
+                    taskQueue:push({ type = TaskType.MOVETO, data = Vec2.new(wp.x, wp.y) })
                 end
             end
         end

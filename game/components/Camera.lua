@@ -12,7 +12,7 @@ Camera.__index = Camera
 function Camera.new()
     local self = setmetatable({}, Camera)
 
-    self.position = Vec2.new()
+    self.position = Vec2.new(1, 1)
 
     self.zoom = 1
     self.zoomRate = 0.1
