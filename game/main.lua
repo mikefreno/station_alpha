@@ -35,11 +35,9 @@ function love.load()
     Dot = EntityManager:createEntity()
     EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(1, 1))
     EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
-    EntityManager:addComponent(
-        Dot,
-        ComponentType.TEXTURE,
-        Texture.new({ r = 1, g = 0.5, b = 0 })
-    )
+    -- 100 meters(tiles) in 70 seconds
+    EntityManager:addComponent(Dot, ComponentType.SPEEDSTAT, 100 / 70)
+    EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
     EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 10))
     EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
     ---temporary for demoing purposes---

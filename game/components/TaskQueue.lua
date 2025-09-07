@@ -1,10 +1,12 @@
 local enums = require("utils.enums")
+local MoveTo = require("components.MoveTo")
 local ComponentType = enums.ComponentType
 local TaskType = enums.TaskType
 
 ---@class TaskQueue
 ---@field ownerId integer
 ---@field queue table<integer, {type: TaskType, data: any}>
+---@field currentTask MoveTo?
 local TaskQueue = {}
 
 ---@param ownerId integer
@@ -12,6 +14,7 @@ function TaskQueue.new(ownerId)
     local self = setmetatable({}, { __index = TaskQueue })
     self.ownerId = ownerId
     self.queue = {}
+    self.currentTask = nil
     return self
 end
 
@@ -25,37 +28,31 @@ function TaskQueue:pop()
     return table.remove(self.queue, 1)
 end
 
-local timer = 1.0
 ---@param dt number
 ---@param entityMgr EntityManager
 function TaskQueue:update(dt, entityMgr)
-    if #self.queue == 0 then
-        return
+    if self.currentTask and self.currentTask.duration <= self.currentTask.elapsed then
+        self.currentTask = nil
     end
-    timer = timer - dt
-    if timer > 0 then
-        return
-    end
-    local currentTask = self:pop()
-
-    if not currentTask then
-        local v = entityMgr:getComponent(self.ownerId, ComponentType.VELOCITY)
-        if v then
-            v.x, v.y = 0, 0
+    if self.currentTask then
+        self.currentTask:update(dt, entityMgr)
+    else
+        if #self.queue == 0 then
+            return
         end
-        return
+
+        local nextTask = self:pop()
+
+        if nextTask.type == TaskType.MOVETO then
+            local currentPos = entityMgr:getComponent(self.ownerId, ComponentType.POSITION)
+            local nextPos = nextTask.data
+            local diff = nextPos:sub(nextPos)
+            local speedStat = entityMgr:getComponent(self.ownerId, ComponentType.SPEEDSTAT)
+            local duration = diff:length() / speedStat
+            local moveto = MoveTo.new(currentPos, nextPos, duration, self.ownerId, diff)
+            self.currentTask = moveto
+        end
     end
-
-    local currentPos = entityMgr:getComponent(self.ownerId, ComponentType.POSITION)
-    Logger:debug("current position: " .. currentPos.x .. "," .. currentPos.y)
-    Logger:debug("new position: " .. currentTask.data.x .. "," .. currentTask.data.y)
-
-    if currentTask.type == TaskType.MOVETO then
-        -- Store the logical grid Vec2 directly as the entity POSITION
-        entityMgr:addComponent(self.ownerId, ComponentType.POSITION, currentTask.data)
-    end
-
-    timer = 1.0
 end
 
 return TaskQueue
