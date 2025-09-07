@@ -73,7 +73,7 @@ function MapManager:createCell(xIndex, yIndex)
     -- Rendering will multiply by pixelSize. This prevents mixing pixels into logic.
     self.entityManager:addComponent(tileId, ComponentType.POSITION, Vec2.new(xIndex, yIndex))
     self.entityManager:addComponent(tileId, ComponentType.TEXTURE, Texture.new(result.color))
-    self.entityManager:addComponent(tileId, ComponentType.SHAPE, Shape.new(ShapeType.SQUARE, constants.pixelSize))
+    self.entityManager:addComponent(tileId, ComponentType.SHAPE, Shape.new(ShapeType.SQUARE, 1))
     self.entityManager:addComponent(
         tileId,
         ComponentType.TOPOGRAPHY,

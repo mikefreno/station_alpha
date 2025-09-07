@@ -32,7 +32,7 @@ function RenderSystem:update(entityManager)
         local py = pos.y * constants.pixelSize
 
         if shape and shape.shape == ShapeType.SQUARE then
-            local size = shape.size or constants.pixelSize
+            local size = shape.size * constants.pixelSize or constants.pixelSize
             love.graphics.rectangle(shape.border_only and "line" or "fill", px, py, size, size)
             if mapTile then
                 local centerX = px + constants.pixelSize / 3
