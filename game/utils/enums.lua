@@ -10,6 +10,7 @@ enums.ComponentType = {
     TOPOGRAPHY = 6,
     MAPTILETAG = 7,
     SPEEDSTAT = 8, --tiles/sec
+    MOVETO = 9,
 }
 
 --- @enum TaskType

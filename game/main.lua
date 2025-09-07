@@ -17,6 +17,7 @@ local LoadingIndicator = require("components.LoadingIndicator")
 local TaskQueue = require("components.TaskQueue")
 local overlayStats = require("libs.OverlayStats")
 Logger = require("logger"):init()
+local Slab = require("libs.Slab")
 
 local mapManager
 
@@ -26,7 +27,7 @@ local function isLoading()
     end
 end
 
-function love.load()
+function love.load(args)
     Camera = Camera.new()
     mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
     mapManager:createLevelMap()
@@ -35,22 +36,29 @@ function love.load()
     Dot = EntityManager:createEntity()
     EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(1, 1))
     EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
-    -- 100 meters(tiles) in 70 seconds
-    EntityManager:addComponent(Dot, ComponentType.SPEEDSTAT, 100 / 70)
+    -- 100 meters(50 tiles) in 70 seconds
+    EntityManager:addComponent(Dot, ComponentType.SPEEDSTAT, 50 / 70)
     EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
     EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 10))
     EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
     ---temporary for demoing purposes---
 
+    Slab.Initialize(args)
     overlayStats.load()
 end
 
-local lastPos
 function love.update(dt)
-    MapManager:update()
-    --InputSystem:update(EntityManager)
-    PositionSystem:update(dt, EntityManager)
     Camera:update(dt)
+    mapManager:update()
+    --InputSystem:update(EntityManager)
+    for e, _ in pairs(EntityManager.entities) do
+        local tq = EntityManager:getComponent(e, ComponentType.TASKQUEUE)
+        if tq then
+            tq:update(dt, EntityManager, mapManager)
+        end
+    end
+    PositionSystem:update(dt, EntityManager, mapManager)
+    Slab.Update(dt)
 
     if isLoading() == true and LoadingIndicator.isVisible == false then
         LoadingIndicator:show()
@@ -60,13 +68,6 @@ function love.update(dt)
 
     if LoadingIndicator.isVisible then
         LoadingIndicator:update(dt)
-    end
-
-    for e, _ in pairs(EntityManager.entities) do
-        local tq = EntityManager:getComponent(e, ComponentType.TASKQUEUE)
-        if tq then
-            tq:update(dt, EntityManager)
-        end
     end
 
     overlayStats.update(dt)
@@ -107,6 +108,10 @@ function love.mousepressed(x, y, button, istouch)
                 end
             end
         end
+    elseif button == 2 then
+        Slab.BeginWindow("MyFirstWindow", { Title = "Dot Options" })
+        Slab.Text("Hello World")
+        Slab.EndWindow()
     end
 end
 
@@ -127,6 +132,7 @@ function love.draw()
     RenderSystem:update(EntityManager)
     Camera:unapply()
     LoadingIndicator:draw()
+    Slab.Draw()
     Logger:draw()
     overlayStats.draw()
 end

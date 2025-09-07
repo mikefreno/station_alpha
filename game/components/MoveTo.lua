@@ -44,7 +44,6 @@ function MoveTo:update(dt, entityManager)
         ownerPos.x = newPos.x
         ownerPos.y = newPos.y
     else
-        -- if no POSITION component, add one (unlikely)
         entityManager:addComponent(self.owner, ComponentType.POSITION, Vec2.new(newPos.x, newPos.y))
     end
 

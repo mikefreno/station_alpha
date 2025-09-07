@@ -12,9 +12,7 @@ end
 ---@param dt number
 ---@param entityManager EntityManager
 function PositionSystem:update(dt, entityManager)
-    for _, e in
-        ipairs(self:query(entityManager, ComponentType.POSITION, ComponentType.VELOCITY))
-    do
+    for _, e in ipairs(self:query(entityManager, ComponentType.POSITION, ComponentType.VELOCITY)) do
         local p = entityManager:getComponent(e, ComponentType.POSITION)
         local v = entityManager:getComponent(e, ComponentType.VELOCITY)
         p.x = p.x + v.x * dt
