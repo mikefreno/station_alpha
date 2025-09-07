@@ -11,7 +11,7 @@ end
 
 --- Draw every entity that has a POSITION component.
 function RenderSystem:update(entityManager)
-    love.graphics.clear(0.1, 0.1, 0.1)
+    love.graphics.clear(0.4, 0.88, 1.0)
 
     love.graphics.push()
 
@@ -33,24 +33,12 @@ function RenderSystem:update(entityManager)
 
         if shape and shape.shape == ShapeType.SQUARE then
             local size = shape.size or constants.pixelSize
-            love.graphics.rectangle(
-                shape.border_only and "line" or "fill",
-                px,
-                py,
-                size,
-                size
-            )
+            love.graphics.rectangle(shape.border_only and "line" or "fill", px, py, size, size)
             if mapTile then
                 local centerX = px + constants.pixelSize / 2
                 local centerY = py + constants.pixelSize / 2
                 love.graphics.setColor(1, 1, 1)
-                love.graphics.print(
-                    mapTile.x .. "," .. mapTile.y,
-                    centerX,
-                    centerY,
-                    0,
-                    0.5
-                )
+                love.graphics.print(mapTile.x .. "," .. mapTile.y, centerX, centerY, 0, 0.5)
             end
             goto continue
         end
@@ -60,20 +48,14 @@ function RenderSystem:update(entityManager)
                 shape.border_only and "line" or "fill",
                 px + constants.pixelSize / 2,
                 py + constants.pixelSize / 2,
-                shape.size or 10
+                shape.size * constants.pixelSize / 2
             )
             goto continue
         end
 
         if not shape then
             -- draw a full tile sized rectangle for logical units
-            love.graphics.rectangle(
-                "fill",
-                px,
-                py,
-                constants.pixelSize,
-                constants.pixelSize
-            )
+            love.graphics.rectangle("fill", px, py, constants.pixelSize, constants.pixelSize)
             goto continue
         end
 

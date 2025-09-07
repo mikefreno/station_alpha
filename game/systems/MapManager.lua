@@ -87,9 +87,9 @@ end
 function MapManager:createLevelMap()
     -- Build graph as graph[x][y] to match PathFinder expectations
     local tiles = {}
-    for x = 1, self.width do
+    for x = 0, self.width do
         tiles[x] = {}
-        for y = 1, self.height do
+        for y = 0, self.height do
             local tileId = self:createCell(x, y)
             local topography = self.entityManager:getComponent(tileId, ComponentType.TOPOGRAPHY)
             local tile = Tile.new(x, y, tileId, topography.style, topography.speedMultiplier)
@@ -105,11 +105,11 @@ function MapManager:buildGraph()
         { 1, 0 },
         { -1, 0 },
         { 0, 1 },
-        { 0, -1 }, -- orthogonal
+        { 0, -1 },
         { 1, 1 },
         { 1, -1 },
         { -1, 1 },
-        { -1, -1 }, -- diagonals
+        { -1, -1 },
     }
 
     for x = 1, self.width do
@@ -130,7 +130,6 @@ function MapManager:buildGraph()
                     goto continue
                 end
 
-                -- -------------- handle diagonal case --------------
                 if d[1] ~= 0 and d[2] ~= 0 then -- diagonal
                     local styleDiag = self:getTileStyle(nx, ny)
                     local styleSideX = self:getTileStyle(x + d[1], y) -- (x+dx, y)

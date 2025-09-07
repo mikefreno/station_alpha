@@ -34,12 +34,12 @@ function love.load(args)
 
     ---temporary for demoing purposes---
     Dot = EntityManager:createEntity()
-    EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(1, 1))
+    EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new())
     EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
     -- 100 meters(50 tiles) in 70 seconds
     EntityManager:addComponent(Dot, ComponentType.SPEEDSTAT, 50 / 70)
     EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
-    EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 10))
+    EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 1))
     EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
     ---temporary for demoing purposes---
 
@@ -126,6 +126,15 @@ end
 
 function love.touchpressed(id, x, y, dx, dy, pressure)
     overlayStats.handleTouch(id, x, y, dx, dy, pressure)
+end
+
+function love.resize()
+    local function recalcPixelSize()
+        local width = love.window.getMode()
+        constants.pixelSize = width / 40 -- fit 40 tiles in the width
+    end
+
+    recalcPixelSize()
 end
 
 function love.draw()
