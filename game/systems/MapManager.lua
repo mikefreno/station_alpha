@@ -87,9 +87,9 @@ end
 function MapManager:createLevelMap()
     -- Build graph as graph[x][y] to match PathFinder expectations
     local tiles = {}
-    for x = 0, self.width do
+    for x = 1, self.width do
         tiles[x] = {}
-        for y = 0, self.height do
+        for y = 1, self.height do
             local tileId = self:createCell(x, y)
             local topography = self.entityManager:getComponent(tileId, ComponentType.TOPOGRAPHY)
             local tile = Tile.new(x, y, tileId, topography.style, topography.speedMultiplier)

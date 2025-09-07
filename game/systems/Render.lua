@@ -35,10 +35,12 @@ function RenderSystem:update(entityManager)
             local size = shape.size or constants.pixelSize
             love.graphics.rectangle(shape.border_only and "line" or "fill", px, py, size, size)
             if mapTile then
-                local centerX = px + constants.pixelSize / 2
-                local centerY = py + constants.pixelSize / 2
+                local centerX = px + constants.pixelSize / 3
+                local centerY = py + constants.pixelSize / 3
                 love.graphics.setColor(1, 1, 1)
-                love.graphics.print(mapTile.x .. "," .. mapTile.y, centerX, centerY, 0, 0.5)
+                if Logger.visible then
+                    love.graphics.print(mapTile.x .. "," .. mapTile.y, centerX, centerY, 0, 0.5)
+                end
             end
             goto continue
         end

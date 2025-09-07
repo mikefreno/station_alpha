@@ -11,6 +11,7 @@ enums.ComponentType = {
     MAPTILETAG = 7,
     SPEEDSTAT = 8, --tiles/sec
     MOVETO = 9,
+    CAMERA = 10,
 }
 
 --- @enum TaskType

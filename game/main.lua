@@ -28,18 +28,19 @@ local function isLoading()
 end
 
 function love.load(args)
-    Camera = Camera.new()
+    God = EntityManager:createEntity() -- id 1
+    EntityManager:addComponent(God, ComponentType.CAMERA, Camera.new())
     mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
     mapManager:createLevelMap()
 
     ---temporary for demoing purposes---
     Dot = EntityManager:createEntity()
-    EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new())
+    EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(1, 1))
     EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
     -- 100 meters(50 tiles) in 70 seconds
     EntityManager:addComponent(Dot, ComponentType.SPEEDSTAT, 50 / 70)
     EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
-    EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 1))
+    EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
     EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
     ---temporary for demoing purposes---
 
@@ -48,7 +49,8 @@ function love.load(args)
 end
 
 function love.update(dt)
-    Camera:update(dt)
+    local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
+    camera:update(dt)
     PositionSystem:update(dt, EntityManager)
     mapManager:update()
     --InputSystem:update(EntityManager)
@@ -120,7 +122,8 @@ function love.wheelmoved(x, y)
     if love.keyboard.isDown("lctrl") then
         Logger:wheelmoved(x, y)
     else
-        Camera:wheelmoved(x, y)
+        local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
+        camera:wheelmoved(x, y)
     end
 end
 
@@ -138,9 +141,10 @@ function love.resize()
 end
 
 function love.draw()
-    Camera:apply()
+    local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
+    camera:apply()
     RenderSystem:update(EntityManager)
-    Camera:unapply()
+    camera:unapply()
     LoadingIndicator:draw()
     Slab.Draw()
     Logger:draw()

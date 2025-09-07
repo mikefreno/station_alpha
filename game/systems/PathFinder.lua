@@ -1,3 +1,6 @@
+local enums = require("utils.enums")
+local ComponentType = enums.ComponentType
+
 ---@class Pathfinder
 ---@field nodePool table<integer, table> -- pool of plain node tables
 ---@field poolIndex integer

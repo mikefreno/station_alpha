@@ -14,7 +14,7 @@ Camera.__index = Camera
 function Camera.new()
     local self = setmetatable({}, Camera)
 
-    self.position = Vec2.new()
+    self.position = Vec2.new(1, 1)
 
     self.zoom = 1
     self.zoomRate = 0.15 -- a bit higher so you see the effect
@@ -99,8 +99,8 @@ function Camera:clampPosition()
     -- Padding: half a tile beyond each edge
     local pad = 0.5
 
-    local minX = -pad
-    local minY = -pad
+    local minX = pad
+    local minY = pad
     local maxX = MAP_W + pad + 1 - logicalW
     local maxY = MAP_H + pad + 1 - logicalH
 
@@ -109,4 +109,11 @@ function Camera:clampPosition()
     self.position.y = math.max(minY, math.min(maxY, self.position.y))
 end
 
-return Camera.new()
+function Camera:getVisibleBounds()
+    local w = love.graphics.getWidth() / (pixelSize * self.zoom)
+    local h = love.graphics.getHeight() / (pixelSize * self.zoom)
+
+    return { x = self.position.x, y = self.position.y, w = w, h = h }
+end
+
+return Camera
