@@ -3,51 +3,30 @@ local enums = require("utils.enums")
 local ComponentType = enums.ComponentType
 
 ---@class MoveTo
----@field from Vec2
----@field to Vec2
----@field distance Vec2
----@field duration number
----@field elapsed number
----@field owner integer
+---@field target Vec2
 local MoveTo = {}
 MoveTo.__index = MoveTo
 
----@param from Vec2
----@param to Vec2
----@param duration number
----@param ownerId integer
----@param distance Vec2?   -- optional, will compute if nil
+---@param target Vec2
 ---@return MoveTo
-function MoveTo.new(from, to, duration, ownerId, distance)
+function MoveTo.new(target)
     local self = setmetatable({}, MoveTo)
-    self.from = Vec2.new(from.x, from.y)
-    self.to = Vec2.new(to.x, to.y)
-    self.distance = distance or self.to:sub(self.from) -- Vec2
-    self.duration = math.max(0.0001, duration or 0.25) -- avoid zero duration
-    self.elapsed = 0
-    self.owner = ownerId
+    self.target = target
     return self
 end
 
---- @param dt number
---- @param entityManager EntityManager
---- @return boolean finished
-function MoveTo:update(dt, entityManager)
-    self.elapsed = self.elapsed + dt
-    local t = math.min(1, self.elapsed / self.duration)
-
-    local interp = t
-
-    local newPos = self.from:lerp(self.to, interp)
-    local ownerPos = entityManager:getComponent(self.owner, ComponentType.POSITION)
-    if ownerPos then
-        ownerPos.x = newPos.x
-        ownerPos.y = newPos.y
-    else
-        entityManager:addComponent(self.owner, ComponentType.POSITION, Vec2.new(newPos.x, newPos.y))
+---comment
+---@param id integer
+---@param entityManager EntityManager
+---@param cleanupFunc function
+function MoveTo:update(id, entityManager, cleanupFunc)
+    local pos = entityManager:getComponent(id, ComponentType.POSITION)
+    local distToTarget = self.target:sub(pos):length()
+    if distToTarget <= 1e-2 then
+        cleanupFunc()
+        return true
     end
-
-    return t >= 1
+    return false
 end
 
 return MoveTo

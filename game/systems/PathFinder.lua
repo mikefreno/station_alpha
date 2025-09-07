@@ -87,14 +87,7 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         if not v then
             return nil
         end
-        if
-            v.x
-            and v.y
-            and v.x >= 1
-            and v.x <= mapManager.width
-            and v.y >= 1
-            and v.y <= mapManager.height
-        then
+        if v.x and v.y and v.x >= 1 and v.x <= mapManager.width and v.y >= 1 and v.y <= mapManager.height then
             return v
         end
         return mapManager:worldToGrid(v)
@@ -121,10 +114,8 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         return nil
     end
 
-    local startTile = mapManager.graph[startGrid.x]
-        and mapManager.graph[startGrid.x][startGrid.y]
-    local goalTile = mapManager.graph[endGrid.x]
-        and mapManager.graph[endGrid.x][endGrid.y]
+    local startTile = mapManager.graph[startGrid.x] and mapManager.graph[startGrid.x][startGrid.y]
+    local goalTile = mapManager.graph[endGrid.x] and mapManager.graph[endGrid.x][endGrid.y]
     if not startTile or not goalTile then
         Logger:error("start/end node error")
         return nil
@@ -139,8 +130,7 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
             return tile.speedMultiplier
         end
         if tile.id and mapManager.entityManager then
-            local topo =
-                mapManager.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
+            local topo = mapManager.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
             if topo and topo.speedMultiplier then
                 return topo.speedMultiplier
             end
@@ -177,33 +167,6 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         end
     end
 
-    local function isInOpen(px, py)
-        for _, n in ipairs(open) do
-            if n.position.x == px and n.position.y == py then
-                return true
-            end
-        end
-        return false
-    end
-
-    -- push node must compute g using parent's g + moveCost into this node
-    local function pushNode(node)
-        -- compute g: if node.parent exists, add move cost for node (i.e., cost to enter node)
-        if node.parent then
-            -- node.position corresponds to the tile we're entering
-            local x, y = node.position.x, node.position.y
-            local tile = mapManager.graph[x] and mapManager.graph[x][y]
-            local cost = moveCostForTile(tile)
-            node.g = (node.parent.g or 0) + cost
-        else
-            node.g = 0
-        end
-        node.h = heuristic(node.position.x, node.position.y)
-        node.f = node.g + node.h
-        self:heapPush(open, node)
-    end
-
-    -- start node: position should be startTile.position (grid)
     local startNode = self:obtainNode(nil, startTile.position)
     startNode.g = 0
     startNode.h = heuristic(startNode.position.x, startNode.position.y)
@@ -219,12 +182,7 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 
         local cx, cy = current.position.x, current.position.y
         if not closedSet[cx] or closedSet[cx][cy] == nil then
-            Logger:error(
-                "Invalid position in closedSet: x:"
-                    .. tostring(cx)
-                    .. ", y:"
-                    .. tostring(cy)
-            )
+            Logger:error("Invalid position in closedSet: x:" .. tostring(cx) .. ", y:" .. tostring(cy))
             return nil
         end
 
@@ -234,7 +192,9 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
             local path = {}
             local n = current
             while n do
-                table.insert(path, 1, n.position)
+                if n.parent ~= nil then -- skip the very first node (the start)
+                    table.insert(path, 1, n.position)
+                end
                 n = n.parent
             end
             self:releaseAll()

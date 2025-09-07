@@ -49,6 +49,7 @@ end
 
 function love.update(dt)
     Camera:update(dt)
+    PositionSystem:update(dt, EntityManager)
     mapManager:update()
     --InputSystem:update(EntityManager)
     for e, _ in pairs(EntityManager.entities) do
@@ -57,7 +58,6 @@ function love.update(dt)
             tq:update(dt, EntityManager, mapManager)
         end
     end
-    PositionSystem:update(dt, EntityManager, mapManager)
     Slab.Update(dt)
 
     if isLoading() == true and LoadingIndicator.isVisible == false then

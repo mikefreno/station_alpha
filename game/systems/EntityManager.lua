@@ -37,7 +37,7 @@ end
 
 ---@param type ComponentType
 ---@param data any
----@return integer?
+---@return integer? --entity
 function EntityManager:find(type, data)
     local byType = self.components[type]
     if not byType then
@@ -45,7 +45,7 @@ function EntityManager:find(type, data)
     end
 
     for id, comp in pairs(byType) do
-        if type == ComponentType.POSITION then
+        if type == ComponentType.POSITION or type == ComponentType.MAPTILETAG then
             if comp.x == data.x and comp.y == data.y then
                 return id
             end

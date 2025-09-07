@@ -31,17 +31,22 @@ end
 
 ---@param dt number
 ---@param entityManager EntityManager
----@param mapManager MapManager
-function TaskQueue:update(dt, entityManager, mapManager)
-    -- If there's an active MoveTo, advance it
-    if self.currentTask then
-        local finished = self.currentTask:update(dt, entityManager)
-        if finished then
-            self.currentTask = nil
-        end
-        return
+function TaskQueue:update(dt, entityManager)
+    local function cleanup()
+        --align
+        local p = entityManager:getComponent(self.ownerId, ComponentType.POSITION)
+        local v = entityManager:getComponent(self.ownerId, ComponentType.VELOCITY)
+        v = Vec2.new(0, 0)
+        p = self.currentTask.target
+        --clear
+        self.currentTask = nil
     end
-
+    if self.currentTask then
+        local calledCleanup = self.currentTask:update(self.ownerId, entityManager, cleanup)
+        if not calledCleanup then
+            return
+        end
+    end
     -- If no current task, start the next one
     if #self.queue == 0 then
         return
@@ -49,31 +54,8 @@ function TaskQueue:update(dt, entityManager, mapManager)
 
     local nextTask = self:pop()
     if nextTask.type == TaskType.MOVETO then
-        local currentPos = entityManager:getComponent(self.ownerId, ComponentType.POSITION)
-        local nextPos = nextTask.data
-        -- ensure Vec2 instances
-        if not currentPos or not nextPos then
-            return
-        end
-
-        local diff = nextPos:sub(currentPos) -- vec from current -> next
-        local distance = diff:length()
-
-        -- read speed stat (tiles per second). If stored as component object, extract numeric.
-        local speed = entityManager:getComponent(self.ownerId, ComponentType.SPEEDSTAT)
-
-        local duration = 0.0001
-        if distance > 0 then
-            duration = distance / math.max(0.0001, speed)
-            if mapManager then
-                local tile = mapManager:getNode(nextPos.x, nextPos.y)
-                if tile and tile.speedMultiplier and tile.speedMultiplier > 0 then
-                    duration = duration / tile.speedMultiplier
-                end
-            end
-        end
-
-        self.currentTask = MoveTo.new(currentPos, nextPos, duration, self.ownerId, diff)
+        self.currentTask = MoveTo.new(nextTask.data)
+        entityManager:addComponent(self.ownerId, ComponentType.MOVETO, self.currentTask)
     elseif nextTask.type == TaskType.WORK then
         -- handle other task types
     end
