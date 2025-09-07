@@ -21,6 +21,11 @@ function TaskQueue.new(ownerId, mapManager)
     return self
 end
 
+function TaskQueue:reset()
+    self.queue = {}
+    self.currentTask = nil
+end
+
 function TaskQueue:push(task)
     table.insert(self.queue, task)
 end

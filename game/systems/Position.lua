@@ -9,18 +9,27 @@ function PositionSystem.new()
     local self = setmetatable({}, PositionSystem)
     return self
 end
-local movetoTarget
-local top = { speedMultiplier = 0 }
 
 ---@param dt number
 ---@param entityManager EntityManager
 function PositionSystem:update(dt, entityManager)
-    for _, e in ipairs(self:query(entityManager, ComponentType.POSITION, ComponentType.VELOCITY)) do
+    for _, e in ipairs(self:query(entityManager, ComponentType.POSITION, ComponentType.VELOCITY, ComponentType.MOVETO)) do
         local p = entityManager:getComponent(e, ComponentType.POSITION)
         local v = entityManager:getComponent(e, ComponentType.VELOCITY)
         local moveto = entityManager:getComponent(e, ComponentType.MOVETO)
-        local speedStat = entityManager:getComponent(e, ComponentType.SPEEDSTAT)
+
         if moveto then
+            local dirToTarget = moveto.target:sub(p)
+            local remainingDist = dirToTarget:length()
+
+            if remainingDist < 1e-6 then
+                p.x, p.y = moveto.target.x, moveto.target.y
+                entityManager:removeComponent(e, ComponentType.MOVETO)
+                v.x, v.y = 0, 0 -- stop moving
+                goto next_entity
+            end
+
+            local speedStat = entityManager:getComponent(e, ComponentType.SPEEDSTAT)
             local intx = math.floor(p.x + 0.5) -- dot (and future entities will render at center, need to align with visuals)
             local inty = math.floor(p.y + 0.5)
             local currentTileEntity = entityManager:find(ComponentType.MAPTILETAG, Vec2.new(intx, inty))
@@ -29,22 +38,25 @@ function PositionSystem:update(dt, entityManager)
                 return
             end
             local topography = entityManager:getComponent(currentTileEntity, ComponentType.TOPOGRAPHY)
-
             local newVel = moveto.target:sub(p):normalize():mul(topography.speedMultiplier * speedStat)
-            if moveto ~= movetoTarget then
-                Logger:debug("target" .. moveto.target.x .. "," .. moveto.target.y)
-                Logger:debug("current" .. p.x .. "," .. p.y)
-                Logger:debug("speedstat" .. speedStat)
-                movetoTarget = moveto
+            local step = newVel:mul(dt)
+
+            if step:length() >= remainingDist then
+                p.x, p.y = moveto.target.x, moveto.target.y
+                entityManager:removeComponent(e, ComponentType.MOVETO)
+                v.x, v.y = 0, 0
+            else
+                -- Normal movement
+                p.x = p.x + step.x
+                p.y = p.y + step.y
             end
-            if topography.speedMultiplier ~= top.speedMultiplier then
-                Logger:debug("speed mult" .. topography.speedMultiplier)
-                top.speedMultiplier = topography.speedMultiplier
-            end
-            v = newVel
+            goto next_entity
         end
+
         p.x = p.x + v.x * dt
         p.y = p.y + v.y * dt
+
+        ::next_entity::
     end
 end
 

@@ -103,6 +103,7 @@ function love.mousepressed(x, y, button, istouch)
         if path and #path > 0 then
             local taskQueue = EntityManager:getComponent(Dot, ComponentType.TASKQUEUE)
             if taskQueue then
+                taskQueue:reset()
                 for _, wp in ipairs(path) do
                     taskQueue:push({ type = TaskType.MOVETO, data = Vec2.new(wp.x, wp.y) })
                 end

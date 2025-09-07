@@ -71,32 +71,16 @@ function MapManager:createCell(xIndex, yIndex)
 
     -- Store POSITION component as logical grid coords (xIndex, yIndex).
     -- Rendering will multiply by pixelSize. This prevents mixing pixels into logic.
-    self.entityManager:addComponent(
-        tileId,
-        ComponentType.POSITION,
-        Vec2.new(xIndex, yIndex)
-    )
-    self.entityManager:addComponent(
-        tileId,
-        ComponentType.TEXTURE,
-        Texture.new(result.color)
-    )
-    self.entityManager:addComponent(
-        tileId,
-        ComponentType.SHAPE,
-        Shape.new(ShapeType.SQUARE, constants.pixelSize)
-    )
+    self.entityManager:addComponent(tileId, ComponentType.POSITION, Vec2.new(xIndex, yIndex))
+    self.entityManager:addComponent(tileId, ComponentType.TEXTURE, Texture.new(result.color))
+    self.entityManager:addComponent(tileId, ComponentType.SHAPE, Shape.new(ShapeType.SQUARE, constants.pixelSize))
     self.entityManager:addComponent(
         tileId,
         ComponentType.TOPOGRAPHY,
         Topography.new(result.style, result.speedMultiplier)
     )
     -- store grid tag as x,y indices
-    self.entityManager:addComponent(
-        tileId,
-        ComponentType.MAPTILETAG,
-        Vec2.new(xIndex, yIndex)
-    )
+    self.entityManager:addComponent(tileId, ComponentType.MAPTILETAG, Vec2.new(xIndex, yIndex))
     return tileId
 end
 
@@ -107,10 +91,8 @@ function MapManager:createLevelMap()
         tiles[x] = {}
         for y = 1, self.height do
             local tileId = self:createCell(x, y)
-            local topography =
-                self.entityManager:getComponent(tileId, ComponentType.TOPOGRAPHY)
-            local tile =
-                Tile.new(x, y, tileId, topography.style, topography.speedMultiplier)
+            local topography = self.entityManager:getComponent(tileId, ComponentType.TOPOGRAPHY)
+            local tile = Tile.new(x, y, tileId, topography.style, topography.speedMultiplier)
             tiles[x][y] = tile
         end
     end
@@ -119,39 +101,60 @@ function MapManager:createLevelMap()
 end
 
 function MapManager:buildGraph()
-    local dirs = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } } -- orthogonal only
+    local dirs = {
+        { 1, 0 },
+        { -1, 0 },
+        { 0, 1 },
+        { 0, -1 }, -- orthogonal
+        { 1, 1 },
+        { 1, -1 },
+        { -1, 1 },
+        { -1, -1 }, -- diagonals
+    }
+
     for x = 1, self.width do
         for y = 1, self.height do
             local tile = self.graph[x][y]
             tile.neighbors = {}
+
             for _, d in ipairs(dirs) do
                 local nx, ny = x + d[1], y + d[2]
-                if nx >= 1 and nx <= self.width and ny >= 1 and ny <= self.height then
-                    local neighbor = self.graph[nx][ny]
-                    -- Read topography from entity component if available
-                    local neighborStyle = nil
-                    if neighbor and neighbor.id and self.entityManager then
-                        local topoComp = self.entityManager:getComponent(
-                            neighbor.id,
-                            ComponentType.TOPOGRAPHY
-                        )
-                        if topoComp and topoComp.style ~= nil then
-                            neighborStyle = topoComp.style
-                        else
-                            neighborStyle = neighbor.style
-                        end
-                    else
-                        neighborStyle = neighbor and neighbor.style
-                    end
 
-                    if neighborStyle ~= TopographyType.INACCESSIBLE then
-                        -- neighbor.position already exists as Tile.position (Vec2)
+                -- Skip any coordinate that’s off‑the‑map
+                if nx < 1 or nx > self.width or ny < 1 or ny > self.height then
+                    goto continue
+                end
+
+                local neighbor = self.graph[nx][ny]
+                if not neighbor then
+                    goto continue
+                end
+
+                -- -------------- handle diagonal case --------------
+                if d[1] ~= 0 and d[2] ~= 0 then -- diagonal
+                    local styleDiag = self:getTileStyle(nx, ny)
+                    local styleSideX = self:getTileStyle(x + d[1], y) -- (x+dx, y)
+                    local styleSideY = self:getTileStyle(x, y + d[2]) -- (x, y+dy)
+
+                    if
+                        styleDiag ~= TopographyType.INACCESSIBLE
+                        and styleSideX ~= TopographyType.INACCESSIBLE
+                        and styleSideY ~= TopographyType.INACCESSIBLE
+                    then
+                        table.insert(tile.neighbors, neighbor)
+                    end
+                else -- orthogonal
+                    local style = self:getTileStyle(nx, ny)
+                    if style ~= TopographyType.INACCESSIBLE then
                         table.insert(tile.neighbors, neighbor)
                     end
                 end
+
+                ::continue::
             end
         end
     end
+
     self.dirtyGraph = false
 end
 
@@ -224,20 +227,23 @@ end
 --- @param y integer
 --- @return TopographyType|nil
 function MapManager:getTileStyle(x, y)
-    local tile = self.graph[x] and self.graph[x][y]
-    if not tile then
-        return nil
+    if x < 1 or x > self.width or y < 1 or y > self.height then
+        return TopographyType.INACCESSIBLE
     end
 
-    if tile.id and self.entityManager then
-        local topoComp =
-            self.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
-        if topoComp and topoComp.style ~= nil then
-            return topoComp.style
-        end
+    local t = self.graph[x][y]
+    if not t then
+        return TopographyType.INACCESSIBLE
     end
 
-    return tile.style
+    local style = nil
+    if t.id and self.entityManager then
+        local topoComp = self.entityManager:getComponent(t.id, ComponentType.TOPOGRAPHY)
+        style = (topoComp and topoComp.style ~= nil) and topoComp.style or t.style
+    else
+        style = t.style
+    end
+    return style or TopographyType.INACCESSIBLE
 end
 
 return MapManager

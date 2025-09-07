@@ -35,6 +35,13 @@ function EntityManager:addComponent(entityId, type, data)
     self.components[type][entityId] = data
 end
 
+function EntityManager:removeComponent(entityId, type)
+    if not self.components[type] then
+        self.components[type] = {}
+    end
+    self.components[type][entityId] = nil
+end
+
 ---@param type ComponentType
 ---@param data any
 ---@return integer? --entity

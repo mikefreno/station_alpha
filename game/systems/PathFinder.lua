@@ -1,5 +1,3 @@
-local Tile = require("components.Tile")
-
 ---@class Pathfinder
 ---@field nodePool table<integer, table> -- pool of plain node tables
 ---@field poolIndex integer
@@ -114,7 +112,8 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         return nil
     end
 
-    local startTile = mapManager.graph[startGrid.x] and mapManager.graph[startGrid.x][startGrid.y]
+    local startTile = mapManager.graph[math.floor(startGrid.x)]
+        and mapManager.graph[math.floor(startGrid.x)][math.floor(startGrid.y)]
     local goalTile = mapManager.graph[endGrid.x] and mapManager.graph[endGrid.x][endGrid.y]
     if not startTile or not goalTile then
         Logger:error("start/end node error")

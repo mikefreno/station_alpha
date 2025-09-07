@@ -15,7 +15,6 @@ function MoveTo.new(target)
     return self
 end
 
----comment
 ---@param id integer
 ---@param entityManager EntityManager
 ---@param cleanupFunc function
