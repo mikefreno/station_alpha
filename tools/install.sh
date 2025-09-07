@@ -19,6 +19,9 @@ fi
 
 git clone https://github.com/flamendless/Slab.git
 
+curl -L https://github.com/tesselode/cartographer/blob/master/cartographer.lua -o cartographer.lua
+
+
 # Optional: check the result
 if [ $? -eq 0 ]; then
     echo "🎉  Successfully installed libs"
