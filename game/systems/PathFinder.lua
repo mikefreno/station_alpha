@@ -75,7 +75,7 @@ function PathFinder:heapPop(heap)
     return min
 end
 
----@param startWorldPos Vec2  -- can be grid Vec2 (preferred) or pixel Vec2 (will be converted)
+---@param startWorldPos Vec2  -- top left pos
 ---@param endWorldPos Vec2    -- same as above
 ---@param mapManager MapManager
 function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
@@ -190,11 +190,21 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 
         closedSet[cx][cy] = true
 
+        local function isStart(n)
+            if n.parent == nil then
+                return true
+            end
+            if n.position.x == math.floor(startWorldPos.x) and n.position.y == math.floor(startWorldPos.y) then
+                return true
+            end
+            return false
+        end
+
         if cx == goalTile.position.x and cy == goalTile.position.y then
             local path = {}
             local n = current
             while n do
-                if n.parent ~= nil then -- skip the very first node (the start)
+                if not isStart(n) then
                     table.insert(path, 1, n.position)
                 end
                 n = n.parent

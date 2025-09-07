@@ -83,21 +83,19 @@ end
 function love.mousepressed(x, y, button, istouch)
     if button == 1 then
         local sx, sy = x, y
+        local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
 
-        local worldX = (sx / Camera.zoom) + (Camera.position.x * constants.pixelSize)
-        local worldY = (sy / Camera.zoom) + (Camera.position.y * constants.pixelSize)
+        local worldX = (sx / camera.zoom) + (camera.position.x * constants.pixelSize)
+        local worldY = (sy / camera.zoom) + (camera.position.y * constants.pixelSize)
 
         -- Convert pixel world to grid indices
         local clickGrid = mapManager:worldToGrid(Vec2.new(worldX, worldY))
-        local DotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
-
-        Logger:debug(DotPos)
-        Logger:debug(clickGrid)
 
         -- Current dot position stored as logical grid coords
         local currentDotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
+        local dotShape = EntityManager:getComponent(Dot, ComponentType.SHAPE)
 
-        local path = pathfinder:findPath(currentDotPos, clickGrid, mapManager)
+        local path = pathfinder:findPath(currentDotPos:add(dotShape.size / 2, dotShape.size / 2), clickGrid, mapManager)
         if path == nil then
             return
         end
