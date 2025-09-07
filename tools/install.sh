@@ -1,31 +1,53 @@
 #!/usr/bin/env bash
+set -euo pipefail   # fail fast on errors, unset vars, and pipeline failures
+
 
 current_dir=$(basename "$PWD")
-
 libs_dir="game/libs"
 
 if [[ "$current_dir" == "tools" ]]; then
-    libs_dir="../${libs_dir}"
+  libs_dir="../${libs_dir}"
 fi
 
 mkdir -p "$libs_dir"
-
 cd "$libs_dir" || { echo "❌  Could not cd to $libs_dir"; exit 1; }
 
-if [ -d "Slab/.git" ]; then
-    echo "✅  Slab is already present at $(pwd)/Slab"
-    exit 0
-fi
-
-git clone https://github.com/flamendless/Slab.git
-
-curl -L https://github.com/tesselode/cartographer/blob/master/cartographer.lua -o cartographer.lua
-
-
-# Optional: check the result
-if [ $? -eq 0 ]; then
-    echo "🎉  Successfully installed libs"
+if [[ -d "Slab/.git" ]]; then
+  echo "✅  Slab is already present at $(pwd)/Slab"
 else
-    echo "❌ Lib install failure"
+  git clone https://github.com/flamendless/Slab.git
+  echo "✅  Slab cloned successfully"
 fi
+
+
+download_file() {
+  url=$1
+  dest=$2
+  desc=${3:-$dest}
+
+  echo "📥  Downloading $desc …"
+
+  # -L  : follow redirects
+  # -f  : fail silently on server errors (non‑200)
+  # -sS : silent mode, but show errors
+  # -o  : write output to $dest
+  if ! curl -LfsS "$url" -o "$dest"; then
+    echo "❌  Failed to download $desc (HTTP error or network issue)"
+    exit 1
+  fi
+
+  # realpath may not exist on all systems – fall back to dest itself
+  if command -v realpath >/dev/null 2>&1; then
+    abs=$(realpath "$dest")
+  else
+    abs=$dest
+  fi
+  echo "✅  $desc written to $abs"
+}
+
+
+download_file "https://raw.githubusercontent.com/tesselode/cartographer/master/cartographer.lua" "Cartographer.lua"
+download_file "https://raw.githubusercontent.com/Oval-Tutu/bootstrap-love2d-project/main/game/lib/overlayStats.lua" "OverlayStats.lua"
+
+echo "🎉  All libraries installed successfully"
 
