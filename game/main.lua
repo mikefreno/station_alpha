@@ -7,6 +7,7 @@ local EntityManager = require("systems.EntityManager")
 local InputSystem = require("systems.Input")
 local PositionSystem = require("systems.Position")
 local RenderSystem = require("systems.Render")
+local TaskManager = require("systems.TaskManager")
 local Camera = require("components.Camera")
 local Vec2 = require("utils.Vec2")
 local Texture = require("components.Texture")
@@ -32,6 +33,7 @@ function love.load(args)
     EntityManager:addComponent(God, ComponentType.CAMERA, Camera.new())
     mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
     mapManager:createLevelMap()
+    EntityManager:addComponent(God, ComponentType.TASKMANAGER, TaskManager.init(EntityManager, mapManager))
 
     ---temporary for demoing purposes---
     Dot = EntityManager:createEntity()
@@ -50,16 +52,13 @@ end
 
 function love.update(dt)
     local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
+    local taskManager = EntityManager:getComponent(1, ComponentType.TASKMANAGER)
     camera:update(dt)
     PositionSystem:update(dt, EntityManager)
     mapManager:update()
     --InputSystem:update(EntityManager)
-    for e, _ in pairs(EntityManager.entities) do
-        local tq = EntityManager:getComponent(e, ComponentType.TASKQUEUE)
-        if tq then
-            tq:update(dt, EntityManager, mapManager)
-        end
-    end
+    taskManager:update(dt)
+
     Slab.Update(dt)
 
     if isLoading() == true and LoadingIndicator.isVisible == false then
@@ -84,6 +83,7 @@ function love.mousepressed(x, y, button, istouch)
     if button == 1 then
         local sx, sy = x, y
         local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
+        local taskManager = EntityManager:getComponent(1, ComponentType.TASKMANAGER)
 
         local worldX = (sx / camera.zoom) + (camera.position.x * constants.pixelSize)
         local worldY = (sy / camera.zoom) + (camera.position.y * constants.pixelSize)
@@ -100,15 +100,7 @@ function love.mousepressed(x, y, button, istouch)
             return
         end
 
-        if path and #path > 0 then
-            local taskQueue = EntityManager:getComponent(Dot, ComponentType.TASKQUEUE)
-            if taskQueue then
-                taskQueue:reset()
-                for _, wp in ipairs(path) do
-                    taskQueue:push({ type = TaskType.MOVETO, data = Vec2.new(wp.x, wp.y) })
-                end
-            end
-        end
+        taskManager:newPath(Dot, path)
     elseif button == 2 then
         Slab.BeginWindow("MyFirstWindow", { Title = "Dot Options" })
         Slab.Text("Hello World")
@@ -121,7 +113,7 @@ function love.wheelmoved(x, y)
         Logger:wheelmoved(x, y)
     else
         local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
-        camera:wheelmoved(x, y)
+        camera:wheelmoved(x, y, mapManager)
     end
 end
 
@@ -141,7 +133,7 @@ end
 function love.draw()
     local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
     camera:apply()
-    RenderSystem:update(EntityManager)
+    RenderSystem:update(EntityManager, camera:getVisibleBounds())
     camera:unapply()
     LoadingIndicator:draw()
     Slab.Draw()

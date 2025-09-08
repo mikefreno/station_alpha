@@ -1,7 +1,7 @@
 local constants = require("utils.constants")
 local Vec2 = require("utils.Vec2")
 
-local MAP_W, MAP_H, pixelSize = constants.MAP_W, constants.MAP_H, constants.pixelSize
+local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 
 ---@class Camera
 ---@field position Vec2  -- Top‑Left of the viewport (logical coords)
@@ -93,14 +93,14 @@ function Camera:wheelmoved(x, y)
 end
 
 function Camera:clampPosition()
-    local logicalW = love.graphics.getWidth() / (pixelSize * self.zoom)
-    local logicalH = love.graphics.getHeight() / (pixelSize * self.zoom)
+    local logicalW = love.graphics.getWidth() / (constants.pixelSize * self.zoom)
+    local logicalH = love.graphics.getHeight() / (constants.pixelSize * self.zoom)
 
     -- Padding: half a tile beyond each edge
     local pad = 0.5
 
-    local minX = pad
-    local minY = pad
+    local minX = 1 - pad
+    local minY = 1 - pad
     local maxX = MAP_W + pad + 1 - logicalW
     local maxY = MAP_H + pad + 1 - logicalH
 
@@ -110,10 +110,10 @@ function Camera:clampPosition()
 end
 
 function Camera:getVisibleBounds()
-    local w = love.graphics.getWidth() / (pixelSize * self.zoom)
-    local h = love.graphics.getHeight() / (pixelSize * self.zoom)
+    local w = love.graphics.getWidth() / (constants.pixelSize * self.zoom)
+    local h = love.graphics.getHeight() / (constants.pixelSize * self.zoom)
 
-    return { x = self.position.x, y = self.position.y, w = w, h = h }
+    return { x = self.position.x, y = self.position.y, width = w, height = h }
 end
 
 return Camera

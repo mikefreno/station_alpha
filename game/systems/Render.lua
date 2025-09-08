@@ -2,21 +2,37 @@ local ComponentType = require("utils.enums").ComponentType
 local ShapeType = require("utils.enums").ShapeType
 local constants = require("utils.constants")
 
+---@class RenderSystem
+---@field renderBorderPadding integer
 local RenderSystem = {}
 RenderSystem.__index = RenderSystem
 
 function RenderSystem.new()
-    return setmetatable({}, RenderSystem)
+    return setmetatable({
+        renderBorderPadding = 2, -- tiles
+    }, RenderSystem)
 end
 
 --- Draw every entity that has a POSITION component.
-function RenderSystem:update(entityManager)
-    love.graphics.clear(0.4, 0.88, 1.0)
+---comment
+---@param entityManager any
+---@param bounds { x: number, y: number, width:number, height:number }
+function RenderSystem:update(entityManager, bounds)
+    love.graphics.clear(0.54, 0.32, 0.16)
 
     love.graphics.push()
 
     for _, e in ipairs(self:query(entityManager, ComponentType.POSITION)) do
-        local pos = entityManager:getComponent(e, ComponentType.POSITION) -- logical tile coords
+        local pos = entityManager:getComponent(e, ComponentType.POSITION)
+        if
+            pos.x < bounds.x - self.renderBorderPadding
+            or pos.x > bounds.x + bounds.width + self.renderBorderPadding
+            or pos.y < bounds.y - self.renderBorderPadding
+            or pos.y > bounds.y + bounds.height + self.renderBorderPadding
+        then
+            goto continue
+        end
+
         local tex = entityManager:getComponent(e, ComponentType.TEXTURE)
         local shape = entityManager:getComponent(e, ComponentType.SHAPE)
         local mapTile = entityManager:getComponent(e, ComponentType.MAPTILETAG)

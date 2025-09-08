@@ -1,5 +1,6 @@
 local enums = require("utils.enums")
 local ComponentType = enums.ComponentType
+local TaskType = enums.TaskType
 
 ---@class Pathfinder
 ---@field nodePool table<integer, table> -- pool of plain node tables
@@ -205,7 +206,7 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
             local n = current
             while n do
                 if not isStart(n) then
-                    table.insert(path, 1, n.position)
+                    table.insert(path, 1, { type = TaskType.MOVETO, data = n.position })
                 end
                 n = n.parent
             end
