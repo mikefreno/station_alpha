@@ -13,6 +13,7 @@ enums.ComponentType = {
     MOVETO = 9,
     CAMERA = 10,
     TASKMANAGER = 11,
+    SCHEDULE = 12,
 }
 
 --- @enum TaskType

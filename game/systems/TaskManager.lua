@@ -34,6 +34,10 @@ function TaskManager:update(dt)
         local tq = self.entityManager:getComponent(e, ComponentType.TASKQUEUE)
         if tq then
             tq:update(dt, self.entityManager, self.mapManager)
+            if #tq.queue == 0 then
+                ---idling, create task
+                self.entityManager:getComponent(e, ComponentType.SCHEDULE)
+            end
         end
     end
 end

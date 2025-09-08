@@ -1,5 +1,6 @@
 local enums = require("utils.enums")
 local MapManager = require("systems.MapManager")
+local Schedule = require("components.Schedule")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 local TaskType = enums.TaskType
@@ -44,6 +45,7 @@ function love.load(args)
     EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
     EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
     EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
+    EntityManager:addComponent(Dot, ComponentType.SCHEDULE, Schedule.new())
     ---temporary for demoing purposes---
 
     Slab.Initialize(args)
@@ -113,7 +115,7 @@ function love.wheelmoved(x, y)
         Logger:wheelmoved(x, y)
     else
         local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
-        camera:wheelmoved(x, y, mapManager)
+        camera:wheelmoved(x, y)
     end
 end
 
