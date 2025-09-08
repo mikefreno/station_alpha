@@ -5,8 +5,10 @@ local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 
 ---@class Camera
 ---@field position Vec2  -- Top‑Left of the viewport (logical coords)
+---@field baseSpeed number
 ---@field zoom number     -- Scale factor (pure number)
 ---@field zoomRate number -- Speed of zooming (relative change per wheel tick)
+---@field panningBorder number -- How close to the edge panning starts (0=disabled)
 local Camera = {}
 Camera.__index = Camera
 
@@ -16,8 +18,10 @@ function Camera.new()
 
     self.position = Vec2.new(1, 1)
 
+    self.baseSpeed = 10
     self.zoom = 1
     self.zoomRate = 0.15 -- a bit higher so you see the effect
+    self.panningBorder = 0.10
 
     return self
 end
@@ -55,9 +59,10 @@ end
 --- Handle keyboard + mouse input for camera movement + zoom
 ---@param dt number
 function Camera:update(dt)
-    local moveSpeed = 10
-    local speed = moveSpeed * dt
+    local speed = self.baseSpeed / self.zoom * dt
 
+    ---panning---
+    --keyboard
     if love.keyboard.isDown("w") then
         self:move(0, -speed)
     end
@@ -70,12 +75,47 @@ function Camera:update(dt)
     if love.keyboard.isDown("d") then
         self:move(speed, 0)
     end
+    --mouse position
+    local function speedClamp(x, min, max)
+        return math.max(min, math.min(x, max))
+    end
+    local function speedFactor(pos, border)
+        local dist
+        if pos < border then
+            dist = border - pos
+        elseif pos > 1 - border then
+            dist = pos - (1 - border)
+        else
+            dist = border
+        end
+        local t = (dist / border)
+        local factor = 0.25 + t * t * (3 - 2 * t)
+
+        return speedClamp(factor, 0.5, 2)
+    end
+
+    local mx, my = love.mouse.getPosition()
+    local width, height = love.window.getMode()
+
+    if my / height < self.panningBorder then
+        self:move(0, -speed * speedFactor(my / height, self.panningBorder))
+    elseif my / height > 1 - self.panningBorder then
+        self:move(0, speed * speedFactor(my / height, self.panningBorder))
+    end
+
+    if mx / width < self.panningBorder then
+        self:move(-speed * speedFactor(mx / width, self.panningBorder), 0)
+    elseif mx / width > 1 - self.panningBorder then
+        self:move(speed * speedFactor(mx / width, self.panningBorder), 0)
+    end
 end
 
 --- Mouse‑wheel callback for zooming – exponential scaling
----@param x number  (unused)
 ---@param y number  Scroll delta
-function Camera:wheelmoved(x, y)
+function Camera:wheelmoved(_, y)
+    if y == 0 then
+        return
+    end
     local mx, my = love.mouse.getPosition() -- pixel coords
     local wX, wY = -- logical coords
         (mx / (constants.pixelSize * self.zoom)) + self.position.x,
