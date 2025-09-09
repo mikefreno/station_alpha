@@ -15,7 +15,7 @@ function RenderSystem.new()
 end
 
 --- Draw every entity that has a POSITION component.
----comment
+--- This function sorts entities to ensure map tiles are rendered at a lower z-index than other elements.
 ---@param entityManager EntityManager
 ---@param bounds { x: number, y: number, width:number, height:number }
 function RenderSystem:update(entityManager, bounds)
@@ -23,14 +23,28 @@ function RenderSystem:update(entityManager, bounds)
 
     love.graphics.push()
 
-    for _, e in ipairs(self:query(entityManager, ComponentType.POSITION)) do
+    -- Get all entities with POSITION component
+    local entities = self:query(entityManager, ComponentType.POSITION)
+
+    -- Sort entities so that map tiles are rendered first (lower z-index)
+    table.sort(entities, function(a, b)
+        local aIsMapTile = entityManager:getComponent(a, ComponentType.MAPTILETAG) ~= nil
+        local bIsMapTile = entityManager:getComponent(b, ComponentType.MAPTILETAG) ~= nil
+
+        -- Map tiles go first (lower z-index)
+        if aIsMapTile and not bIsMapTile then return true end
+        if not aIsMapTile and bIsMapTile then return false end
+
+        -- For non-map-tile entities, maintain original order
+        return a < b
+    end)
+
+    for _, e in ipairs(entities) do
         local pos = entityManager:getComponent(e, ComponentType.POSITION)
         --NOTE: The rightclickmenu can be rendered anywhere... therefore we dont want to do any kind of culling to affect it, it should also remain static to its position
         if e == 1 then -- NOTE: 1=God
             local rcm = entityManager:getComponent(e, ComponentType.RIGHTCLICKMENU)
-            if rcm then
-                rcm:render()
-            end
+            if rcm then rcm:render() end
             goto continue
         end
 
@@ -79,16 +93,11 @@ function RenderSystem:update(entityManager, bounds)
             goto continue
         end
 
-        if not shape then
-            -- draw a full tile sized rectangle for logical units
-            love.graphics.rectangle("fill", px, py, constants.pixelSize, constants.pixelSize)
-            goto continue
-        end
-
+        -- draw a full tile sized rectangle for logical units
+        love.graphics.rectangle("fill", px, py, constants.pixelSize, constants.pixelSize)
         ::continue::
     end
-
-    love.graphics.pop() -- restore original transform
+    love.graphics.pop()
 end
 
 function RenderSystem:query(entityManager, ...)

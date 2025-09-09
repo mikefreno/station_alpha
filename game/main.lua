@@ -30,13 +30,13 @@ end
 
 function love.load(args)
     God = EntityManager:createEntity() -- id 1
+    Dot = EntityManager:createEntity()
     EntityManager:addComponent(God, ComponentType.CAMERA, Camera.new())
     mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
     mapManager:createLevelMap()
     EntityManager:addComponent(God, ComponentType.TASKMANAGER, TaskManager.init(EntityManager, mapManager))
     EntityManager:addComponent(God, ComponentType.RIGHTCLICKMENU, RightClickMenu.new())
     ---NOTE: temporary for demoing purposes---
-    Dot = EntityManager:createEntity()
     EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(1, 1))
     EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
     -- 100 meters(50 tiles) in 70 seconds
@@ -56,7 +56,7 @@ function love.update(dt)
     camera:update(dt)
     PositionSystem:update(dt, EntityManager)
     mapManager:update()
-    --InputSystem:update(EntityManager)
+    InputSystem:update(EntityManager)
     taskManager:update(dt)
 
     Slab.Update(dt)
@@ -75,44 +75,19 @@ end
 function love.keypressed(key, scancode, isrepeat)
     Logger:keypressed(key, scancode)
     overlayStats.handleKeyboard(key)
+    -- Forward keypress to input system if needed
+    InputSystem:keypressed(key, scancode, isrepeat)
 end
 
 function love.mousepressed(x, y, button, istouch)
-    if button == 1 then
-        local sx, sy = x, y
-        local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
-        local taskManager = EntityManager:getComponent(1, ComponentType.TASKMANAGER)
-
-        local worldX = (sx / camera.zoom) + (camera.position.x * constants.pixelSize)
-        local worldY = (sy / camera.zoom) + (camera.position.y * constants.pixelSize)
-
-        -- Convert pixel world to grid indices
-        local clickGrid = mapManager:worldToGrid(Vec2.new(worldX, worldY))
-
-        -- Current dot position stored as logical grid coords
-        local currentDotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
-        local dotShape = EntityManager:getComponent(Dot, ComponentType.SHAPE)
-
-        local path = pathfinder:findPath(currentDotPos:add(dotShape.size / 2, dotShape.size / 2), clickGrid, mapManager)
-        if path == nil then return end
-
-        taskManager:newPath(Dot, path)
-        local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
-        rcm:hide()
-    elseif button == 2 then
-        local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
-        rcm.position.x = x
-        rcm.position.y = y
-        rcm.showing = true
-    end
+    InputSystem:handleMousePressed(x, y, button, istouch, EntityManager, mapManager)
 end
 
 function love.wheelmoved(x, y)
     if love.keyboard.isDown("lctrl") then
         Logger:wheelmoved(x, y)
     else
-        local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
-        camera:wheelmoved(x, y)
+        InputSystem:handleWheelMoved(x, y)
     end
 end
 

@@ -12,6 +12,7 @@ function RightClickMenu.new()
     local self = setmetatable({}, RightClickMenu)
     self.position = nil
     self.showing = false
+    return self
 end
 
 function RightClickMenu:render()
