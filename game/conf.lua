@@ -2,9 +2,7 @@ local IS_DEBUG = os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" and arg[2] == "de
 if IS_DEBUG then
     require("lldebugger").start()
 
-    function love.errorhandler(msg)
-        error(msg, 2)
-    end
+    function love.errorhandler(msg) error(msg, 2) end
 end
 
 -- Read product configuration
@@ -14,9 +12,7 @@ for line in love.filesystem.lines("product.env") do
     -- Skip comment lines and blank lines
     if not (line:match("^%s*#") or line:match("^%s*$")) then
         local key, value = line:match("([^=]+)=(.*)")
-        if key then
-            product_config[key] = value:match('^"?(.-)"?$')
-        end
+        if key then product_config[key] = value:match('^"?(.-)"?$') end
     end
 end
 

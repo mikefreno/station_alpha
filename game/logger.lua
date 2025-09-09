@@ -29,9 +29,7 @@ local Logger = {
 --- @param visited table A table to track visited tables to prevent infinite loops.
 --- @return string
 function Logger:_pretty_print_table_recursive(t, indent_str, current_indent, visited)
-    if visited[t] then
-        return "<circular reference>"
-    end
+    if visited[t] then return "<circular reference>" end
     visited[t] = true
 
     local result_parts = { "{\n" }
@@ -41,9 +39,7 @@ function Logger:_pretty_print_table_recursive(t, indent_str, current_indent, vis
     for k, _ in pairs(t) do
         table.insert(keys_sorted, k)
     end
-    table.sort(keys_sorted, function(a, b)
-        return tostring(a) < tostring(b)
-    end)
+    table.sort(keys_sorted, function(a, b) return tostring(a) < tostring(b) end)
 
     for _, k in ipairs(keys_sorted) do
         local v = t[k]
@@ -55,17 +51,10 @@ function Logger:_pretty_print_table_recursive(t, indent_str, current_indent, vis
         end
 
         local value_str
-        if
-            type(v) == "table"
-            and v.x ~= nil
-            and v.y ~= nil
-            and getmetatable(v)
-            and getmetatable(v).__index.add
-        then
+        if type(v) == "table" and v.x ~= nil and v.y ~= nil and getmetatable(v) and getmetatable(v).__index.add then
             value_str = string.format("Vec2(%.2f, %.2f)", v.x, v.y)
         elseif type(v) == "table" then
-            value_str =
-                self:_pretty_print_table_recursive(v, indent_str, next_indent, visited)
+            value_str = self:_pretty_print_table_recursive(v, indent_str, next_indent, visited)
         elseif type(v) == "string" then
             value_str = '"' .. string.gsub(tostring(v), '"', '\\"') .. '"'
         elseif type(v) == "function" then
@@ -73,12 +62,8 @@ function Logger:_pretty_print_table_recursive(t, indent_str, current_indent, vis
         elseif type(v) == "userdata" then
             local v_type_str = ""
             if v and type(v.typeOf) == "function" then
-                local status, type_name = pcall(function()
-                    return v:typeOf()
-                end)
-                if status and type_name then
-                    v_type_str = " (" .. tostring(type_name) .. ")"
-                end
+                local status, type_name = pcall(function() return v:typeOf() end)
+                if status and type_name then v_type_str = " (" .. tostring(type_name) .. ")" end
             end
             value_str = "userdata" .. v_type_str .. ": " .. tostring(v)
         else
@@ -101,9 +86,7 @@ end
 --- @param t table The table to pretty print.
 --- @return string
 function Logger:_pretty_print_table(t)
-    if type(t) ~= "table" then
-        return tostring(t)
-    end
+    if type(t) ~= "table" then return tostring(t) end
     return self:_pretty_print_table_recursive(t, "  ", "", {})
 end
 
@@ -153,9 +136,7 @@ function Logger:log(message, level)
             local console_view_h = screen_h / 3
             local total_content_h = self:_calculate_total_content_height()
             local max_scroll_value = math.max(0, total_content_h - console_view_h)
-            if total_content_h <= console_view_h then
-                max_scroll_value = 0
-            end
+            if total_content_h <= console_view_h then max_scroll_value = 0 end
             self.scroll = math.min(self.scroll, max_scroll_value)
         end
     end
@@ -165,15 +146,9 @@ function Logger:error(message)
     self:log(message, Log_Level.ERROR)
     self.visible = true
 end
-function Logger:warn(message)
-    self:log(message, Log_Level.WARN)
-end
-function Logger:info(message)
-    self:log(message, Log_Level.INFO)
-end
-function Logger:debug(message)
-    self:log(message, Log_Level.DEBUG)
-end
+function Logger:warn(message) self:log(message, Log_Level.WARN) end
+function Logger:info(message) self:log(message, Log_Level.INFO) end
+function Logger:debug(message) self:log(message, Log_Level.DEBUG) end
 
 function Logger:printf(level, fmt, ...)
     local args = { ... }
@@ -199,23 +174,15 @@ end
 --- Calculates the total pixel height of all log entries.
 --- @return number
 function Logger:_calculate_total_content_height()
-    if not self.font then
-        return 0
-    end
+    if not self.font then return 0 end
     local total_h = 0
     local current_line_height = self.font:getHeight()
-    if #self.logs == 0 then
-        return 0
-    end
+    if #self.logs == 0 then return 0 end
 
     for i = 1, #self.logs do
         local log_item = self.logs[i]
-        local full_text_message = string.format(
-            "[%s][%s] %s",
-            log_item.timestamp,
-            log_item.level.name,
-            log_item.message
-        )
+        local full_text_message =
+            string.format("[%s][%s] %s", log_item.timestamp, log_item.level.name, log_item.message)
 
         local num_lines_in_block = 1
         for _ in string.gmatch(full_text_message, "\n") do
@@ -227,9 +194,7 @@ function Logger:_calculate_total_content_height()
 end
 
 function Logger:draw()
-    if not self.visible or not self.font then
-        return
-    end
+    if not self.visible or not self.font then return end
 
     local screen_w, screen_h = love.graphics.getDimensions()
     local console_view_h = screen_h / 3
@@ -248,12 +213,8 @@ function Logger:draw()
 
     for i = #self.logs, 1, -1 do
         local log_item = self.logs[i]
-        local full_text_message = string.format(
-            "[%s][%s] %s",
-            log_item.timestamp,
-            log_item.level.name,
-            log_item.message
-        )
+        local full_text_message =
+            string.format("[%s][%s] %s", log_item.timestamp, log_item.level.name, log_item.message)
 
         local num_lines_in_block = 1
         for _ in string.gmatch(full_text_message, "\n") do
@@ -266,19 +227,14 @@ function Logger:draw()
         local block_top_y = y_for_this_block_print
         local block_bottom_y_for_cull = y_for_this_block_print + block_actual_height
 
-        if
-            block_top_y < console_view_y_top + console_view_h
-            and block_bottom_y_for_cull > console_view_y_top
-        then
+        if block_top_y < console_view_y_top + console_view_h and block_bottom_y_for_cull > console_view_y_top then
             love.graphics.setColor(unpack(log_item.level.color))
             love.graphics.print(full_text_message, 10, y_for_this_block_print)
         end
 
         current_block_bottom_y = y_for_this_block_print
 
-        if current_block_bottom_y < console_view_y_top then
-            break
-        end
+        if current_block_bottom_y < console_view_y_top then break end
     end
 
     love.graphics.setScissor()
@@ -292,9 +248,7 @@ function Logger:toggle()
 end
 
 function Logger:wheelmoved(_, y_delta)
-    if not self.visible or not self.font then
-        return
-    end
+    if not self.visible or not self.font then return end
 
     local current_line_height = self.font:getHeight()
     self.scroll = self.scroll - (y_delta * current_line_height * 3)
@@ -306,23 +260,14 @@ function Logger:wheelmoved(_, y_delta)
     self.scroll = math.max(0, self.scroll)
 
     local max_scroll_value = 0
-    if total_content_h > console_view_h then
-        max_scroll_value = total_content_h - console_view_h
-    end
+    if total_content_h > console_view_h then max_scroll_value = total_content_h - console_view_h end
     self.scroll = math.min(self.scroll, max_scroll_value)
 end
 
 function Logger:keypressed(_, scancode)
-    if
-        scancode == "`"
-        and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
-    then
+    if scancode == "`" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
         self:toggle()
-    elseif
-        scancode == "c"
-        and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl"))
-        and self.visible
-    then
+    elseif scancode == "c" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) and self.visible then
         self:_copy_to_clipboard()
     end
 end
@@ -331,12 +276,8 @@ function Logger:_copy_to_clipboard()
     local clipboard_text = {}
     for i = 1, #self.logs do
         local log_item = self.logs[i]
-        local full_text_message = string.format(
-            "[%s][%s] %s",
-            log_item.timestamp,
-            log_item.level.name,
-            log_item.message
-        )
+        local full_text_message =
+            string.format("[%s][%s] %s", log_item.timestamp, log_item.level.name, log_item.message)
         table.insert(clipboard_text, full_text_message)
     end
 

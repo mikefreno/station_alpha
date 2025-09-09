@@ -24,9 +24,7 @@ local Slab = require("libs.Slab")
 local mapManager
 
 local function isLoading()
-    if not mapManager.graph or mapManager.dirtyGraph == true then
-        return true
-    end
+    if not mapManager.graph or mapManager.dirtyGraph == true then return true end
 end
 
 function love.load(args)
@@ -69,9 +67,7 @@ function love.update(dt)
         LoadingIndicator:hide()
     end
 
-    if LoadingIndicator.isVisible then
-        LoadingIndicator:update(dt)
-    end
+    if LoadingIndicator.isVisible then LoadingIndicator:update(dt) end
 
     overlayStats.update(dt)
 end
@@ -98,9 +94,7 @@ function love.mousepressed(x, y, button, istouch)
         local dotShape = EntityManager:getComponent(Dot, ComponentType.SHAPE)
 
         local path = pathfinder:findPath(currentDotPos:add(dotShape.size / 2, dotShape.size / 2), clickGrid, mapManager)
-        if path == nil then
-            return
-        end
+        if path == nil then return end
 
         taskManager:newPath(Dot, path)
     elseif button == 2 then
@@ -119,9 +113,7 @@ function love.wheelmoved(x, y)
     end
 end
 
-function love.touchpressed(id, x, y, dx, dy, pressure)
-    overlayStats.handleTouch(id, x, y, dx, dy, pressure)
-end
+function love.touchpressed(id, x, y, dx, dy, pressure) overlayStats.handleTouch(id, x, y, dx, dy, pressure) end
 
 function love.resize()
     local function recalcPixelSize()
