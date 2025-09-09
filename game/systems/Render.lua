@@ -1,5 +1,6 @@
-local ComponentType = require("utils.enums").ComponentType
-local ShapeType = require("utils.enums").ShapeType
+local enums = require("utils.enums")
+local ComponentType = enums.ComponentType
+local ShapeType = enums.ShapeType
 local constants = require("utils.constants")
 
 ---@class RenderSystem
@@ -15,7 +16,7 @@ end
 
 --- Draw every entity that has a POSITION component.
 ---comment
----@param entityManager any
+---@param entityManager EntityManager
 ---@param bounds { x: number, y: number, width:number, height:number }
 function RenderSystem:update(entityManager, bounds)
     love.graphics.clear(0.54, 0.32, 0.16)
@@ -24,6 +25,15 @@ function RenderSystem:update(entityManager, bounds)
 
     for _, e in ipairs(self:query(entityManager, ComponentType.POSITION)) do
         local pos = entityManager:getComponent(e, ComponentType.POSITION)
+        --NOTE: The rightclickmenu can be rendered anywhere... therefore we dont want to do any kind of culling to affect it, it should also remain static to its position
+        if e == 1 then -- NOTE: 1=God
+            local rcm = entityManager:getComponent(e, ComponentType.RIGHTCLICKMENU)
+            if rcm then
+                rcm:render()
+            end
+            goto continue
+        end
+
         if
             pos.x < bounds.x - self.renderBorderPadding
             or pos.x > bounds.x + bounds.width + self.renderBorderPadding
@@ -54,9 +64,7 @@ function RenderSystem:update(entityManager, bounds)
                 local centerX = px + constants.pixelSize / 3
                 local centerY = py + constants.pixelSize / 3
                 love.graphics.setColor(1, 1, 1)
-                if Logger.visible then
-                    love.graphics.print(mapTile.x .. "," .. mapTile.y, centerX, centerY, 0, 0.5)
-                end
+                if Logger.visible then love.graphics.print(mapTile.x .. "," .. mapTile.y, centerX, centerY, 0, 0.5) end
             end
             goto continue
         end
@@ -94,9 +102,7 @@ function RenderSystem:query(entityManager, ...)
                 break
             end
         end
-        if ok then
-            table.insert(result, e)
-        end
+        if ok then table.insert(result, e) end
     end
     return result
 end

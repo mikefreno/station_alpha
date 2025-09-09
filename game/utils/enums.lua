@@ -14,6 +14,7 @@ enums.ComponentType = {
     CAMERA = 10,
     TASKMANAGER = 11,
     SCHEDULE = 12,
+    RIGHTCLICKMENU = 13,
 }
 
 --- @enum TaskType

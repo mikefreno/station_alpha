@@ -1,6 +1,7 @@
 local enums = require("utils.enums")
 local MapManager = require("systems.MapManager")
 local Schedule = require("components.Schedule")
+local RightClickMenu = require("game.components.RightClickMenu")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 local TaskType = enums.TaskType
@@ -33,8 +34,8 @@ function love.load(args)
     mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
     mapManager:createLevelMap()
     EntityManager:addComponent(God, ComponentType.TASKMANAGER, TaskManager.init(EntityManager, mapManager))
-
-    ---temporary for demoing purposes---
+    EntityManager:addComponent(God, ComponentType.RIGHTCLICKMENU, RightClickMenu.new())
+    ---NOTE: temporary for demoing purposes---
     Dot = EntityManager:createEntity()
     EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(1, 1))
     EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
@@ -44,7 +45,6 @@ function love.load(args)
     EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
     EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
     EntityManager:addComponent(Dot, ComponentType.SCHEDULE, Schedule.new())
-    ---temporary for demoing purposes---
 
     Slab.Initialize(args)
     overlayStats.load()
@@ -97,10 +97,13 @@ function love.mousepressed(x, y, button, istouch)
         if path == nil then return end
 
         taskManager:newPath(Dot, path)
+        local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
+        rcm:hide()
     elseif button == 2 then
-        Slab.BeginWindow("MyFirstWindow", { Title = "Dot Options" })
-        Slab.Text("Hello World")
-        Slab.EndWindow()
+        local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
+        rcm.position.x = x
+        rcm.position.y = y
+        rcm.showing = true
     end
 end
 
