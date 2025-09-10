@@ -21,6 +21,7 @@ local TaskQueue = require("game.components.TaskQueue")
 local overlayStats = require("game.libs.OverlayStats")
 Logger = require("game.logger"):init()
 local Slab = require("libs.Slab")
+local Gui = require("game.libs.MyGUI")
 
 local function isLoading()
     if not MapManager.graph or MapManager.dirtyGraph == true then return true end
@@ -47,9 +48,35 @@ local function initDot()
     EntityManager:addComponent(EntityManager.dot, ComponentType.SCHEDULE, Schedule.new())
 end
 
+local function initBottomBar()
+    local w, h = love.window.getMode()
+    local win = Gui.newWindow(0, h * 0.9, w, h * 0.1)
+    local minimized = false
+    ---@param btn Button
+    local function minimizeWindow(btn)
+        w, h = love.window.getMode()
+        if minimized then
+            win.height = h * 0.1
+            win.width = w
+            win.y = h * 0.9
+            btn.y = 10
+            btn:updateText("-", true)
+        else
+            win.height = 0
+            win.width = 0
+            win.y = h
+            btn.y = -40
+            btn:updateText("+", true)
+        end
+        minimized = not minimized
+    end
+    local minButton = Gui.Button.new(win, 10, 10, nil, nil, 4, 4, "-", minimizeWindow)
+end
+
 function love.load(args)
     initSystems()
     initDot()
+    initBottomBar()
     Slab.Initialize(args)
     overlayStats.load()
 end
@@ -60,6 +87,7 @@ function love.update(dt)
     MapManager:update()
     InputSystem:update()
     TaskManager:update(dt)
+    Gui.update(dt)
 
     Slab.Update(dt)
 
@@ -81,7 +109,7 @@ function love.keypressed(key, scancode, isrepeat)
     InputSystem:keypressed(key, scancode, isrepeat)
 end
 
-function love.mousepressed(x, y, button, istouch) InputSystem:handleMousePressed(x, y, button, istouch, EntityManager) end
+function love.mousepressed(x, y, button, istouch) InputSystem:handleMousePressed(x, y, button, istouch) end
 
 function love.wheelmoved(x, y)
     if love.keyboard.isDown("lctrl") then
@@ -94,12 +122,10 @@ end
 function love.touchpressed(id, x, y, dx, dy, pressure) overlayStats.handleTouch(id, x, y, dx, dy, pressure) end
 
 function love.resize()
-    local function recalcPixelSize()
-        local width = love.window.getMode()
-        constants.pixelSize = width / 40 -- fit 40 tiles in the width
-    end
-
-    recalcPixelSize()
+    local newWidth, newHeight = love.window.getMode()
+    -- Recalculate pixel size
+    constants.pixelSize = newWidth / 40
+    Gui.resize()
 end
 
 function love.draw()
@@ -107,6 +133,7 @@ function love.draw()
     RenderSystem:update(Camera:getVisibleBounds())
     Camera:unapply()
     LoadingIndicator:draw()
+    Gui.draw()
     Slab.Draw()
     Logger:draw()
     overlayStats.draw()
