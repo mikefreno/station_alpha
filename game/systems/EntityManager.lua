@@ -19,7 +19,6 @@ function EntityManager.init()
         self.entities = {}
         self.components = {}
         instance = self
-        self.god = self:createEntity()
         self.dot = self:createEntity()
     end
     return instance

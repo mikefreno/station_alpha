@@ -68,19 +68,18 @@ end
 
 ---@param startWorldPos Vec2  -- top left pos
 ---@param endWorldPos Vec2    -- same as above
----@param mapManager MapManager
-function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
-    if not mapManager or not mapManager.graph or not mapManager.graph[1] then
-        Logger:error("mapManager error")
+function PathFinder:findPath(startWorldPos, endWorldPos)
+    if not MapManager or not MapManager.graph or not MapManager.graph[1] then
+        Logger:error("MapManager error")
         return nil
     end
 
     local function ensureGrid(v)
         if not v then return nil end
-        if v.x and v.y and v.x >= 1 and v.x <= mapManager.width and v.y >= 1 and v.y <= mapManager.height then
+        if v.x and v.y and v.x >= 1 and v.x <= MapManager.width and v.y >= 1 and v.y <= MapManager.height then
             return v
         end
-        return mapManager:worldToGrid(v)
+        return MapManager:worldToGrid(v)
     end
 
     local startGrid = ensureGrid(startWorldPos)
@@ -92,21 +91,21 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 
     if
         startGrid.x < 1
-        or startGrid.x > mapManager.width
+        or startGrid.x > MapManager.width
         or startGrid.y < 1
-        or startGrid.y > mapManager.height
+        or startGrid.y > MapManager.height
         or endGrid.x < 1
-        or endGrid.x > mapManager.width
+        or endGrid.x > MapManager.width
         or endGrid.y < 1
-        or endGrid.y > mapManager.height
+        or endGrid.y > MapManager.height
     then
         Logger:error("bounds exceeded")
         return nil
     end
 
-    local startTile = mapManager.graph[math.floor(startGrid.x)]
-        and mapManager.graph[math.floor(startGrid.x)][math.floor(startGrid.y)]
-    local goalTile = mapManager.graph[endGrid.x] and mapManager.graph[endGrid.x][endGrid.y]
+    local startTile = MapManager.graph[math.floor(startGrid.x)]
+        and MapManager.graph[math.floor(startGrid.x)][math.floor(startGrid.y)]
+    local goalTile = MapManager.graph[endGrid.x] and MapManager.graph[endGrid.x][endGrid.y]
     if not startTile or not goalTile then
         Logger:error("start/end node error")
         return nil
@@ -116,8 +115,8 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
     local function getSpeedMultiplier(tile)
         if not tile then return 0 end
         if tile.speedMultiplier and type(tile.speedMultiplier) == "number" then return tile.speedMultiplier end
-        if tile.id and mapManager.entityManager then
-            local topo = mapManager.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
+        if tile.id and MapManager.entityManager then
+            local topo = MapManager.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
             if topo and topo.speedMultiplier then return topo.speedMultiplier end
         end
         -- default to OPEN speed 1.0 if missing
@@ -145,9 +144,9 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
     -- open list and closed set
     local open = {}
     local closedSet = {}
-    for x = 1, mapManager.width do
+    for x = 1, MapManager.width do
         closedSet[x] = {}
-        for y = 1, mapManager.height do
+        for y = 1, MapManager.height do
             closedSet[x][y] = false
         end
     end
@@ -192,13 +191,13 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
             return path
         end
 
-        local currentTile = mapManager.graph[cx] and mapManager.graph[cx][cy]
+        local currentTile = MapManager.graph[cx] and MapManager.graph[cx][cy]
         if not currentTile then goto continue_main end
 
         for _, nb in ipairs(currentTile.neighbors or {}) do
             if not nb.position or not nb.position.x or not nb.position.y then goto continue_neighbor end
             local nx, ny = nb.position.x, nb.position.y
-            if not mapManager.graph[nx] or not mapManager.graph[nx][ny] then goto continue_neighbor end
+            if not MapManager.graph[nx] or not MapManager.graph[nx][ny] then goto continue_neighbor end
             if closedSet[nx][ny] then goto continue_neighbor end
 
             -- compute tentative g using move cost to enter neighbor

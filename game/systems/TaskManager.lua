@@ -5,38 +5,27 @@ local Vec2 = require("game.utils.Vec2")
 ---this class servers to choose what the next task should be for its attached
 ---entity
 ---@class TaskManager
----@field entityManager EntityManager
----@field mapManager MapManager
 local TaskManager = {}
 TaskManager.__index = TaskManager
 
-local instance = nil
-
 ---comment
----@param entityManager EntityManager
----@param mapManager MapManager
 ---@return TaskManager
-function TaskManager.init(entityManager, mapManager)
-    if instance == nil then
-        local self = setmetatable({}, TaskManager)
-        self.entityManager = entityManager
-        self.mapManager = mapManager
-        instance = self
-        return self
-    end
-    return instance
+function TaskManager.new()
+    local self = setmetatable({}, TaskManager)
+    return self
 end
 
 ---@param dt number
----@param mapManager MapManager
 function TaskManager:update(dt)
-    for e, _ in pairs(self.entityManager.entities) do
-        local tq = self.entityManager:getComponent(e, ComponentType.TASKQUEUE)
+    for e, _ in pairs(EntityManager.entities) do
+        local tq = EntityManager:getComponent(e, ComponentType.TASKQUEUE)
         if tq then
-            tq:update(dt, self.entityManager, self.mapManager)
+            tq:update(dt)
             if #tq.queue == 0 then
                 ---idling, create task
-                self.entityManager:getComponent(e, ComponentType.SCHEDULE)
+                EntityManager:getComponent(e, ComponentType.SCHEDULE)
+            else
+                Logger:debug(#tq.queue)
             end
         end
     end
@@ -46,7 +35,7 @@ end
 ---@param path table<integer, {type:TaskType, data:Vec2}>
 function TaskManager:newPath(entity, path)
     if path and #path > 0 then
-        local taskQueue = self.entityManager:getComponent(entity, ComponentType.TASKQUEUE)
+        local taskQueue = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
         if taskQueue then
             taskQueue:reset()
             for _, wp in ipairs(path) do

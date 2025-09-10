@@ -1,5 +1,6 @@
 local Vec2 = require("game.utils.Vec2")
 local Slab = require("libs.Slab")
+local constants = require("game.utils.constants")
 local EntityManager = require("game.systems.EntityManager")
 local ComponentType = require("game.utils.enums").ComponentType
 
@@ -33,16 +34,13 @@ function RightClickMenu:render()
             local currentDotPos = EntityManager:getComponent(EntityManager.dot, ComponentType.POSITION)
             local dotShape = EntityManager:getComponent(EntityManager.dot, ComponentType.SHAPE)
 
-            local mapManager = EntityManager:getComponent(EntityManager.god, ComponentType.MAPMANAGER)
-            local pathfinder = EntityManager:getComponent(EntityManager.god, ComponentType.PATHFINDER)
-            local taskManager = EntityManager:getComponent(EntityManager.god, ComponentType.TASKMANAGER)
-
-            local clickGrid = mapManager:worldToGrid(Vec2.new(self.position.x, self.position.y))
-            local path =
-                pathfinder:findPath(currentDotPos:add(dotShape.size / 2, dotShape.size / 2), clickGrid, mapManager)
-            Logger:debug(#path)
-            if path == nil then return end
-            taskManager:newPath(EntityManager.dot, path)
+            local worldX = (self.position.x / Camera.zoom) + (Camera.position.x * constants.pixelSize)
+            local worldY = (self.position.y / Camera.zoom) + (Camera.position.y * constants.pixelSize)
+            local clickGrid = MapManager:worldToGrid(Vec2.new(worldX, worldY))
+            local path = Pathfinder:findPath(currentDotPos:add(dotShape.size / 2, dotShape.size / 2), clickGrid)
+            if path ~= nil then TaskManager:newPath(EntityManager.dot, path) end
+            self.showing = false
+            ButtonPressed = false
         end
 
         Slab.EndWindow()

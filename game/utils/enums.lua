@@ -11,13 +11,8 @@ enums.ComponentType = {
     MAPTILETAG = 7,
     SPEEDSTAT = 8, --tiles/sec
     MOVETO = 9,
-    CAMERA = 10,
-    TASKMANAGER = 11,
-    SCHEDULE = 12,
-    RIGHTCLICKMENU = 13,
-    SELECTED = 14,
-    MAPMANAGER = 15,
-    PATHFINDER = 16,
+    SCHEDULE = 10,
+    SELECTED = 11,
 }
 
 --- @enum TaskType

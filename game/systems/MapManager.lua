@@ -10,7 +10,6 @@ local ShapeType = enums.ShapeType
 local TopographyType = enums.TopographyType
 
 --- @class MapManager
---- @field entityManager     EntityManager
 --- @field width         integer
 --- @field height        integer
 --- @field graph         table<number, table<number, Tile>> -- graph[x][y]
@@ -18,12 +17,10 @@ local TopographyType = enums.TopographyType
 local MapManager = {}
 MapManager.__index = MapManager
 
---- @param entityManager   EntityManager
 --- @param width       integer
 --- @param height      integer
-function MapManager.new(entityManager, width, height)
+function MapManager.new(width, height)
     local self = setmetatable({}, MapManager)
-    self.entityManager = entityManager
     self.width = width
     self.height = height
     self.graph = {} -- will hold the A* graph as graph[x][y]
@@ -67,20 +64,16 @@ end
 function MapManager:createCell(xIndex, yIndex)
     local result = self:rollTopography()
 
-    local tileId = self.entityManager:createEntity()
+    local tileId = EntityManager:createEntity()
 
     -- Store POSITION component as logical grid coords (xIndex, yIndex).
     -- Rendering will multiply by pixelSize. This prevents mixing pixels into logic.
-    self.entityManager:addComponent(tileId, ComponentType.POSITION, Vec2.new(xIndex, yIndex))
-    self.entityManager:addComponent(tileId, ComponentType.TEXTURE, Texture.new(result.color))
-    self.entityManager:addComponent(tileId, ComponentType.SHAPE, Shape.new(ShapeType.SQUARE, 1))
-    self.entityManager:addComponent(
-        tileId,
-        ComponentType.TOPOGRAPHY,
-        Topography.new(result.style, result.speedMultiplier)
-    )
+    EntityManager:addComponent(tileId, ComponentType.POSITION, Vec2.new(xIndex, yIndex))
+    EntityManager:addComponent(tileId, ComponentType.TEXTURE, Texture.new(result.color))
+    EntityManager:addComponent(tileId, ComponentType.SHAPE, Shape.new(ShapeType.SQUARE, 1))
+    EntityManager:addComponent(tileId, ComponentType.TOPOGRAPHY, Topography.new(result.style, result.speedMultiplier))
     -- store grid tag as x,y indices
-    self.entityManager:addComponent(tileId, ComponentType.MAPTILETAG, Vec2.new(xIndex, yIndex))
+    EntityManager:addComponent(tileId, ComponentType.MAPTILETAG, Vec2.new(xIndex, yIndex))
     return tileId
 end
 
@@ -91,7 +84,7 @@ function MapManager:createLevelMap()
         tiles[x] = {}
         for y = 1, self.height do
             local tileId = self:createCell(x, y)
-            local topography = self.entityManager:getComponent(tileId, ComponentType.TOPOGRAPHY)
+            local topography = EntityManager:getComponent(tileId, ComponentType.TOPOGRAPHY)
             local tile = Tile.new(x, y, tileId, topography.style, topography.speedMultiplier)
             tiles[x][y] = tile
         end
@@ -202,7 +195,7 @@ function MapManager:updateTileStyle(x, y, newStyle)
     local tile = self.graph[x] and self.graph[x][y]
     if not tile then return end
 
-    self.entityManager:addComponent(
+    EntityManager:addComponent(
         tile.id,
         ComponentType.TOPOGRAPHY,
         Topography.new(newStyle, TopographyMap[newStyle] or 0)
@@ -222,8 +215,8 @@ function MapManager:getTileStyle(x, y)
     if not t then return TopographyType.INACCESSIBLE end
 
     local style = nil
-    if t.id and self.entityManager then
-        local topoComp = self.entityManager:getComponent(t.id, ComponentType.TOPOGRAPHY)
+    if t.id and EntityManager then
+        local topoComp = EntityManager:getComponent(t.id, ComponentType.TOPOGRAPHY)
         style = (topoComp and topoComp.style ~= nil) and topoComp.style or t.style
     else
         style = t.style

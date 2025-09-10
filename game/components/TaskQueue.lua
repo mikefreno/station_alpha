@@ -11,13 +11,11 @@ local TaskType = enums.TaskType
 local TaskQueue = {}
 
 ---@param ownerId integer
----@param mapManager? MapManager   -- optional: pass mapManager for terrain speed lookups
-function TaskQueue.new(ownerId, mapManager)
+function TaskQueue.new(ownerId)
     local self = setmetatable({}, { __index = TaskQueue })
     self.ownerId = ownerId
     self.queue = {}
     self.currentTask = nil
-    self.mapManager = mapManager -- store reference if available
     return self
 end
 
@@ -31,19 +29,18 @@ function TaskQueue:push(task) table.insert(self.queue, task) end
 function TaskQueue:pop() return table.remove(self.queue, 1) end
 
 ---@param dt number
----@param entityManager EntityManager
-function TaskQueue:update(dt, entityManager)
+function TaskQueue:update(dt)
     local function cleanup()
         --align
-        local p = entityManager:getComponent(self.ownerId, ComponentType.POSITION)
-        local v = entityManager:getComponent(self.ownerId, ComponentType.VELOCITY)
+        local p = EntityManager:getComponent(self.ownerId, ComponentType.POSITION)
+        local v = EntityManager:getComponent(self.ownerId, ComponentType.VELOCITY)
         v = Vec2.new(0, 0)
         p = self.currentTask.target
         --clear
         self.currentTask = nil
     end
     if self.currentTask then
-        local calledCleanup = self.currentTask:update(self.ownerId, entityManager, cleanup)
+        local calledCleanup = self.currentTask:update(self.ownerId, cleanup)
         if not calledCleanup then return end
     end
     -- If no current task, start the next one
@@ -52,7 +49,7 @@ function TaskQueue:update(dt, entityManager)
     local nextTask = self:pop()
     if nextTask.type == TaskType.MOVETO then
         self.currentTask = MoveTo.new(nextTask.data)
-        entityManager:addComponent(self.ownerId, ComponentType.MOVETO, self.currentTask)
+        EntityManager:addComponent(self.ownerId, ComponentType.MOVETO, self.currentTask)
     elseif nextTask.type == TaskType.WORK then
         -- handle other task types
     end

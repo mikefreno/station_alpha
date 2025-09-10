@@ -1,20 +1,20 @@
 local enums = require("game.utils.enums")
-local MapManager = require("game.systems.MapManager")
+local mapManager = require("game.systems.MapManager")
 local Schedule = require("game.components.Schedule")
-local RightClickMenu = require("game.components.RightClickMenu")
+local rightClickMenu = require("game.components.RightClickMenu")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 local TaskType = enums.TaskType
-local EntityManager = require("game.systems.EntityManager")
+EntityManager = require("game.systems.EntityManager")
 local InputSystem = require("game.systems.Input")
 local PositionSystem = require("game.systems.Position")
 local RenderSystem = require("game.systems.Render")
-local TaskManager = require("game.systems.TaskManager")
-local Camera = require("game.components.Camera")
+local taskManager = require("game.systems.TaskManager")
+local camera = require("game.components.Camera")
 local Vec2 = require("game.utils.Vec2")
 local Texture = require("game.components.Texture")
 local Shape = require("game.components.Shape")
-local Pathfinder = require("game.systems.PathFinder")
+local pathfinder = require("game.systems.PathFinder")
 local constants = require("game.utils.constants")
 local LoadingIndicator = require("game.components.LoadingIndicator")
 local TaskQueue = require("game.components.TaskQueue")
@@ -23,21 +23,16 @@ Logger = require("game.logger"):init()
 local Slab = require("libs.Slab")
 
 local function isLoading()
-    if not mapManager.graph or mapManager.dirtyGraph == true then return true end
+    if not MapManager.graph or MapManager.dirtyGraph == true then return true end
 end
 
-local function initGod()
-    EntityManager:addComponent(EntityManager.god, ComponentType.CAMERA, Camera.new())
-    mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
-    EntityManager:addComponent(EntityManager.god, ComponentType.MAPMANAGER, mapManager)
-    mapManager:createLevelMap()
-    EntityManager:addComponent(
-        EntityManager.god,
-        ComponentType.TASKMANAGER,
-        TaskManager.init(EntityManager, mapManager)
-    )
-    EntityManager:addComponent(EntityManager.god, ComponentType.RIGHTCLICKMENU, RightClickMenu.new())
-    EntityManager:addComponent(EntityManager.god, ComponentType.PATHFINDER, Pathfinder.new())
+local function initSystems()
+    Camera = camera.new()
+    MapManager = mapManager.new(constants.MAP_W, constants.MAP_H)
+    MapManager:createLevelMap()
+    TaskManager = taskManager.new()
+    RCM = rightClickMenu.new()
+    Pathfinder = pathfinder.new()
 end
 
 ---NOTE: temporary for demoing purposes---
@@ -48,25 +43,23 @@ local function initDot()
     EntityManager:addComponent(EntityManager.dot, ComponentType.SPEEDSTAT, 50 / 70)
     EntityManager:addComponent(EntityManager.dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
     EntityManager:addComponent(EntityManager.dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
-    EntityManager:addComponent(EntityManager.dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
+    EntityManager:addComponent(EntityManager.dot, ComponentType.TASKQUEUE, TaskQueue.new(EntityManager.dot))
     EntityManager:addComponent(EntityManager.dot, ComponentType.SCHEDULE, Schedule.new())
 end
 
 function love.load(args)
-    initGod()
+    initSystems()
     initDot()
     Slab.Initialize(args)
     overlayStats.load()
 end
 
 function love.update(dt)
-    local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
-    local taskManager = EntityManager:getComponent(1, ComponentType.TASKMANAGER)
-    camera:update(dt)
-    PositionSystem:update(dt, EntityManager)
-    mapManager:update()
-    InputSystem:update(EntityManager)
-    taskManager:update(dt)
+    Camera:update(dt)
+    PositionSystem:update(dt)
+    MapManager:update()
+    InputSystem:update()
+    TaskManager:update(dt)
 
     Slab.Update(dt)
 
@@ -110,10 +103,9 @@ function love.resize()
 end
 
 function love.draw()
-    local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
-    camera:apply()
-    RenderSystem:update(EntityManager, camera:getVisibleBounds())
-    camera:unapply()
+    Camera:apply()
+    RenderSystem:update(Camera:getVisibleBounds())
+    Camera:unapply()
     LoadingIndicator:draw()
     Slab.Draw()
     Logger:draw()

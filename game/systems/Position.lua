@@ -11,12 +11,11 @@ function PositionSystem.new()
 end
 
 ---@param dt number
----@param entityManager EntityManager
-function PositionSystem:update(dt, entityManager)
-    for _, e in ipairs(self:query(entityManager, ComponentType.POSITION, ComponentType.VELOCITY, ComponentType.MOVETO)) do
-        local p = entityManager:getComponent(e, ComponentType.POSITION)
-        local v = entityManager:getComponent(e, ComponentType.VELOCITY)
-        local moveto = entityManager:getComponent(e, ComponentType.MOVETO)
+function PositionSystem:update(dt)
+    for _, e in ipairs(self:query(ComponentType.POSITION, ComponentType.VELOCITY, ComponentType.MOVETO)) do
+        local p = EntityManager:getComponent(e, ComponentType.POSITION)
+        local v = EntityManager:getComponent(e, ComponentType.VELOCITY)
+        local moveto = EntityManager:getComponent(e, ComponentType.MOVETO)
 
         if moveto then
             local dirToTarget = moveto.target:sub(p)
@@ -24,29 +23,30 @@ function PositionSystem:update(dt, entityManager)
 
             if remainingDist < 1e-6 then
                 p.x, p.y = moveto.target.x, moveto.target.y
-                entityManager:removeComponent(e, ComponentType.MOVETO)
+                EntityManager:removeComponent(e, ComponentType.MOVETO)
                 v.x, v.y = 0, 0 -- stop moving
                 goto next_entity
             end
 
-            local speedStat = entityManager:getComponent(e, ComponentType.SPEEDSTAT)
+            local speedStat = EntityManager:getComponent(e, ComponentType.SPEEDSTAT)
             local intx = math.floor(p.x + 0.5) -- dot (and future entities will render at center, need to align with visuals)
             local inty = math.floor(p.y + 0.5)
-            local currentTileEntity = entityManager:find(ComponentType.MAPTILETAG, Vec2.new(intx, inty))
+            local currentTileEntity = EntityManager:find(ComponentType.MAPTILETAG, Vec2.new(intx, inty))
             if currentTileEntity == nil then
                 Logger:error("could not place entity: " .. e .. "(" .. intx .. "," .. inty)
                 return
             end
-            local topography = entityManager:getComponent(currentTileEntity, ComponentType.TOPOGRAPHY)
+            local topography = EntityManager:getComponent(currentTileEntity, ComponentType.TOPOGRAPHY)
             local newVel = moveto.target:sub(p):normalize():mul(topography.speedMultiplier * speedStat)
             local step = newVel:mul(dt)
 
             if step:length() >= remainingDist then
                 p.x, p.y = moveto.target.x, moveto.target.y
-                entityManager:removeComponent(e, ComponentType.MOVETO)
+                EntityManager:removeComponent(e, ComponentType.MOVETO)
                 v.x, v.y = 0, 0
             else
                 -- Normal movement
+                --
                 p.x = p.x + step.x
                 p.y = p.y + step.y
             end
@@ -60,14 +60,13 @@ function PositionSystem:update(dt, entityManager)
     end
 end
 
----@param entityManager EntityManager
-function PositionSystem:query(entityManager, ...)
+function PositionSystem:query(...)
     local required = { ... }
     local result = {}
-    for e, _ in pairs(entityManager.entities) do
+    for e, _ in pairs(EntityManager.entities) do
         local ok = true
         for _, t in ipairs(required) do
-            if not entityManager.components[t] or not entityManager.components[t][e] then
+            if not EntityManager.components[t] or not EntityManager.components[t][e] then
                 ok = false
                 break
             end
@@ -77,12 +76,11 @@ function PositionSystem:query(entityManager, ...)
     return result
 end
 
----@param entityManager EntityManager
 ---@param entityToMove integer
 ---@param targetEntity integer
-function PositionSystem:createTask(entityManager, entityToMove, targetEntity)
-    local origin = entityManager:getComponent(entityToMove, ComponentType.POSITION)
-    local target = entityManager:getComponent(targetEntity, ComponentType.POSITION)
+function PositionSystem:createTask(entityToMove, targetEntity)
+    local origin = EntityManager:getComponent(entityToMove, ComponentType.POSITION)
+    local target = EntityManager:getComponent(targetEntity, ComponentType.POSITION)
 end
 
 return PositionSystem.new()

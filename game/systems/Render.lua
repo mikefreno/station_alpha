@@ -16,20 +16,19 @@ end
 
 --- Draw every entity that has a POSITION component.
 --- This function sorts entities to ensure map tiles are rendered at a lower z-index than other elements.
----@param entityManager EntityManager
 ---@param bounds { x: number, y: number, width:number, height:number }
-function RenderSystem:update(entityManager, bounds)
+function RenderSystem:update(bounds)
     love.graphics.clear(0.54, 0.32, 0.16)
 
     love.graphics.push()
 
     -- Get all entities with POSITION component
-    local entities = self:query(entityManager, ComponentType.POSITION)
+    local entities = self:query(ComponentType.POSITION)
 
     -- Sort entities so that map tiles are rendered first (lower z-index)
     table.sort(entities, function(a, b)
-        local aIsMapTile = entityManager:getComponent(a, ComponentType.MAPTILETAG) ~= nil
-        local bIsMapTile = entityManager:getComponent(b, ComponentType.MAPTILETAG) ~= nil
+        local aIsMapTile = EntityManager:getComponent(a, ComponentType.MAPTILETAG) ~= nil
+        local bIsMapTile = EntityManager:getComponent(b, ComponentType.MAPTILETAG) ~= nil
 
         -- Map tiles go first (lower z-index)
         if aIsMapTile and not bIsMapTile then return true end
@@ -39,17 +38,12 @@ function RenderSystem:update(entityManager, bounds)
         return a < b
     end)
 
-    ---NOTE: Super fragile, but just trying to get the systems working, the god entity's components rendered last (rcm)
-    table.insert(entities, 1) -- NOTE: 1=God entity
-
     for _, e in ipairs(entities) do
         --NOTE: The rightclickmenu can be rendered anywhere... therefore we dont want to do any kind of culling to affect it, it should also remain static to its position
         if e == 1 then
-            local rcm = entityManager:getComponent(e, ComponentType.RIGHTCLICKMENU)
-            if rcm then rcm:render(mapManager) end
-            goto continue
+            if RCM then RCM:render() end
         end
-        local pos = entityManager:getComponent(e, ComponentType.POSITION)
+        local pos = EntityManager:getComponent(e, ComponentType.POSITION)
 
         if
             pos.x < bounds.x - self.renderBorderPadding
@@ -60,10 +54,10 @@ function RenderSystem:update(entityManager, bounds)
             goto continue
         end
 
-        local tex = entityManager:getComponent(e, ComponentType.TEXTURE)
-        local shape = entityManager:getComponent(e, ComponentType.SHAPE)
-        local mapTile = entityManager:getComponent(e, ComponentType.MAPTILETAG)
-        local selected = entityManager:getComponent(e, ComponentType.SELECTED)
+        local tex = EntityManager:getComponent(e, ComponentType.TEXTURE)
+        local shape = EntityManager:getComponent(e, ComponentType.SHAPE)
+        local mapTile = EntityManager:getComponent(e, ComponentType.MAPTILETAG)
+        local selected = EntityManager:getComponent(e, ComponentType.SELECTED)
 
         local r, g, b = 1, 1, 1
         if tex and tex.color then
@@ -116,13 +110,13 @@ function RenderSystem:update(entityManager, bounds)
     love.graphics.pop()
 end
 
-function RenderSystem:query(entityManager, ...)
+function RenderSystem:query(...)
     local required = { ... }
     local result = {}
-    for e, _ in pairs(entityManager.entities) do
+    for e, _ in pairs(EntityManager.entities) do
         local ok = true
         for _, t in ipairs(required) do
-            if not entityManager.components[t] or not entityManager.components[t][e] then
+            if not EntityManager.components[t] or not EntityManager.components[t][e] then
                 ok = false
                 break
             end

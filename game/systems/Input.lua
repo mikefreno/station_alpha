@@ -10,11 +10,12 @@ function InputSystem.new()
     return self
 end
 
----@param entityManager EntityManager
-function InputSystem:update(entityManager) end
+function InputSystem:update() end
 
 function InputSystem:keypressed(key, scancode, isrepeat)
-    -- Handle keyboard input here if needed
+    if key == "escape" then
+        if RCM.showing then RCM.showing = false end
+    end
 end
 
 ---comment
@@ -22,15 +23,14 @@ end
 ---@param y number
 ---@param button integer
 ---@param istouch boolean
----@param entityManager EntityManager
-function InputSystem:handleMousePressed(x, y, button, istouch, entityManager)
+function InputSystem:handleMousePressed(x, y, button, istouch)
     if button == 1 then
         -- Find entities at the click position that are not map tiles
-        local entities = entityManager:query(ComponentType.POSITION)
+        local entities = EntityManager:query(ComponentType.POSITION)
         for _, entityId in ipairs(entities) do
             -- Skip map tile entities
-            if entityManager:getComponent(entityId, ComponentType.MAPTILETAG) == nil then
-                local bounds = entityManager:getEntityBounds(entityId)
+            if EntityManager:getComponent(entityId, ComponentType.MAPTILETAG) == nil then
+                local bounds = EntityManager:getEntityBounds(entityId)
                 if bounds then
                     -- Check if click position is within entity bounds
                     if
@@ -39,7 +39,7 @@ function InputSystem:handleMousePressed(x, y, button, istouch, entityManager)
                         and y >= bounds.y
                         and y <= bounds.y + bounds.height
                     then
-                        entityManager:addComponent(entityId, ComponentType.SELECTED, true)
+                        EntityManager:addComponent(entityId, ComponentType.SELECTED, true)
                         break
                     end
                 end
@@ -48,12 +48,11 @@ function InputSystem:handleMousePressed(x, y, button, istouch, entityManager)
         --local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
         --if not rcm.hovered then rcm:hide() end
     elseif button == 2 then
-        local rcm = EntityManager:getComponent(EntityManager.god, ComponentType.RIGHTCLICKMENU)
-        if rcm and not rcm.position then rcm.position = Vec2.new() end
-        if rcm then
-            rcm.position.x = x
-            rcm.position.y = y
-            rcm.showing = true
+        if RCM and not RCM.position then RCM.position = Vec2.new() end
+        if RCM then
+            RCM.position.x = x
+            RCM.position.y = y
+            RCM.showing = true
         else
             Logger:error("No RCM found")
         end
@@ -61,11 +60,9 @@ function InputSystem:handleMousePressed(x, y, button, istouch, entityManager)
 end
 
 function InputSystem:handleWheelMoved(x, y)
-    local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
-    if rcm.showing then
+    if RCM.showing then
     else
-        local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
-        camera:wheelmoved(x, y)
+        Camera:wheelmoved(x, y)
     end
 end
 
