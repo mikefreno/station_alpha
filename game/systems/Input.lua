@@ -28,6 +28,8 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
         -- Find entities at the click position that are not map tiles
         local entities = EntityManager:query(ComponentType.POSITION)
         for _, entityId in ipairs(entities) do
+            local selected = EntityManager:getComponent(entityId, ComponentType.SELECTED)
+            if selected == true then EntityManager:addComponent(entityId, ComponentType.SELECTED, false) end
             -- Skip map tile entities
             if EntityManager:getComponent(entityId, ComponentType.MAPTILETAG) == nil then
                 local bounds = EntityManager:getEntityBounds(entityId)
@@ -45,8 +47,7 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
                 end
             end
         end
-        --local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
-        --if not rcm.hovered then rcm:hide() end
+        --if not RCM.hovered then RCM:hide() end
     elseif button == 2 then
         if RCM and not RCM.position then RCM.position = Vec2.new() end
         if RCM then

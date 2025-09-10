@@ -78,7 +78,6 @@ function RenderSystem:update(bounds)
                 love.graphics.setColor(1, 1, 1)
                 if Logger.visible then love.graphics.print(mapTile.x .. "," .. mapTile.y, centerX, centerY, 0, 0.5) end
             end
-            goto continue
         end
 
         if shape and shape.shape == ShapeType.CIRCLE then
@@ -88,7 +87,6 @@ function RenderSystem:update(bounds)
                 py + constants.pixelSize / 2,
                 shape.size * constants.pixelSize / 2
             )
-            goto continue
         end
 
         if selected == true then
@@ -97,10 +95,10 @@ function RenderSystem:update(bounds)
             love.graphics.setColor(1, 1, 1)
             love.graphics.rectangle(
                 "line",
-                px + constants.pixelSize / 2,
-                py + constants.pixelSize / 2,
-                shape.size * constants.pixelSize / 2,
-                shape.size * constants.pixelSize / 2
+                px + constants.pixelSize / 8,
+                py + constants.pixelSize / 8,
+                shape.size * constants.pixelSize,
+                shape.size * constants.pixelSize
             )
             love.graphics.setLineStyle("rough")
         end
