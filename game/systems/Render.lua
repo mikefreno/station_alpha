@@ -90,8 +90,8 @@ function RenderSystem:update(bounds)
         end
 
         if selected == true then
-            Logger:debug("drawing")
             love.graphics.setLineStyle("rough")
+            love.graphics.setLineWidth(1)
             love.graphics.setColor(1, 1, 1)
             love.graphics.rectangle(
                 "line",

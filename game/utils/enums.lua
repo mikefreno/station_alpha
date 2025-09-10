@@ -34,4 +34,17 @@ enums.TopographyType = {
     INACCESSIBLE = 3,
 }
 
+--- @enum Placement
+enums.Placement = {
+    TOP_LEFT = 1,
+    TOP_CENTER = 2,
+    TOP_RIGHT = 3,
+    CENTER_LEFT = 4,
+    CENTER_RIGHT = 5,
+    CENTER_CENTER = 6,
+    BOTTOM_LEFT = 7,
+    BOTTOM_CENTER = 8,
+    BOTTOM_RIGHT = 9,
+}
+
 return enums

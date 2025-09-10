@@ -1,5 +1,6 @@
 local ComponentType = require("game.utils.enums").ComponentType
 local EntityManager = require("game.systems.EntityManager")
+local EscapeMenu = require("game.components.EscapeMenu")
 local Vec2 = require("game.utils.Vec2")
 
 local InputSystem = {}
@@ -14,7 +15,12 @@ function InputSystem:update() end
 
 function InputSystem:keypressed(key, scancode, isrepeat)
     if key == "escape" then
-        if RCM.showing then RCM.showing = false end
+        if RCM.showing then
+            RCM.showing = false
+        else
+            EscapeMenu.visible = not EscapeMenu.visible
+        end
+    else
     end
 end
 

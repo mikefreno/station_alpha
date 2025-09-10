@@ -1,7 +1,6 @@
-local Vec2 = require("game.utils.Vec2")
-local Slab = require("libs.Slab")
-local constants = require("game.utils.constants")
 local EntityManager = require("game.systems.EntityManager")
+local Vec2 = require("game.utils.Vec2")
+local constants = require("game.utils.constants")
 local ComponentType = require("game.utils.enums").ComponentType
 
 ---@class RightClickMenu
@@ -23,12 +22,12 @@ end
 
 function RightClickMenu:render()
     if self.showing then
-        Slab.BeginWindow("MyFirstWindow", { Title = "Dot Options", X = self.position.x, Y = self.position.y })
+        --Slab.BeginWindow("MyFirstWindow", { Title = "Dot Options", X = self.position.x, Y = self.position.y })
 
-        Slab.Text("Hello World")
-        Slab.Text("This is the Right Click Menu")
+        --Slab.Text("Hello World")
+        --Slab.Text("This is the Right Click Menu")
 
-        if Slab.Button("Go To") then ButtonPressed = true end
+        --if Slab.Button("Go To") then ButtonPressed = true end
 
         if ButtonPressed then
             local currentDotPos = EntityManager:getComponent(EntityManager.dot, ComponentType.POSITION)
@@ -43,7 +42,7 @@ function RightClickMenu:render()
             ButtonPressed = false
         end
 
-        Slab.EndWindow()
+        --Slab.EndWindow()
     end
 end
 

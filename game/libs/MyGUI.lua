@@ -1,5 +1,14 @@
+local Color = require("game.utils.color")
+local enums = require("game.utils.enums")
+local Placement = enums.Placement
 -- Simple GUI library for LOVE2D
 -- Provides window and button creation, drawing, and click handling.
+
+---@class Border
+---@field top boolean?
+---@field right boolean?
+---@field bottom boolean?
+---@field left boolean?
 
 local Gui = {}
 
@@ -11,27 +20,56 @@ local Gui = {}
 ---@field y number
 ---@field width number
 ---@field height number
----@field children table<integer, Button>
+---@field children table<integer, Button|Window>
+---@field parent Window
+---@field visible boolean
 ---@field title string
+---@field titlePlacement Placement?
+---@field border Border
+---@field background Color?
 ---@field prevGameSize {width:number, height:number}
 local Window = {}
 Window.__index = Window
 
----@param x number
----@param y number
----@param w number
----@param h number
----@param title string?
----@return Window
-function Window.new(x, y, w, h, title)
-    local self = setmetatable({}, Window)
-    self.x = x
-    self.y = y
-    self.width = w or self:calculateAutoWidth()
-    self.height = h or self:calculateAutoHeight()
+---@class WindowProps
+---@field x number
+---@field y number
+---@field w number
+---@field h number
+---@field title string?
+---@field titlePlacement Placement? -- default: TOP_LEFT
+---@field border Border? -- default: none
+---@field background Color?  --default: transparent
+---@field initVisible boolean? --default: `false`
+local WindowProps = {}
 
+---@param props WindowProps
+---@return Window
+function Window.new(props)
+    local self = setmetatable({}, Window)
+    self.x = props.x
+    self.y = props.y
+    self.width = props.w or self:calculateAutoWidth()
+    self.height = props.h or self:calculateAutoHeight()
     self.children = {}
-    self.title = title or ""
+    self.title = props.title or ""
+    self.titlePlacement = props.titlePlacement or Placement.TOP_LEFT
+    self.border = props.border
+            and {
+                top = props.border.top or false,
+                right = props.border.right or false,
+                bottom = props.border.bottom or false,
+                left = props.border.left or false,
+            }
+        or {
+            top = false,
+            right = false,
+            bottom = false,
+            left = false,
+        }
+
+    self.background = props.background or Color.new(0, 0, 0, 0)
+    self.visible = props.initVisible or true
     local gw, gh = love.window.getMode()
     self.prevGameSize = { width = gw, height = gh }
 
@@ -43,15 +81,32 @@ function Window:getBounds() return { x = self.x, y = self.y, width = self.width,
 
 --- Add child to window
 ---@param child Button
-function Window:addChild(child) table.insert(self.children, child) end
+function Window:addChild(child)
+    child.parent = self
+    table.insert(self.children, child)
+end
 
 --- Draw window and its children
 function Window:draw()
-    love.graphics.setColor(0.8, 0.8, 0.8)
+    if not self.visible then return end
+    love.graphics.setColor(self.background:toRGBA())
     love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
     love.graphics.setColor(0, 0, 0)
-    love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
-    if self.title ~= "" then love.graphics.print(self.title, self.x + 10, self.y + 5) end
+    -- Draw borders based on border property
+    love.graphics.setLineWidth(1)
+    love.graphics.setLineStyle("smooth")
+    if self.border.top then love.graphics.line(self.x, self.y, self.x + self.width, self.y) end
+    if self.border.bottom then
+        love.graphics.line(self.x, self.y + self.height, self.x + self.width, self.y + self.height)
+    end
+    if self.border.left then love.graphics.line(self.x, self.y, self.x, self.y + self.height) end
+    if self.border.right then
+        love.graphics.line(self.x + self.width, self.y, self.x + self.width, self.y + self.height)
+    end
+    if self.title ~= "" then
+        local tx, ty = self:getTitlePosition()
+        love.graphics.print(self.title, tx, ty)
+    end
     for _, child in ipairs(self.children) do
         child:draw()
     end
@@ -126,7 +181,38 @@ function Window:calculateAutoHeight()
     self.height = maxHeight + 20
 end
 
---- Button object
+--- Get title position based on placement
+function Window:getTitlePosition()
+    local font = love.graphics.getFont()
+    local titleWidth = font:getWidth(self.title)
+    local titleHeight = font:getHeight()
+
+    -- Default to TOP_LEFT if no placement specified
+    local placement = self.titlePlacement or 1
+
+    if placement == 1 then -- TOP_LEFT
+        return self.x + 10, self.y + 5
+    elseif placement == 2 then -- TOP_CENTER
+        return self.x + (self.width - titleWidth) / 2, self.y + 5
+    elseif placement == 3 then -- TOP_RIGHT
+        return self.x + self.width - titleWidth - 10, self.y + 5
+    elseif placement == 4 then -- CENTER_LEFT
+        return self.x + 10, self.y + (self.height - titleHeight) / 2
+    elseif placement == 5 then -- CENTER_RIGHT
+        return self.x + self.width - titleWidth - 10, self.y + (self.height - titleHeight) / 2
+    elseif placement == 6 then -- CENTER_CENTER
+        return self.x + (self.width - titleWidth) / 2, self.y + (self.height - titleHeight) / 2
+    elseif placement == 7 then -- BOTTOM_LEFT
+        return self.x + 10, self.y + self.height - titleHeight - 5
+    elseif placement == 8 then -- BOTTOM_CENTER
+        return self.x + (self.width - titleWidth) / 2, self.y + self.height - titleHeight - 5
+    elseif placement == 9 then -- BOTTOM_RIGHT
+        return self.x + self.width - titleWidth - 10, self.y + self.height - titleHeight - 5
+    else
+        return self.x + 10, self.y + 5 -- fallback to TOP_LEFT
+    end
+end
+
 ---@class Button
 ---@field x number
 ---@field y number
@@ -135,36 +221,58 @@ end
 ---@field px number
 ---@field py number
 ---@field text string
+---@field border Border
+---@field background Color
 ---@field parent Window
 ---@field callback function
 local Button = {}
 Button.__index = Button
 
----@param parent Window
----@param x number
----@param y number
----@param w number?
----@param h number?
----@param px number?
----@param py number?
----@param text string
----@param callback function
+---@class ButtonProps
+---@field parent Window? -- optional
+---@field x number
+---@field y number
+---@field w number?
+---@field h number?
+---@field px number?
+---@field py number?
+---@field text string?
+---@field callback function?
+---@field background Color?
+---@field border Border?
+local ButtonProps = {}
+
+---@param props ButtonProps
 ---@return Button
-function Button.new(parent, x, y, w, h, px, py, text, callback)
+function Button.new(props)
     local self = setmetatable({}, Button)
-    self.parent = parent
-    self.x = x
-    self.y = y
-    self.px = px or 0
-    self.py = py or 0
-    self.width = w or self:calculateTextWidth(text) + px
-    self.height = h or self:calculateTextHeight() + py
-    self.text = text or ""
-    self.callback = callback or function() end
+    self.parent = props.parent
+    self.x = props.x
+    self.y = props.y
+    self.px = props.px or 0
+    self.py = props.py or 0
+    self.width = props.w or self:calculateTextWidth(props.text) + props.px
+    self.height = props.h or self:calculateTextHeight() + props.py
+    self.text = props.text or ""
+    self.border = props.border
+            and {
+                top = props.border.top or true,
+                right = props.border.right or true,
+                bottom = props.border.bottom or true,
+                left = props.border.left or true,
+            }
+        or {
+            top = true,
+            right = true,
+            bottom = true,
+            left = true,
+        }
+    self.background = props.background or Color.new(0, 0, 0, 0)
+    self.callback = props.callback or function() end
     self._pressed = false
     self._touchPressed = false
 
-    parent:addChild(self)
+    props.parent:addChild(self)
     return self
 end
 
@@ -193,10 +301,45 @@ function Button:updateText(newText, autoresize)
 end
 
 function Button:draw()
-    love.graphics.setColor(0.6, 0.6, 0.6)
+    love.graphics.setColor(self.background:toRGBA())
     love.graphics.rectangle("fill", self.parent.x + self.x, self.parent.y + self.y, self.width, self.height)
     love.graphics.setColor(0, 0, 0)
-    love.graphics.rectangle("line", self.parent.x + self.x, self.parent.y + self.y, self.width, self.height)
+    -- Draw borders based on border property
+    love.graphics.setLineWidth(1)
+    love.graphics.setLineStyle("smooth")
+    if self.border.top then
+        love.graphics.line(
+            self.parent.x + self.x,
+            self.parent.y + self.y,
+            self.parent.x + self.x + self.width,
+            self.parent.y + self.y
+        )
+    end
+    if self.border.bottom then
+        love.graphics.line(
+            self.parent.x + self.x,
+            self.parent.y + self.y + self.height,
+            self.parent.x + self.x + self.width,
+            self.parent.y + self.y + self.height
+        )
+    end
+    if self.border.left then
+        love.graphics.line(
+            self.parent.x + self.x,
+            self.parent.y + self.y,
+            self.parent.x + self.x,
+            self.parent.y + self.y + self.height
+        )
+    end
+    if self.border.right then
+        love.graphics.line(
+            self.parent.x + self.x + self.width,
+            self.parent.y + self.y,
+            self.parent.x + self.x + self.width,
+            self.parent.y + self.y + self.height
+        )
+    end
+
     local tx = self.parent.x + self.x + (self.width - self:calculateTextWidth()) / 2
     local ty = self.parent.y + self.y + (self.height - self:calculateTextHeight()) / 3
     love.graphics.print(self.text, tx, ty)
@@ -253,14 +396,10 @@ end
 --- Global GUI manager
 Gui.windows = {}
 
----@param x number
----@param y number
----@param w number
----@param h number
----@param title string?
+---@param props WindowProps
 ---@return Window
-function Gui.newWindow(x, y, w, h, title)
-    local win = Window.new(x, y, w, h, title)
+function Gui.newWindow(props)
+    local win = Window.new(props)
     table.insert(Gui.windows, win)
     return win
 end

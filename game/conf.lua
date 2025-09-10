@@ -22,7 +22,6 @@ function love.conf(t)
     t.appendidentity = false
     t.version = product_config["LOVE_VERSION"]
 
-    -- If t.console is set to true, then the debugger won't work.
     t.console = false
     t.accelerometerjoystick = false
     t.externalstorage = false
@@ -42,7 +41,7 @@ function love.conf(t)
     t.window.fullscreen = false
     t.window.fullscreentype = "desktop"
     t.window.vsync = 1
-    t.window.msaa = 0
+    t.window.msaa = 4
     t.window.depth = nil
     t.window.stencil = nil
     t.window.display = 1

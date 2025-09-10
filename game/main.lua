@@ -1,26 +1,27 @@
+local Color = require("game.utils.color")
+local Schedule = require("game.components.Schedule")
 local enums = require("game.utils.enums")
 local mapManager = require("game.systems.MapManager")
-local Schedule = require("game.components.Schedule")
 local rightClickMenu = require("game.components.RightClickMenu")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 local TaskType = enums.TaskType
 EntityManager = require("game.systems.EntityManager")
 local InputSystem = require("game.systems.Input")
+local LoadingIndicator = require("game.components.LoadingIndicator")
 local PositionSystem = require("game.systems.Position")
 local RenderSystem = require("game.systems.Render")
-local taskManager = require("game.systems.TaskManager")
-local camera = require("game.components.Camera")
-local Vec2 = require("game.utils.Vec2")
-local Texture = require("game.components.Texture")
 local Shape = require("game.components.Shape")
-local pathfinder = require("game.systems.PathFinder")
-local constants = require("game.utils.constants")
-local LoadingIndicator = require("game.components.LoadingIndicator")
 local TaskQueue = require("game.components.TaskQueue")
+local Texture = require("game.components.Texture")
+local Vec2 = require("game.utils.Vec2")
+local camera = require("game.components.Camera")
+local constants = require("game.utils.constants")
 local overlayStats = require("game.libs.OverlayStats")
+local pathfinder = require("game.systems.PathFinder")
+local taskManager = require("game.systems.TaskManager")
 Logger = require("game.logger"):init()
-local Slab = require("libs.Slab")
+local EscapeMenu = require("game.components.EscapeMenu")
 local Gui = require("game.libs.MyGUI")
 
 local function isLoading()
@@ -50,7 +51,14 @@ end
 
 local function initBottomBar()
     local w, h = love.window.getMode()
-    local win = Gui.newWindow(0, h * 0.9, w, h * 0.1)
+    local win = Gui.newWindow({
+        x = 0,
+        y = h * 0.9,
+        w = w,
+        h = h * 0.1,
+        border = { top = true },
+        background = Color.new(0.2, 0.2, 0.2, 0.95),
+    })
     local minimized = false
     ---@param btn Button
     local function minimizeWindow(btn)
@@ -70,14 +78,14 @@ local function initBottomBar()
         end
         minimized = not minimized
     end
-    local minButton = Gui.Button.new(win, 10, 10, nil, nil, 4, 4, "-", minimizeWindow)
+    local minButton =
+        Gui.Button.new({ parent = win, x = 10, y = 10, px = 4, py = 4, text = "-", callback = minimizeWindow })
 end
 
-function love.load(args)
+function love.load()
     initSystems()
     initDot()
     initBottomBar()
-    Slab.Initialize(args)
     overlayStats.load()
 end
 
@@ -88,8 +96,6 @@ function love.update(dt)
     InputSystem:update()
     TaskManager:update(dt)
     Gui.update(dt)
-
-    Slab.Update(dt)
 
     if isLoading() == true and LoadingIndicator.isVisible == false then
         LoadingIndicator:show()
@@ -122,8 +128,7 @@ end
 function love.touchpressed(id, x, y, dx, dy, pressure) overlayStats.handleTouch(id, x, y, dx, dy, pressure) end
 
 function love.resize()
-    local newWidth, newHeight = love.window.getMode()
-    -- Recalculate pixel size
+    local newWidth = love.window.getMode()
     constants.pixelSize = newWidth / 40
     Gui.resize()
 end
@@ -134,7 +139,7 @@ function love.draw()
     Camera:unapply()
     LoadingIndicator:draw()
     Gui.draw()
-    Slab.Draw()
+    EscapeMenu:draw()
     Logger:draw()
     overlayStats.draw()
 end

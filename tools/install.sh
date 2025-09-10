@@ -12,12 +12,13 @@ fi
 mkdir -p "$libs_dir"
 cd "$libs_dir" || { echo "❌  Could not cd to $libs_dir"; exit 1; }
 
-if [[ -d "Slab/.git" ]]; then
-  echo "✅  Slab is already present at $(pwd)/Slab"
-else
-  git clone https://github.com/flamendless/Slab.git
-  echo "✅  Slab cloned successfully"
-fi
+#NOTE: Attempting to make my own gui lib, so slab is being removed
+#if [[ -d "Slab/.git" ]]; then
+  #echo "✅  Slab is already present at $(pwd)/Slab"
+#else
+  #git clone https://github.com/flamendless/Slab.git
+  #echo "✅  Slab cloned successfully"
+#fi
 
 
 download_file() {
