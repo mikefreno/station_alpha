@@ -36,6 +36,7 @@ function love.load(args)
     mapManager:createLevelMap()
     EntityManager:addComponent(God, ComponentType.TASKMANAGER, TaskManager.init(EntityManager, mapManager))
     EntityManager:addComponent(God, ComponentType.RIGHTCLICKMENU, RightClickMenu.new())
+
     ---NOTE: temporary for demoing purposes---
     EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(1, 1))
     EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
@@ -79,9 +80,7 @@ function love.keypressed(key, scancode, isrepeat)
     InputSystem:keypressed(key, scancode, isrepeat)
 end
 
-function love.mousepressed(x, y, button, istouch)
-    InputSystem:handleMousePressed(x, y, button, istouch, EntityManager, mapManager)
-end
+function love.mousepressed(x, y, button, istouch) InputSystem:handleMousePressed(x, y, button, istouch, EntityManager) end
 
 function love.wheelmoved(x, y)
     if love.keyboard.isDown("lctrl") then

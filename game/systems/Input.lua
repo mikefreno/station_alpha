@@ -1,8 +1,6 @@
 local ComponentType = require("utils.enums").ComponentType
 local EntityManager = require("systems.EntityManager")
 local Vec2 = require("utils.Vec2")
-local pathfinder = require("systems.PathFinder")
-local constants = require("utils.constants")
 
 local InputSystem = {}
 InputSystem.__index = InputSystem
@@ -25,32 +23,35 @@ end
 ---@param button integer
 ---@param istouch boolean
 ---@param entityManager EntityManager
----@param mapManager MapManager
-function InputSystem:handleMousePressed(x, y, button, istouch, entityManager, mapManager)
+function InputSystem:handleMousePressed(x, y, button, istouch, entityManager)
     if button == 1 then
-        local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
-        local taskManager = EntityManager:getComponent(1, ComponentType.TASKMANAGER)
-
-        local worldX = (x / camera.zoom) + (camera.position.x * constants.pixelSize)
-        local worldY = (y / camera.zoom) + (camera.position.y * constants.pixelSize)
-
-        -- Convert pixel world to grid indices
-        local clickGrid = mapManager:worldToGrid(Vec2.new(worldX, worldY))
-
-        -- Current dot position stored as logical grid coords
-        local currentDotPos = EntityManager:getComponent(Dot, ComponentType.POSITION)
-        local dotShape = EntityManager:getComponent(Dot, ComponentType.SHAPE)
-
-        local path = pathfinder:findPath(currentDotPos:add(dotShape.size / 2, dotShape.size / 2), clickGrid, mapManager)
-        if path == nil then return end
-
-        taskManager:newPath(Dot, path)
+        -- Find entities at the click position that are not map tiles
+        local entities = entityManager:query(ComponentType.POSITION)
+        for _, entityId in ipairs(entities) do
+            -- Skip map tile entities
+            if entityManager:getComponent(entityId, ComponentType.MAPTILETAG) == nil then
+                local bounds = entityManager:getEntityBounds(entityId)
+                if bounds then
+                    -- Check if click position is within entity bounds
+                    if
+                        x >= bounds.x
+                        and x <= bounds.x + bounds.width
+                        and y >= bounds.y
+                        and y <= bounds.y + bounds.height
+                    then
+                        Logger:debug("Entity " .. entityId .. " clicked at position (" .. x .. ", " .. y .. ")")
+                        break
+                    end
+                end
+            end
+        end
         local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
-        rcm:hide()
+        if not rcm.hovered then rcm:hide() end
     elseif button == 2 then
         local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
         if rcm and not rcm.position then rcm.position = Vec2.new() end
         if rcm then
+            Logger:debug("Setting RCM position to: x=" .. tostring(x) .. ", y=" .. tostring(y))
             rcm.position.x = x
             rcm.position.y = y
             rcm.showing = true
@@ -61,7 +62,12 @@ function InputSystem:handleMousePressed(x, y, button, istouch, entityManager, ma
 end
 
 function InputSystem:handleWheelMoved(x, y)
-    -- Wheel movement handling would go here
+    local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
+    if rcm.showing then
+    else
+        local camera = EntityManager:getComponent(1, ComponentType.CAMERA)
+        camera:wheelmoved(x, y)
+    end
 end
 
 return InputSystem.new()

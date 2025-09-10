@@ -39,14 +39,17 @@ function RenderSystem:update(entityManager, bounds)
         return a < b
     end)
 
+    ---NOTE: Super fragile, but just trying to get the systems working, the god entity's components rendered last (rcm)
+    table.insert(entities, 1) -- NOTE: 1=God entity
+
     for _, e in ipairs(entities) do
-        local pos = entityManager:getComponent(e, ComponentType.POSITION)
         --NOTE: The rightclickmenu can be rendered anywhere... therefore we dont want to do any kind of culling to affect it, it should also remain static to its position
-        if e == 1 then -- NOTE: 1=God
+        if e == 1 then
             local rcm = entityManager:getComponent(e, ComponentType.RIGHTCLICKMENU)
             if rcm then rcm:render() end
             goto continue
         end
+        local pos = entityManager:getComponent(e, ComponentType.POSITION)
 
         if
             pos.x < bounds.x - self.renderBorderPadding
