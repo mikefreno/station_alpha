@@ -1,10 +1,10 @@
-local Vec2 = require("utils.Vec2")
-local constants = require("utils.constants")
-local Topography = require("components.Topography")
-local Shape = require("components.Shape")
-local Texture = require("components.Texture")
-local enums = require("utils.enums")
-local Tile = require("components.Tile")
+local Vec2 = require("game.utils.Vec2")
+local constants = require("game.utils.constants")
+local Topography = require("game.components.Topography")
+local Shape = require("game.components.Shape")
+local Texture = require("game.components.Texture")
+local enums = require("game.utils.enums")
+local Tile = require("game.components.Tile")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 local TopographyType = enums.TopographyType
@@ -121,14 +121,10 @@ function MapManager:buildGraph()
                 local nx, ny = x + d[1], y + d[2]
 
                 -- Skip any coordinate that’s off‑the‑map
-                if nx < 1 or nx > self.width or ny < 1 or ny > self.height then
-                    goto continue
-                end
+                if nx < 1 or nx > self.width or ny < 1 or ny > self.height then goto continue end
 
                 local neighbor = self.graph[nx][ny]
-                if not neighbor then
-                    goto continue
-                end
+                if not neighbor then goto continue end
 
                 if d[1] ~= 0 and d[2] ~= 0 then -- diagonal
                     local styleDiag = self:getTileStyle(nx, ny)
@@ -144,9 +140,7 @@ function MapManager:buildGraph()
                     end
                 else -- orthogonal
                     local style = self:getTileStyle(nx, ny)
-                    if style ~= TopographyType.INACCESSIBLE then
-                        table.insert(tile.neighbors, neighbor)
-                    end
+                    if style ~= TopographyType.INACCESSIBLE then table.insert(tile.neighbors, neighbor) end
                 end
 
                 ::continue::
@@ -160,9 +154,7 @@ end
 --- Rebuild the graph only when dirty – call once per frame.
 --- @return nil
 function MapManager:update()
-    if self.dirtyGraph then
-        self:buildGraph()
-    end
+    if self.dirtyGraph then self:buildGraph() end
 end
 
 --- Retrieve a node from the current graph.
@@ -208,9 +200,7 @@ end
 --- @param newStyle   TopographyType
 function MapManager:updateTileStyle(x, y, newStyle)
     local tile = self.graph[x] and self.graph[x][y]
-    if not tile then
-        return
-    end
+    if not tile then return end
 
     self.entityManager:addComponent(
         tile.id,
@@ -226,14 +216,10 @@ end
 --- @param y integer
 --- @return TopographyType|nil
 function MapManager:getTileStyle(x, y)
-    if x < 1 or x > self.width or y < 1 or y > self.height then
-        return TopographyType.INACCESSIBLE
-    end
+    if x < 1 or x > self.width or y < 1 or y > self.height then return TopographyType.INACCESSIBLE end
 
     local t = self.graph[x][y]
-    if not t then
-        return TopographyType.INACCESSIBLE
-    end
+    if not t then return TopographyType.INACCESSIBLE end
 
     local style = nil
     if t.id and self.entityManager then

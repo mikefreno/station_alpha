@@ -1,6 +1,6 @@
-local enums = require("utils.enums")
-local MoveTo = require("components.MoveTo")
-local Vec2 = require("utils.Vec2")
+local enums = require("game.utils.enums")
+local MoveTo = require("game.components.MoveTo")
+local Vec2 = require("game.utils.Vec2")
 local ComponentType = enums.ComponentType
 local TaskType = enums.TaskType
 
@@ -26,13 +26,9 @@ function TaskQueue:reset()
     self.currentTask = nil
 end
 
-function TaskQueue:push(task)
-    table.insert(self.queue, task)
-end
+function TaskQueue:push(task) table.insert(self.queue, task) end
 
-function TaskQueue:pop()
-    return table.remove(self.queue, 1)
-end
+function TaskQueue:pop() return table.remove(self.queue, 1) end
 
 ---@param dt number
 ---@param entityManager EntityManager
@@ -48,14 +44,10 @@ function TaskQueue:update(dt, entityManager)
     end
     if self.currentTask then
         local calledCleanup = self.currentTask:update(self.ownerId, entityManager, cleanup)
-        if not calledCleanup then
-            return
-        end
+        if not calledCleanup then return end
     end
     -- If no current task, start the next one
-    if #self.queue == 0 then
-        return
-    end
+    if #self.queue == 0 then return end
 
     local nextTask = self:pop()
     if nextTask.type == TaskType.MOVETO then

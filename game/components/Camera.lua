@@ -1,5 +1,5 @@
-local constants = require("utils.constants")
-local Vec2 = require("utils.Vec2")
+local constants = require("game.utils.constants")
+local Vec2 = require("game.utils.Vec2")
 
 local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 
@@ -38,9 +38,7 @@ end
 --- Set zoom level – keep it strictly positive
 ---@param z number
 function Camera:setZoom(z)
-    if z > 0 then
-        self.zoom = math.max(0.75, math.min(3, z))
-    end
+    if z > 0 then self.zoom = math.max(0.75, math.min(3, z)) end
     self:clampPosition()
 end
 
@@ -52,9 +50,7 @@ function Camera:apply()
 end
 
 --- Reset camera state (pop the transform)
-function Camera:unapply()
-    love.graphics.pop()
-end
+function Camera:unapply() love.graphics.pop() end
 
 --- Handle keyboard + mouse input for camera movement + zoom
 ---@param dt number
@@ -63,22 +59,12 @@ function Camera:update(dt)
 
     ---panning---
     --keyboard
-    if love.keyboard.isDown("w") then
-        self:move(0, -speed)
-    end
-    if love.keyboard.isDown("s") then
-        self:move(0, speed)
-    end
-    if love.keyboard.isDown("a") then
-        self:move(-speed, 0)
-    end
-    if love.keyboard.isDown("d") then
-        self:move(speed, 0)
-    end
+    if love.keyboard.isDown("w") then self:move(0, -speed) end
+    if love.keyboard.isDown("s") then self:move(0, speed) end
+    if love.keyboard.isDown("a") then self:move(-speed, 0) end
+    if love.keyboard.isDown("d") then self:move(speed, 0) end
     --mouse position
-    local function speedClamp(x, min, max)
-        return math.max(min, math.min(x, max))
-    end
+    local function speedClamp(x, min, max) return math.max(min, math.min(x, max)) end
     local function speedFactor(pos, border)
         local dist
         if pos < border then
@@ -113,9 +99,7 @@ end
 --- Mouse‑wheel callback for zooming – exponential scaling
 ---@param y number  Scroll delta
 function Camera:wheelmoved(_, y)
-    if y == 0 then
-        return
-    end
+    if y == 0 then return end
     local mx, my = love.mouse.getPosition() -- pixel coords
     local wX, wY = -- logical coords
         (mx / (constants.pixelSize * self.zoom)) + self.position.x,

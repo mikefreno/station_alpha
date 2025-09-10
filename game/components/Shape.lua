@@ -1,4 +1,4 @@
-local enums = require("utils.enums")
+local enums = require("game.utils.enums")
 local ShapeType = enums.ShapeType
 
 ---@class Shape

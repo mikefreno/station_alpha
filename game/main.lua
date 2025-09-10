@@ -1,52 +1,60 @@
-local enums = require("utils.enums")
-local MapManager = require("systems.MapManager")
-local Schedule = require("components.Schedule")
+local enums = require("game.utils.enums")
+local MapManager = require("game.systems.MapManager")
+local Schedule = require("game.components.Schedule")
 local RightClickMenu = require("game.components.RightClickMenu")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 local TaskType = enums.TaskType
-local EntityManager = require("systems.EntityManager")
-local InputSystem = require("systems.Input")
-local PositionSystem = require("systems.Position")
-local RenderSystem = require("systems.Render")
-local TaskManager = require("systems.TaskManager")
-local Camera = require("components.Camera")
-local Vec2 = require("utils.Vec2")
-local Texture = require("components.Texture")
-local Shape = require("components.Shape")
-local pathfinder = require("systems.PathFinder")
-local constants = require("utils.constants")
-local LoadingIndicator = require("components.LoadingIndicator")
-local TaskQueue = require("components.TaskQueue")
-local overlayStats = require("libs.OverlayStats")
-Logger = require("logger"):init()
+local EntityManager = require("game.systems.EntityManager")
+local InputSystem = require("game.systems.Input")
+local PositionSystem = require("game.systems.Position")
+local RenderSystem = require("game.systems.Render")
+local TaskManager = require("game.systems.TaskManager")
+local Camera = require("game.components.Camera")
+local Vec2 = require("game.utils.Vec2")
+local Texture = require("game.components.Texture")
+local Shape = require("game.components.Shape")
+local Pathfinder = require("game.systems.PathFinder")
+local constants = require("game.utils.constants")
+local LoadingIndicator = require("game.components.LoadingIndicator")
+local TaskQueue = require("game.components.TaskQueue")
+local overlayStats = require("game.libs.OverlayStats")
+Logger = require("game.logger"):init()
 local Slab = require("libs.Slab")
-
-local mapManager
 
 local function isLoading()
     if not mapManager.graph or mapManager.dirtyGraph == true then return true end
 end
 
-function love.load(args)
-    God = EntityManager:createEntity() -- id 1
-    Dot = EntityManager:createEntity()
-    EntityManager:addComponent(God, ComponentType.CAMERA, Camera.new())
+local function initGod()
+    EntityManager:addComponent(EntityManager.god, ComponentType.CAMERA, Camera.new())
     mapManager = MapManager.new(EntityManager, constants.MAP_W, constants.MAP_H)
+    EntityManager:addComponent(EntityManager.god, ComponentType.MAPMANAGER, mapManager)
     mapManager:createLevelMap()
-    EntityManager:addComponent(God, ComponentType.TASKMANAGER, TaskManager.init(EntityManager, mapManager))
-    EntityManager:addComponent(God, ComponentType.RIGHTCLICKMENU, RightClickMenu.new())
+    EntityManager:addComponent(
+        EntityManager.god,
+        ComponentType.TASKMANAGER,
+        TaskManager.init(EntityManager, mapManager)
+    )
+    EntityManager:addComponent(EntityManager.god, ComponentType.RIGHTCLICKMENU, RightClickMenu.new())
+    EntityManager:addComponent(EntityManager.god, ComponentType.PATHFINDER, Pathfinder.new())
+end
 
-    ---NOTE: temporary for demoing purposes---
-    EntityManager:addComponent(Dot, ComponentType.POSITION, Vec2.new(1, 1))
-    EntityManager:addComponent(Dot, ComponentType.VELOCITY, Vec2.new())
+---NOTE: temporary for demoing purposes---
+local function initDot()
+    EntityManager:addComponent(EntityManager.dot, ComponentType.POSITION, Vec2.new(1, 1))
+    EntityManager:addComponent(EntityManager.dot, ComponentType.VELOCITY, Vec2.new())
     -- 100 meters(50 tiles) in 70 seconds
-    EntityManager:addComponent(Dot, ComponentType.SPEEDSTAT, 50 / 70)
-    EntityManager:addComponent(Dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
-    EntityManager:addComponent(Dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
-    EntityManager:addComponent(Dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
-    EntityManager:addComponent(Dot, ComponentType.SCHEDULE, Schedule.new())
+    EntityManager:addComponent(EntityManager.dot, ComponentType.SPEEDSTAT, 50 / 70)
+    EntityManager:addComponent(EntityManager.dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
+    EntityManager:addComponent(EntityManager.dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
+    EntityManager:addComponent(EntityManager.dot, ComponentType.TASKQUEUE, TaskQueue.new(Dot))
+    EntityManager:addComponent(EntityManager.dot, ComponentType.SCHEDULE, Schedule.new())
+end
 
+function love.load(args)
+    initGod()
+    initDot()
     Slab.Initialize(args)
     overlayStats.load()
 end

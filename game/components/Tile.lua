@@ -1,5 +1,5 @@
-local enums = require("utils.enums")
-local Vec2 = require("utils.Vec2")
+local enums = require("game.utils.enums")
+local Vec2 = require("game.utils.Vec2")
 local TopographyType = enums.TopographyType
 
 ---@class Tile
@@ -35,9 +35,7 @@ function Tile.new(x, y, entityId, style, speedMult)
     return self
 end
 
-function Tile:updateStyle(newStyle)
-    self.style = newStyle
-end
+function Tile:updateStyle(newStyle) self.style = newStyle end
 
 function Tile:reset()
     self.parent = nil

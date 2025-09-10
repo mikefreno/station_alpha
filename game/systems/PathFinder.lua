@@ -41,18 +41,14 @@ function PathFinder:heapPush(heap, node)
     heap[i] = node
     while i > 1 do
         local p = math.floor(i / 2)
-        if heap[p].f <= heap[i].f then
-            break
-        end
+        if heap[p].f <= heap[i].f then break end
         heap[i], heap[p] = heap[p], heap[i]
         i = p
     end
 end
 
 function PathFinder:heapPop(heap)
-    if #heap == 0 then
-        return nil
-    end
+    if #heap == 0 then return nil end
     local min = heap[1]
     heap[1] = heap[#heap]
     heap[#heap] = nil
@@ -60,16 +56,10 @@ function PathFinder:heapPop(heap)
     while true do
         local l = i * 2
         local r = l + 1
-        if l > #heap then
-            break
-        end
+        if l > #heap then break end
         local smallest = l
-        if r <= #heap and heap[r].f < heap[l].f then
-            smallest = r
-        end
-        if heap[i].f <= heap[smallest].f then
-            break
-        end
+        if r <= #heap and heap[r].f < heap[l].f then smallest = r end
+        if heap[i].f <= heap[smallest].f then break end
         heap[i], heap[smallest] = heap[smallest], heap[i]
         i = smallest
     end
@@ -86,9 +76,7 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
     end
 
     local function ensureGrid(v)
-        if not v then
-            return nil
-        end
+        if not v then return nil end
         if v.x and v.y and v.x >= 1 and v.x <= mapManager.width and v.y >= 1 and v.y <= mapManager.height then
             return v
         end
@@ -126,17 +114,11 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
 
     -- Helper: get tile speed multiplier (returns number > 0). Prefer Tile.speedMultiplier, fallback to entity component.
     local function getSpeedMultiplier(tile)
-        if not tile then
-            return 0
-        end
-        if tile.speedMultiplier and type(tile.speedMultiplier) == "number" then
-            return tile.speedMultiplier
-        end
+        if not tile then return 0 end
+        if tile.speedMultiplier and type(tile.speedMultiplier) == "number" then return tile.speedMultiplier end
         if tile.id and mapManager.entityManager then
             local topo = mapManager.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
-            if topo and topo.speedMultiplier then
-                return topo.speedMultiplier
-            end
+            if topo and topo.speedMultiplier then return topo.speedMultiplier end
         end
         -- default to OPEN speed 1.0 if missing
         return 1.0
@@ -192,9 +174,7 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         closedSet[cx][cy] = true
 
         local function isStart(n)
-            if n.parent == nil then
-                return true
-            end
+            if n.parent == nil then return true end
             if n.position.x == math.floor(startWorldPos.x) and n.position.y == math.floor(startWorldPos.y) then
                 return true
             end
@@ -205,9 +185,7 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
             local path = {}
             local n = current
             while n do
-                if not isStart(n) then
-                    table.insert(path, 1, { type = TaskType.MOVETO, data = n.position })
-                end
+                if not isStart(n) then table.insert(path, 1, { type = TaskType.MOVETO, data = n.position }) end
                 n = n.parent
             end
             self:releaseAll()
@@ -215,21 +193,13 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
         end
 
         local currentTile = mapManager.graph[cx] and mapManager.graph[cx][cy]
-        if not currentTile then
-            goto continue_main
-        end
+        if not currentTile then goto continue_main end
 
         for _, nb in ipairs(currentTile.neighbors or {}) do
-            if not nb.position or not nb.position.x or not nb.position.y then
-                goto continue_neighbor
-            end
+            if not nb.position or not nb.position.x or not nb.position.y then goto continue_neighbor end
             local nx, ny = nb.position.x, nb.position.y
-            if not mapManager.graph[nx] or not mapManager.graph[nx][ny] then
-                goto continue_neighbor
-            end
-            if closedSet[nx][ny] then
-                goto continue_neighbor
-            end
+            if not mapManager.graph[nx] or not mapManager.graph[nx][ny] then goto continue_neighbor end
+            if closedSet[nx][ny] then goto continue_neighbor end
 
             -- compute tentative g using move cost to enter neighbor
             local tentativeCost = current.g + moveCostForTile(nb)
@@ -269,4 +239,4 @@ function PathFinder:findPath(startWorldPos, endWorldPos, mapManager)
     return nil
 end
 
-return PathFinder.new()
+return PathFinder

@@ -1,7 +1,7 @@
-local enum = require("utils.enums")
+local enum = require("game.utils.enums")
 local ComponentType = enum.ComponentType
 local TaskType = enum.TaskType
-local Vec2 = require("utils.Vec2")
+local Vec2 = require("game.utils.Vec2")
 ---this class servers to choose what the next task should be for its attached
 ---entity
 ---@class TaskManager

@@ -1,11 +1,13 @@
-local enums = require("utils.enums")
-local constants = require("utils.constants")
+local enums = require("game.utils.enums")
+local constants = require("game.utils.constants")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 
 ---@class EntityManager
 ---@field entities   table<number, boolean>
 ---@field components table<ComponentType, table<number, any>>
+---@field god integer
+---@field dot integer
 local EntityManager = {}
 EntityManager.__index = EntityManager
 
@@ -17,6 +19,8 @@ function EntityManager.init()
         self.entities = {}
         self.components = {}
         instance = self
+        self.god = self:createEntity()
+        self.dot = self:createEntity()
     end
     return instance
 end

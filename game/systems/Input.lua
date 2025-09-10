@@ -1,6 +1,6 @@
-local ComponentType = require("utils.enums").ComponentType
-local EntityManager = require("systems.EntityManager")
-local Vec2 = require("utils.Vec2")
+local ComponentType = require("game.utils.enums").ComponentType
+local EntityManager = require("game.systems.EntityManager")
+local Vec2 = require("game.utils.Vec2")
 
 local InputSystem = {}
 InputSystem.__index = InputSystem
@@ -39,19 +39,18 @@ function InputSystem:handleMousePressed(x, y, button, istouch, entityManager)
                         and y >= bounds.y
                         and y <= bounds.y + bounds.height
                     then
-                        Logger:debug("Entity " .. entityId .. " clicked at position (" .. x .. ", " .. y .. ")")
+                        entityManager:addComponent(entityId, ComponentType.SELECTED, true)
                         break
                     end
                 end
             end
         end
-        local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
-        if not rcm.hovered then rcm:hide() end
+        --local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
+        --if not rcm.hovered then rcm:hide() end
     elseif button == 2 then
-        local rcm = EntityManager:getComponent(1, ComponentType.RIGHTCLICKMENU)
+        local rcm = EntityManager:getComponent(EntityManager.god, ComponentType.RIGHTCLICKMENU)
         if rcm and not rcm.position then rcm.position = Vec2.new() end
         if rcm then
-            Logger:debug("Setting RCM position to: x=" .. tostring(x) .. ", y=" .. tostring(y))
             rcm.position.x = x
             rcm.position.y = y
             rcm.showing = true

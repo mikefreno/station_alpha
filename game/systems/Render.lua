@@ -1,7 +1,7 @@
-local enums = require("utils.enums")
+local enums = require("game.utils.enums")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
-local constants = require("utils.constants")
+local constants = require("game.utils.constants")
 
 ---@class RenderSystem
 ---@field renderBorderPadding integer
@@ -46,7 +46,7 @@ function RenderSystem:update(entityManager, bounds)
         --NOTE: The rightclickmenu can be rendered anywhere... therefore we dont want to do any kind of culling to affect it, it should also remain static to its position
         if e == 1 then
             local rcm = entityManager:getComponent(e, ComponentType.RIGHTCLICKMENU)
-            if rcm then rcm:render() end
+            if rcm then rcm:render(mapManager) end
             goto continue
         end
         local pos = entityManager:getComponent(e, ComponentType.POSITION)
@@ -63,6 +63,7 @@ function RenderSystem:update(entityManager, bounds)
         local tex = entityManager:getComponent(e, ComponentType.TEXTURE)
         local shape = entityManager:getComponent(e, ComponentType.SHAPE)
         local mapTile = entityManager:getComponent(e, ComponentType.MAPTILETAG)
+        local selected = entityManager:getComponent(e, ComponentType.SELECTED)
 
         local r, g, b = 1, 1, 1
         if tex and tex.color then
@@ -96,8 +97,20 @@ function RenderSystem:update(entityManager, bounds)
             goto continue
         end
 
-        -- draw a full tile sized rectangle for logical units
-        love.graphics.rectangle("fill", px, py, constants.pixelSize, constants.pixelSize)
+        if selected == true then
+            Logger:debug("drawing")
+            love.graphics.setLineStyle("rough")
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.rectangle(
+                "line",
+                px + constants.pixelSize / 2,
+                py + constants.pixelSize / 2,
+                shape.size * constants.pixelSize / 2,
+                shape.size * constants.pixelSize / 2
+            )
+            love.graphics.setLineStyle("rough")
+        end
+
         ::continue::
     end
     love.graphics.pop()

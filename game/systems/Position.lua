@@ -1,6 +1,6 @@
-local ComponentType = require("utils.enums").ComponentType
-local Vec2 = require("utils.Vec2")
-local constants = require("utils.constants")
+local ComponentType = require("game.utils.enums").ComponentType
+local Vec2 = require("game.utils.Vec2")
+local constants = require("game.utils.constants")
 
 local PositionSystem = {}
 PositionSystem.__index = PositionSystem
@@ -72,9 +72,7 @@ function PositionSystem:query(entityManager, ...)
                 break
             end
         end
-        if ok then
-            result[#result + 1] = e
-        end
+        if ok then result[#result + 1] = e end
     end
     return result
 end

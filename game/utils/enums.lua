@@ -15,6 +15,9 @@ enums.ComponentType = {
     TASKMANAGER = 11,
     SCHEDULE = 12,
     RIGHTCLICKMENU = 13,
+    SELECTED = 14,
+    MAPMANAGER = 15,
+    PATHFINDER = 16,
 }
 
 --- @enum TaskType

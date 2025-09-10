@@ -1,5 +1,7 @@
-local Vec2 = require("utils.Vec2")
+local Vec2 = require("game.utils.Vec2")
 local Slab = require("libs.Slab")
+local EntityManager = require("game.systems.EntityManager")
+local ComponentType = require("game.utils.enums").ComponentType
 
 ---@class RightClickMenu
 ---@field position Vec2?
@@ -20,15 +22,28 @@ end
 
 function RightClickMenu:render()
     if self.showing then
-        Logger:debug("called")
         Slab.BeginWindow("MyFirstWindow", { Title = "Dot Options", X = self.position.x, Y = self.position.y })
 
         Slab.Text("Hello World")
         Slab.Text("This is the Right Click Menu")
 
-        if Slab.Button("My Button") then ButtonPressed = true end
+        if Slab.Button("Go To") then ButtonPressed = true end
 
-        if ButtonPressed then Slab.Text("Button was pressed!") end
+        if ButtonPressed then
+            local currentDotPos = EntityManager:getComponent(EntityManager.dot, ComponentType.POSITION)
+            local dotShape = EntityManager:getComponent(EntityManager.dot, ComponentType.SHAPE)
+
+            local mapManager = EntityManager:getComponent(EntityManager.god, ComponentType.MAPMANAGER)
+            local pathfinder = EntityManager:getComponent(EntityManager.god, ComponentType.PATHFINDER)
+            local taskManager = EntityManager:getComponent(EntityManager.god, ComponentType.TASKMANAGER)
+
+            local clickGrid = mapManager:worldToGrid(Vec2.new(self.position.x, self.position.y))
+            local path =
+                pathfinder:findPath(currentDotPos:add(dotShape.size / 2, dotShape.size / 2), clickGrid, mapManager)
+            Logger:debug(#path)
+            if path == nil then return end
+            taskManager:newPath(EntityManager.dot, path)
+        end
 
         Slab.EndWindow()
     end
