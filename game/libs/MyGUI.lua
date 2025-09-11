@@ -48,6 +48,9 @@ Window.__index = Window
 ---@field alignItems string? -- default: start
 ---@field initVisible boolean? --default: `false`
 ---@field textColor Color? -- default: black
+---@field flexDirection string? -- default: horizontal
+---@field flexWrap string? -- default: none
+---@field gap number? -- default: 10
 local WindowProps = {}
 
 ---@param props WindowProps
@@ -96,13 +99,13 @@ function Window:addChild(child)
 
     local numChildren = #self.children
 
-    if self.layout == "horizontal" then
+    if self.flexDirection == "horizontal" then
         -- compute total width of all children including padding between them
         local totalWidth = 0
         for _, c in ipairs(self.children) do
             totalWidth = totalWidth + (c.width or 100)
         end
-        local paddingBetween = (numChildren - 1) * 10
+        local paddingBetween = (numChildren - 1) * (self.gap or 10)
 
         totalWidth = totalWidth + paddingBetween
 
@@ -158,7 +161,7 @@ function Window:addChild(child)
                 c.y = self.y + 10
             end
         end
-    elseif self.layout == "vertical" then
+    elseif self.flexDirection == "vertical" then
         -- compute total height of all children including padding between them
         local totalHeight = 0
         for _, c in ipairs(self.children) do
