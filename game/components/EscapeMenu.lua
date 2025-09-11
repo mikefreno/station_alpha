@@ -34,13 +34,15 @@ function EscapeMenu:draw()
                 background = nil,
                 initVisible = true,
                 textColor = Color.new(1, 1, 1, 1),
+                flexDirection = "vertical",
+                justifyContent = "center",
+                alignItems = "center",
+                gap = 10,
             })
             self.menuWindow = win
             -- Add buttons
             local closeBtn = Gui.Button.new({
                 parent = win,
-                x = 10,
-                y = 10,
                 w = 20,
                 h = 20,
                 px = 0,
@@ -50,8 +52,6 @@ function EscapeMenu:draw()
             })
             local saveBtn = Gui.Button.new({
                 parent = win,
-                x = 10,
-                y = 40,
                 w = 80,
                 h = 20,
                 px = 0,
@@ -62,8 +62,6 @@ function EscapeMenu:draw()
             })
             local loadBtn = Gui.Button.new({
                 parent = win,
-                x = 10,
-                y = 70,
                 w = 80,
                 h = 20,
                 px = 0,
@@ -74,8 +72,6 @@ function EscapeMenu:draw()
             })
             local menuBtn = Gui.Button.new({
                 parent = win,
-                x = 10,
-                y = 100,
                 w = 80,
                 h = 20,
                 px = 0,
@@ -86,6 +82,12 @@ function EscapeMenu:draw()
             })
         end
         self.menuWindow:draw()
+    else
+        -- Destroy the menu window if it exists and is not visible
+        if self.menuWindow ~= nil then
+            self.menuWindow:destroy()
+            self.menuWindow = nil
+        end
     end
 end
 

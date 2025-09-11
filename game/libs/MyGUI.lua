@@ -7,7 +7,7 @@ local Placement = enums.Placement
 ---@class Animation
 ---@field duration number
 ---@field start table{width:number,height:number}
----@field to table{width:number,height:number}
+---@field final table{width:number,height:number}
 ---@field elapsed number
 local Animation = {}
 Animation.__index = Animation
@@ -15,8 +15,7 @@ Animation.__index = Animation
 ---@class AnimationProps
 ---@field duration number
 ---@field start table{width:number,height:number}
----@field to table{width:number,height:number}
----@field elapsed number
+---@field final table{width:number,height:number}
 local AnimationProps = {}
 
 ---@param props AnimationProps
@@ -24,7 +23,7 @@ function Animation.new(props)
     local self = setmetatable({}, Animation)
     self.duration = props.duration
     self.start = props.start
-    self.to = props.to
+    self.final = props.final
     self.elapsed = 0
     return self
 end
@@ -41,8 +40,8 @@ end
 function Animation:interpolate()
     local t = math.min(self.elapsed / self.duration, 1)
     return {
-        width = self.start.width * (1 - t) + self.to.width * t,
-        height = self.start.height * (1 - t) + self.to.height * t,
+        width = self.start.width * (1 - t) + self.final.width * t,
+        height = self.start.height * (1 - t) + self.final.height * t,
     }
 end
 
@@ -163,6 +162,7 @@ function Window:layoutChildren()
             totalWidth = totalWidth + c.width
         end
         local paddingBetween = (numChildren - 1) * self.gap
+
         totalWidth = totalWidth + paddingBetween
 
         -- determine starting x based on justifyContent
@@ -172,23 +172,50 @@ function Window:layoutChildren()
         elseif self.justifyContent == "center" then
             startX = self.x + (self.width - totalWidth) / 2
         elseif self.justifyContent == "end" then
-            startX = self.x + self.width - totalWidth - self.gap
+            startX = self.x + self.width - totalWidth - 10
         else
             startX = self.x + self.gap -- default
         end
 
         local currentX = startX
-        local currentY = self.y + self.gap
-
         for _, c in ipairs(self.children) do
-            if self.flexWrap == "wrap" and currentX + c.width > self.width then
-                -- wrap to next line
-                currentX = startX
-                currentY = currentY + c.height + self.gap
-            end
             c.x = currentX
-            c.y = currentY
             currentX = currentX + c.width + self.gap
+        end
+
+        -- alignItems vertical
+        if self.alignItems == "start" then
+            for _, c in ipairs(self.children) do
+                c.y = self.y + 10
+            end
+        elseif self.alignItems == "center" then
+            local totalHeight = 0
+            for _, c in ipairs(self.children) do
+                totalHeight = totalHeight + c.height
+            end
+            local paddingBetweenH = (numChildren - 1) * self.gap
+            totalHeight = totalHeight + paddingBetweenH
+            local startY = self.y + (self.height - totalHeight) / 2
+            for _, c in ipairs(self.children) do
+                c.y = startY
+                startY = startY + c.height + self.gap
+            end
+        elseif self.alignItems == "end" then
+            local totalHeight = 0
+            for _, c in ipairs(self.children) do
+                totalHeight = totalHeight + c.height
+            end
+            local paddingBetweenH = (numChildren - 1) * self.gap
+            totalHeight = totalHeight + paddingBetweenH
+            local startY = self.y + self.height - totalHeight - self.gap
+            for _, c in ipairs(self.children) do
+                c.y = startY
+                startY = startY + c.height + self.gap
+            end
+        else
+            for _, c in ipairs(self.children) do
+                c.y = self.y + self.gap
+            end
         end
     elseif self.flexDirection == "vertical" then
         -- compute total height of all children including padding between them
@@ -197,6 +224,7 @@ function Window:layoutChildren()
             totalHeight = totalHeight + c.height
         end
         local paddingBetween = (numChildren - 1) * self.gap
+
         totalHeight = totalHeight + paddingBetween
 
         -- determine starting y based on justifyContent
@@ -211,20 +239,72 @@ function Window:layoutChildren()
             startY = self.y + self.gap -- default
         end
 
-        local currentX = self.x + self.gap
         local currentY = startY
-
         for _, c in ipairs(self.children) do
-            if self.flexWrap == "wrap" and currentY + c.height > self.height then
-                -- wrap to next column
-                currentX = currentX + c.width + self.gap
-                currentY = startY
-            end
-            c.x = currentX
             c.y = currentY
             currentY = currentY + c.height + self.gap
         end
+
+        -- alignItems horizontal
+        if self.alignItems == "start" then
+            for _, c in ipairs(self.children) do
+                c.x = self.x + self.gap
+            end
+        elseif self.alignItems == "center" then
+            local totalWidth = 0
+            for _, c in ipairs(self.children) do
+                totalWidth = totalWidth + c.width
+            end
+            local paddingBetweenW = (numChildren - 1) * self.gap
+            totalWidth = totalWidth + paddingBetweenW
+            local startX = self.x + (self.width - totalWidth) / 2
+            for _, c in ipairs(self.children) do
+                c.x = startX
+                startX = startX + c.width + self.gap
+            end
+        elseif self.alignItems == "end" then
+            local totalWidth = 0
+            for _, c in ipairs(self.children) do
+                totalWidth = totalWidth + c.width
+            end
+            local paddingBetweenW = (numChildren - 1) * self.gap
+            totalWidth = totalWidth + paddingBetweenW
+            local startX = self.x + self.width - totalWidth - self.gap
+            for _, c in ipairs(self.children) do
+                c.x = startX
+                startX = startX + c.width + self.gap
+            end
+        else
+            for _, c in ipairs(self.children) do
+                c.x = self.x + self.gap
+            end
+        end
     end
+end
+
+--- Destroy window and its children
+function Window:destroy()
+    -- Remove from global windows list
+    for i, win in ipairs(Gui.windows) do
+        if win == self then
+            table.remove(Gui.windows, i)
+            break
+        end
+    end
+
+    -- Destroy all children
+    for _, child in ipairs(self.children) do
+        child:destroy()
+    end
+
+    -- Clear children table
+    self.children = {}
+
+    -- Clear parent reference
+    if self.parent then self.parent = nil end
+
+    -- Clear animation reference
+    self.animation = nil
 end
 
 --- Draw window and its children
@@ -267,11 +347,11 @@ function Window:resize(newGameWidth, newGameHeight)
 
     -- Create animation for resizing
     if not self.animation then
-        self.animation = Animation.new(
-            ratioW,
-            { width = self.width, height = self.height },
-            { width = self.width * ratioW, height = self.height * ratioH }
-        )
+        self.animation = Animation.new({
+            duration = ratioW,
+            start = { width = self.width, height = self.height },
+            final = { width = self.width * ratioW, height = self.height * ratioH },
+        })
     else
         self.animation:update(0) -- reset elapsed
     end
@@ -382,6 +462,7 @@ end
 ---@field parent Window
 ---@field callback function
 ---@field textColor Color?
+---@field _touchPressed boolean
 local Button = {}
 Button.__index = Button
 
@@ -546,13 +627,30 @@ function Button:update(dt)
     for _, id in ipairs(touches) do
         local tx, ty = love.touch.getPosition(id)
         if tx >= bx and tx <= bx + self.width and ty >= by and ty <= by + self.height then
-            -- touch pressed flag
             self._touchPressed[id] = true
-        elseif not love.touch.isDown(id) and self._touchPressed[id] then
+        elseif self._touchPressed[id] then
             self.callback(self)
             self._touchPressed[id] = false
         end
     end
+end
+
+--- Destroy button
+function Button:destroy()
+    -- Remove from parent's children list
+    if self.parent then
+        for i, child in ipairs(self.parent.children) do
+            if child == self then
+                table.remove(self.parent.children, i)
+                break
+            end
+        end
+        self.parent = nil
+    end
+    -- Clear callback reference
+    self.callback = nil
+    -- Clear touchPressed references
+    self._touchPressed = nil
 end
 
 --- Global GUI manager
@@ -583,6 +681,14 @@ function Gui.update(dt)
     for _, win in ipairs(Gui.windows) do
         win:update(dt)
     end
+end
+
+--- Destroy all windows and their children
+function Gui.destroy()
+    for _, win in ipairs(Gui.windows) do
+        win:destroy()
+    end
+    Gui.windows = {}
 end
 
 Gui.Button = Button
