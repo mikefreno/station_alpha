@@ -1,5 +1,9 @@
 local Color = require("game.utils.color")
 local Gui = require("game.libs.MyGUI")
+local enums = require("game.utils.enums")
+local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems =
+  enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems
+
 ---@class EscapeMenu
 ---@field visible boolean
 local EscapeMenu = {}
@@ -19,10 +23,7 @@ end
 
 function EscapeMenu:draw()
   if self.visible then
-    love.graphics.setColor(0, 0, 0, 0.5)
     local w, h = love.window.getMode()
-    love.graphics.rectangle("fill", 0, 0, w, h)
-    -- Create or update the escape menu window if not already created
     if self.menuWindow == nil then
       local win = Gui.newWindow({
         x = 0,
@@ -31,22 +32,27 @@ function EscapeMenu:draw()
         h = h,
         title = "Escape Menu",
         border = { top = true, right = true, bottom = true, left = true },
-        background = nil,
+        background = Color.new(0, 0, 0, 0.5),
         initVisible = true,
         textColor = Color.new(1, 1, 1, 1),
-        flexDirection = "vertical",
-        justifyContent = "center",
-        alignItems = "center",
+        positioning = Positioning.FLEX,
+        flexDirection = FlexDirection.VERTICAL,
+        justifyContent = JustifyContent.CENTER,
+        alignItems = AlignContent.CENTER,
         gap = 10,
       })
       self.menuWindow = win
       -- Add buttons
       local closeBtn = Gui.Button.new({
         parent = win,
-        w = 20,
-        h = 20,
+        w = 40,
+        h = 40,
+        x = 40,
+        y = 40,
         px = 0,
         py = 0,
+        borderColor = Color.new(1, 1, 1, 1),
+        positioning = Positioning.ABSOLUTE,
         text = "X",
         callback = function()
           self.visible = false

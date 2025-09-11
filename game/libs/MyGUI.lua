@@ -1,6 +1,12 @@
 local Color = require("game.utils.color")
 local enums = require("game.utils.enums")
-local Placement = enums.Placement
+local FlexDirection = enums.FlexDirection
+local JustifyContent = enums.JustifyContent
+local AlignContent = enums.AlignContent
+local AlignItems = enums.AlignItems
+local Positioning = enums.Positioning
+local TextAlign = enums.TextAlign
+
 -- Simple GUI library for LOVE2D
 -- Provides window and button creation, drawing, and click handling.
 
@@ -69,17 +75,16 @@ local Gui = {}
 ---@field border Border
 ---@field borderColor Color
 ---@field background Color
----@field textColor Color
 ---@field prevGameSize {width:number, height:number}
----@field useFlex boolean
----@field justifyContent string? -- default: start
----@field alignItems string? -- default: start
----@field flexDirection string? -- default: horizontal
----@field flexWrap string? -- default: none
----@field title string?
----@field titleColor Color?
----@field titlePlacement Placement
+---@field text string?
+---@field textColor Color
+---@field textAlign TextAlign
 ---@field gap number
+---@field positioning Positioning -- default: ABSOLUTE
+---@field flexDirection FlexDirection -- default: horizontal
+---@field justifyContent JustifyContent -- default: start
+---@field alignItems AlignItems -- default: start
+---@field alignContent AlignContent -- default: start
 local Window = {}
 Window.__index = Window
 
@@ -91,17 +96,17 @@ Window.__index = Window
 ---@field border Border
 ---@field borderColor Color? -- default: black? -- default: none
 ---@field background Color?  --default: transparent
----@field useFlex boolean? -- default: false
----@field justifyContent string? -- default: start
----@field alignItems string? -- default: start
+---@field gap number? -- default: 10
+---@field text string? -- default: nil
+---@field titleColor Color? -- default: black
+---@field textAlign TextAlign?
 ---@field initVisible boolean? --default: `false`
 ---@field textColor Color? -- default: black
----@field flexDirection string? -- default: horizontal
----@field flexWrap string? -- default: none
----@field gap number? -- default: 10
----@field title string? -- default: nil
----@field titleColor Color? -- default: black
----@field titlePlacement Placement?
+---@field positioning Positioning? -- default: ABSOLUTE
+---@field flexDirection FlexDirection? -- default: HORIZONTAL
+---@field justifyContent JustifyContent? -- default: FLEX_START
+---@field alignItems AlignItems? -- default: STRETCH
+---@field alignContent AlignContent? -- default: STRETCH
 local WindowProps = {}
 
 ---@param props WindowProps
@@ -132,9 +137,17 @@ function Window.new(props)
   self.textColor = props.textColor or Color.new(0, 0, 0, 1)
   self.visible = props.initVisible or true
   self.gap = props.gap or 10
-  self.title = props.title
-  self.titleColor = props.titleColor or Color.new(0, 0, 0, 1)
-  self.titlePlacement = props.titlePlacement or Placement.CENTER
+  self.text = props.text
+  self.textColor = props.textColor or Color.new(0, 0, 0, 1)
+  self.textAlign = props.textAlign or TextAlign.START
+
+  self.positioning = props.positioning or Positioning.ABSOLUTE
+  if self.positioning == Positioning.FLEX then
+    self.positioning = props.positioning
+    self.justifyContent = props.justifyContent or JustifyContent.FLEX_START
+    self.alignItems = props.alignItems or AlignItems.STRETCH
+    self.alignContent = props.alignContent or AlignContent.STRETCH
+  end
 
   local gw, gh = love.window.getMode()
   self.prevGameSize = { width = gw, height = gh }
@@ -152,12 +165,97 @@ end
 function Window:addChild(child)
   child.parent = self
   table.insert(self.children, child)
-  Logger:debug("x: " .. child.x .. ", y:" .. child.y)
   self:layoutChildren()
-  Logger:debug("x: " .. child.x .. ", y:" .. child.y)
 end
 
-function Window:layoutChildren() end
+function Window:layoutChildren()
+  if self.positioning == Positioning.ABSOLUTE then
+    return
+  end
+
+  -- Calculate total size of children
+  local totalSize = 0
+  local childCount = #self.children
+
+  if childCount == 0 then
+    return
+  end
+
+  for _, child in ipairs(self.children) do
+    if self.flexDirection == FlexDirection.HORIZONTAL then
+      totalSize = totalSize + (child.width or 0)
+    else
+      totalSize = totalSize + (child.height or 0)
+    end
+  end
+
+  -- Add gaps between children
+  totalSize = totalSize + (childCount - 1) * self.gap
+
+  -- Calculate available space
+  local availableSpace = self.flexDirection == FlexDirection.HORIZONTAL and self.width or self.height
+  local freeSpace = availableSpace - totalSize
+
+  -- Calculate spacing based on self.justifyContent
+  local spacing = 0
+  if self.justifyContent == JustifyContent.FLEX_START then
+    spacing = 0
+  elseif self.justifyContent == JustifyContent.CENTER then
+    spacing = freeSpace / 2
+  elseif self.justifyContent == JustifyContent.FLEX_END then
+    spacing = freeSpace
+  elseif self.justifyContent == JustifyContent.SPACE_AROUND then
+    spacing = freeSpace / (childCount + 1)
+  elseif self.justifyContent == JustifyContent.SPACE_EVENLY then
+    spacing = freeSpace / (childCount + 1)
+  elseif self.justifyContent == JustifyContent.SPACE_BETWEEN then
+    if childCount > 1 then
+      spacing = freeSpace / (childCount - 1)
+    else
+      spacing = 0
+    end
+  end
+
+  -- Position children
+  local currentPos = spacing
+  for _, child in ipairs(self.children) do
+    if child.positioning == Positioning.ABSOLUTE then
+      goto continue
+    end
+    if self.flexDirection == FlexDirection.VERTICAL then
+      child.x = self.x + currentPos
+      child.y = self.y
+
+      -- Apply alignment to vertical axis (alignItems)
+      if self.alignItems == AlignItems.FLEX_START then
+        child.y = self.y
+      elseif self.alignItems == AlignItems.CENTER then
+        child.y = self.y + (self.height - (child.height or 0)) / 2
+      elseif self.alignItems == AlignItems.FLEX_END then
+        child.y = self.y + self.height - (child.height or 0)
+      elseif self.alignItems == AlignItems.STRETCH then
+        child.height = self.height
+      end
+      currentPos = currentPos + (child.width or 0) + self.gap
+    else
+      child.x = self.x
+      child.y = self.y + currentPos
+      -- Apply alignment to horizontal axis (alignItems)
+      if self.alignItems == AlignItems.FLEX_START then
+        child.x = self.x
+      elseif self.alignItems == AlignItems.CENTER then
+        child.x = self.x + (self.width - (child.width or 0)) / 2
+      elseif self.alignItems == AlignItems.FLEX_END then
+        child.x = self.x + self.width - (child.width or 0)
+      elseif self.alignItems == AlignItems.STRETCH then
+        child.width = self.width
+      end
+
+      currentPos = currentPos + (child.height or 0) + self.gap
+    end
+    ::continue::
+  end
+end
 
 --- Destroy window and its children
 function Window:destroy()
@@ -352,6 +450,7 @@ end
 ---@field callback function
 ---@field textColor Color?
 ---@field _touchPressed boolean
+---@field positioning Positioning --default: ABSOLUTE (checks parent first)
 local Button = {}
 Button.__index = Button
 
@@ -369,6 +468,7 @@ Button.__index = Button
 ---@field border Border?
 ---@field borderColor Color? -- default: black
 ---@field textColor Color? -- default: black,
+---@field positioning Positioning? --default: ABSOLUTE (checks parent first)
 local ButtonProps = {}
 
 ---@param props ButtonProps
@@ -399,6 +499,9 @@ function Button.new(props)
   self.borderColor = props.borderColor or Color.new(0, 0, 0, 1)
   self.textColor = props.textColor
   self.background = props.background or Color.new(0, 0, 0, 0)
+
+  self.positioning = props.positioning or props.parent.positioning
+
   self.callback = props.callback or function() end
   self._pressed = false
   self._touchPressed = false

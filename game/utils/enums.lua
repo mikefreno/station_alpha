@@ -34,19 +34,53 @@ enums.TopographyType = {
   INACCESSIBLE = 3,
 }
 
---- @enum Placement
-enums.Placement = {
-  TOP_LEFT = 1,
-  TOP_CENTER = 2,
-  TOP_RIGHT = 3,
-  CENTER_LEFT = 4,
-  CENTER_RIGHT = 5,
-  CENTER = 6,
-  BOTTOM_LEFT = 7,
-  BOTTOM_CENTER = 8,
-  BOTTOM_RIGHT = 9,
+--- @enum TextAlign
+enums.TextAlign = {
+  START = "start",
+  CENTER = "center",
+  END = "end",
+  JUSTIFY = "justify",
 }
 
---TODO: Add all flexbox settings as enums
+--- @enum Positioning
+enums.Positioning = {
+  ABSOLUTE = "absolute",
+  FLEX = "flex",
+}
+
+--- @enum FlexDirection
+enums.FlexDirection = {
+  HORIZONTAL = "horizontal",
+  VERTICAL = "vertical",
+}
+
+--- @enum JustifyContent
+enums.JustifyContent = {
+  FLEX_START = "flex-start",
+  CENTER = "center",
+  SPACE_AROUND = "space-around",
+  FLEX_END = "flex-end",
+  SPACE_EVENLY = "space-evenly",
+  SPACE_BETWEEN = "space-between",
+}
+
+--- @enum AlignItems
+enums.AlignItems = {
+  STRETCH = "stretch",
+  FLEX_START = "flex-start",
+  FLEX_END = "flex-end",
+  CENTER = "center",
+  BASELINE = "baseline",
+}
+
+--- @enum AlignContent
+enums.AlignContent = {
+  STRETCH = "stretch",
+  FLEX_START = "flex-start",
+  FLEX_END = "flex-end",
+  CENTER = "center",
+  SPACE_BETWEEN = "space-between",
+  SPACE_AROUND = "space-around",
+}
 
 return enums

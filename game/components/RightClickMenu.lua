@@ -22,13 +22,6 @@ end
 
 function RightClickMenu:render()
   if self.showing then
-    --Slab.BeginWindow("MyFirstWindow", { Title = "Dot Options", X = self.position.x, Y = self.position.y })
-
-    --Slab.Text("Hello World")
-    --Slab.Text("This is the Right Click Menu")
-
-    --if Slab.Button("Go To") then ButtonPressed = true end
-
     if ButtonPressed then
       local currentDotPos = EntityManager:getComponent(EntityManager.dot, ComponentType.POSITION)
       local dotShape = EntityManager:getComponent(EntityManager.dot, ComponentType.SHAPE)
@@ -43,8 +36,6 @@ function RightClickMenu:render()
       self.showing = false
       ButtonPressed = false
     end
-
-    --Slab.EndWindow()
   end
 end
 
