@@ -25,121 +25,129 @@ local EscapeMenu = require("game.components.EscapeMenu")
 local Gui = require("game.libs.MyGUI")
 
 local function isLoading()
-    if not MapManager.graph or MapManager.dirtyGraph == true then return true end
+  if not MapManager.graph or MapManager.dirtyGraph == true then
+    return true
+  end
 end
 
 local function initSystems()
-    Camera = camera.new()
-    MapManager = mapManager.new(constants.MAP_W, constants.MAP_H)
-    MapManager:createLevelMap()
-    TaskManager = taskManager.new()
-    RCM = rightClickMenu.new()
-    Pathfinder = pathfinder.new()
+  Camera = camera.new()
+  MapManager = mapManager.new(constants.MAP_W, constants.MAP_H)
+  MapManager:createLevelMap()
+  TaskManager = taskManager.new()
+  RCM = rightClickMenu.new()
+  Pathfinder = pathfinder.new()
 end
 
 ---NOTE: temporary for demoing purposes---
 local function initDot()
-    EntityManager:addComponent(EntityManager.dot, ComponentType.POSITION, Vec2.new(1, 1))
-    EntityManager:addComponent(EntityManager.dot, ComponentType.VELOCITY, Vec2.new())
-    -- 100 meters(50 tiles) in 70 seconds
-    EntityManager:addComponent(EntityManager.dot, ComponentType.SPEEDSTAT, 50 / 70)
-    EntityManager:addComponent(EntityManager.dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
-    EntityManager:addComponent(EntityManager.dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
-    EntityManager:addComponent(EntityManager.dot, ComponentType.TASKQUEUE, TaskQueue.new(EntityManager.dot))
-    EntityManager:addComponent(EntityManager.dot, ComponentType.SCHEDULE, Schedule.new())
+  EntityManager:addComponent(EntityManager.dot, ComponentType.POSITION, Vec2.new(1, 1))
+  EntityManager:addComponent(EntityManager.dot, ComponentType.VELOCITY, Vec2.new())
+  -- 100 meters(50 tiles) in 70 seconds
+  EntityManager:addComponent(EntityManager.dot, ComponentType.SPEEDSTAT, 50 / 70)
+  EntityManager:addComponent(EntityManager.dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
+  EntityManager:addComponent(EntityManager.dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
+  EntityManager:addComponent(EntityManager.dot, ComponentType.TASKQUEUE, TaskQueue.new(EntityManager.dot))
+  EntityManager:addComponent(EntityManager.dot, ComponentType.SCHEDULE, Schedule.new())
 end
 
 local function initBottomBar()
-    local w, h = love.window.getMode()
-    local win = Gui.newWindow({
-        x = 0,
-        y = h * 0.9,
-        w = w,
-        h = h * 0.1,
-        border = { top = true },
-        background = Color.new(0.2, 0.2, 0.2, 0.95),
-    })
-    local minimized = false
-    ---@param btn Button
-    local function minimizeWindow(btn)
-        w, h = love.window.getMode()
-        if minimized then
-            win.height = h * 0.1
-            win.width = w
-            win.y = h * 0.9
-            btn.y = 10
-            btn:updateText("-", true)
-        else
-            win.height = 0
-            win.width = 0
-            win.y = h
-            btn.y = -40
-            btn:updateText("+", true)
-        end
-        minimized = not minimized
+  local w, h = love.window.getMode()
+  local win = Gui.newWindow({
+    x = 0,
+    y = h * 0.9,
+    w = w,
+    h = h * 0.1,
+    border = { top = true },
+    background = Color.new(0.2, 0.2, 0.2, 0.95),
+  })
+  local minimized = false
+  ---@param btn Button
+  local function minimizeWindow(btn)
+    w, h = love.window.getMode()
+    if minimized then
+      win.height = h * 0.1
+      win.width = w
+      win.y = h * 0.9
+      btn.y = 10
+      btn:updateText("-", true)
+    else
+      win.height = 0
+      win.width = 0
+      win.y = h
+      btn.y = -40
+      btn:updateText("+", true)
     end
-    local minButton =
-        Gui.Button.new({ parent = win, x = 10, y = 10, px = 4, py = 4, text = "-", callback = minimizeWindow })
+    minimized = not minimized
+  end
+  local minButton =
+    Gui.Button.new({ parent = win, x = 10, y = 10, px = 4, py = 4, text = "-", callback = minimizeWindow })
 end
 
 function love.load()
-    initSystems()
-    initDot()
-    initBottomBar()
-    overlayStats.load()
+  initSystems()
+  initDot()
+  initBottomBar()
+  overlayStats.load()
 end
 
 function love.update(dt)
-    Camera:update(dt)
-    PositionSystem:update(dt)
-    MapManager:update()
-    InputSystem:update()
-    TaskManager:update(dt)
-    Gui.update(dt)
+  Camera:update(dt)
+  PositionSystem:update(dt)
+  MapManager:update()
+  InputSystem:update()
+  TaskManager:update(dt)
+  Gui.update(dt)
 
-    if isLoading() == true and LoadingIndicator.isVisible == false then
-        LoadingIndicator:show()
-    elseif isLoading() == false and LoadingIndicator.isVisible == true then
-        LoadingIndicator:hide()
-    end
+  if isLoading() == true and LoadingIndicator.isVisible == false then
+    LoadingIndicator:show()
+  elseif isLoading() == false and LoadingIndicator.isVisible == true then
+    LoadingIndicator:hide()
+  end
 
-    if LoadingIndicator.isVisible then LoadingIndicator:update(dt) end
+  if LoadingIndicator.isVisible then
+    LoadingIndicator:update(dt)
+  end
 
-    overlayStats.update(dt)
+  overlayStats.update(dt)
 end
 
 function love.keypressed(key, scancode, isrepeat)
-    Logger:keypressed(key, scancode)
-    overlayStats.handleKeyboard(key)
-    -- Forward keypress to input system if needed
-    InputSystem:keypressed(key, scancode, isrepeat)
+  Logger:keypressed(key, scancode)
+  overlayStats.handleKeyboard(key)
+  -- Forward keypress to input system if needed
+  InputSystem:keypressed(key, scancode, isrepeat)
 end
 
-function love.mousepressed(x, y, button, istouch) InputSystem:handleMousePressed(x, y, button, istouch) end
+function love.mousepressed(x, y, button, istouch)
+  InputSystem:handleMousePressed(x, y, button, istouch)
+end
 
 function love.wheelmoved(x, y)
-    if love.keyboard.isDown("lctrl") then
-        Logger:wheelmoved(x, y)
-    else
-        InputSystem:handleWheelMoved(x, y)
-    end
+  if love.keyboard.isDown("lctrl") then
+    Logger:wheelmoved(x, y)
+  else
+    InputSystem:handleWheelMoved(x, y)
+  end
 end
 
-function love.touchpressed(id, x, y, dx, dy, pressure) overlayStats.handleTouch(id, x, y, dx, dy, pressure) end
+function love.touchpressed(id, x, y, dx, dy, pressure)
+  overlayStats.handleTouch(id, x, y, dx, dy, pressure)
+end
 
 function love.resize()
-    local newWidth = love.window.getMode()
-    constants.pixelSize = newWidth / 40
-    Gui.resize()
+  local newWidth = love.window.getMode()
+  constants.pixelSize = newWidth / 40
+  Gui.resize()
 end
 
 function love.draw()
-    Camera:apply()
-    RenderSystem:update(Camera:getVisibleBounds())
-    Camera:unapply()
-    LoadingIndicator:draw()
-    Gui.draw()
-    EscapeMenu:draw()
-    Logger:draw()
-    overlayStats.draw()
+  Camera:apply()
+  RenderSystem:update(Camera:getVisibleBounds())
+  Camera:unapply()
+  LoadingIndicator:draw()
+  Gui.draw()
+  EscapeMenu:draw()
+  Logger:draw()
+  overlayStats.draw()
 end

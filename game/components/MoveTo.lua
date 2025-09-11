@@ -10,22 +10,22 @@ MoveTo.__index = MoveTo
 ---@param target Vec2
 ---@return MoveTo
 function MoveTo.new(target)
-    local self = setmetatable({}, MoveTo)
-    self.target = target
-    return self
+  local self = setmetatable({}, MoveTo)
+  self.target = target
+  return self
 end
 
 ---@param id integer
 ---@param cleanupFunc function
 function MoveTo:update(id, cleanupFunc)
-    Logger:debug(id)
-    local pos = EntityManager:getComponent(id, ComponentType.POSITION)
-    local distToTarget = self.target:sub(pos):length()
-    if distToTarget <= 1e-2 then
-        cleanupFunc()
-        return true
-    end
-    return false
+  Logger:debug(id)
+  local pos = EntityManager:getComponent(id, ComponentType.POSITION)
+  local distToTarget = self.target:sub(pos):length()
+  if distToTarget <= 1e-2 then
+    cleanupFunc()
+    return true
+  end
+  return false
 end
 
 return MoveTo

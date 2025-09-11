@@ -5,10 +5,10 @@ local Persistence = {}
 Persistence.__index = Persistence
 
 function Persistence.new()
-    local self = setmetatable({}, Persistence)
-    self.game_saves = {}
-    self.user_configuration = {}
-    return self
+  local self = setmetatable({}, Persistence)
+  self.game_saves = {}
+  self.user_configuration = {}
+  return self
 end
 
 ---comment

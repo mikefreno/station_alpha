@@ -22,29 +22,31 @@ Tile.__index = Tile
 ---@param speedMult number
 ---@return Tile
 function Tile.new(x, y, entityId, style, speedMult)
-    local self = setmetatable({}, Tile)
-    self.position = Vec2.new(x, y)
-    self.id = entityId
-    self.style = style
-    self.speedMultiplier = speedMult
-    self.g = 0
-    self.h = 0
-    self.f = 0
-    self.parent = nil
-    self.neighbors = {}
-    return self
+  local self = setmetatable({}, Tile)
+  self.position = Vec2.new(x, y)
+  self.id = entityId
+  self.style = style
+  self.speedMultiplier = speedMult
+  self.g = 0
+  self.h = 0
+  self.f = 0
+  self.parent = nil
+  self.neighbors = {}
+  return self
 end
 
-function Tile:updateStyle(newStyle) self.style = newStyle end
+function Tile:updateStyle(newStyle)
+  self.style = newStyle
+end
 
 function Tile:reset()
-    self.parent = nil
-    self.position = nil
-    self.g = 0
-    self.h = 0
-    self.f = 0
-    self.tileId = nil
-    self.style = TopographyType.OPEN
+  self.parent = nil
+  self.position = nil
+  self.g = 0
+  self.h = 0
+  self.f = 0
+  self.tileId = nil
+  self.style = TopographyType.OPEN
 end
 
 return Tile
