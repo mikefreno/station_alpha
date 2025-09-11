@@ -4,6 +4,50 @@ local Placement = enums.Placement
 -- Simple GUI library for LOVE2D
 -- Provides window and button creation, drawing, and click handling.
 
+---@class Animation
+---@field duration number
+---@field start table{width:number,height:number}
+---@field to table{width:number,height:number}
+---@field elapsed number
+local Animation = {}
+Animation.__index = Animation
+
+---@class AnimationProps
+---@field duration number
+---@field start table{width:number,height:number}
+---@field to table{width:number,height:number}
+---@field elapsed number
+local AnimationProps = {}
+
+---@param props AnimationProps
+function Animation.new(props)
+    local self = setmetatable({}, Animation)
+    self.duration = props.duration
+    self.start = props.start
+    self.to = props.to
+    self.elapsed = 0
+    return self
+end
+
+function Animation:update(dt)
+    self.elapsed = self.elapsed + dt
+    if self.elapsed >= self.duration then
+        return true -- finished
+    else
+        return false
+    end
+end
+
+function Animation:interpolate()
+    local t = math.min(self.elapsed / self.duration, 1)
+    return {
+        width = self.start.width * (1 - t) + self.to.width * t,
+        height = self.start.height * (1 - t) + self.to.height * t,
+    }
+end
+
+local FONT_CACHE = {}
+
 ---@class Border
 ---@field top boolean?
 ---@field right boolean?
@@ -23,13 +67,20 @@ local Gui = {}
 ---@field children table<integer, Button|Window>
 ---@field parent Window
 ---@field visible boolean
----@field title string
----@field titlePlacement Placement?
 ---@field border Border
 ---@field borderColor Color? -- default: black
 ---@field background Color?
 ---@field textColor Color
+---@field layout string? -- default: horizontal
+---@field justifyContent string? -- default: start
+---@field alignItems string? -- default: start
 ---@field prevGameSize {width:number, height:number}
+---@field flexDirection string? -- default: horizontal
+---@field flexWrap string? -- default: none
+---@field title string?
+---@field titleColor Color?
+---@field titlePlacement Placement
+---@field gap number
 local Window = {}
 Window.__index = Window
 
@@ -38,8 +89,6 @@ Window.__index = Window
 ---@field y number
 ---@field w number
 ---@field h number
----@field title string?
----@field titlePlacement Placement? -- default: TOP_LEFT
 ---@field border Border
 ---@field borderColor Color? -- default: black? -- default: none
 ---@field background Color?  --default: transparent
@@ -51,6 +100,9 @@ Window.__index = Window
 ---@field flexDirection string? -- default: horizontal
 ---@field flexWrap string? -- default: none
 ---@field gap number? -- default: 10
+---@field title string? -- default: nil
+---@field titleColor Color? -- default: black
+---@field titlePlacement Placement?
 local WindowProps = {}
 
 ---@param props WindowProps
@@ -62,8 +114,6 @@ function Window.new(props)
     self.width = props.w or self:calculateAutoWidth()
     self.height = props.h or self:calculateAutoHeight()
     self.children = {}
-    self.title = props.title or ""
-    self.titlePlacement = props.titlePlacement or Placement.TOP_LEFT
     self.border = props.border
             and {
                 top = props.border.top or false,
@@ -82,6 +132,10 @@ function Window.new(props)
     self.borderColor = props.borderColor or Color.new(0, 0, 0, 1)
     self.textColor = props.textColor or Color.new(0, 0, 0, 1)
     self.visible = props.initVisible or true
+    self.gap = props.gap or 10
+    self.title = props.title
+    self.titleColor = props.titleColor or Color.new(0, 0, 0, 1)
+    self.titlePlacement = props.titlePlacement or Placement.CENTER
     local gw, gh = love.window.getMode()
     self.prevGameSize = { width = gw, height = gh }
 
@@ -96,135 +150,80 @@ function Window:getBounds() return { x = self.x, y = self.y, width = self.width,
 function Window:addChild(child)
     child.parent = self
     table.insert(self.children, child)
+    self:layoutChildren()
+end
 
+function Window:layoutChildren()
     local numChildren = #self.children
 
     if self.flexDirection == "horizontal" then
         -- compute total width of all children including padding between them
         local totalWidth = 0
         for _, c in ipairs(self.children) do
-            totalWidth = totalWidth + (c.width or 100)
+            totalWidth = totalWidth + c.width
         end
-        local paddingBetween = (numChildren - 1) * (self.gap or 10)
-
+        local paddingBetween = (numChildren - 1) * self.gap
         totalWidth = totalWidth + paddingBetween
 
         -- determine starting x based on justifyContent
         local startX
         if self.justifyContent == "start" then
-            startX = self.x + 10
+            startX = self.x + self.gap
         elseif self.justifyContent == "center" then
             startX = self.x + (self.width - totalWidth) / 2
         elseif self.justifyContent == "end" then
-            startX = self.x + self.width - totalWidth - 10
+            startX = self.x + self.width - totalWidth - self.gap
         else
-            startX = self.x + 10 -- default
+            startX = self.x + self.gap -- default
         end
 
         local currentX = startX
-        for _, c in ipairs(self.children) do
-            c.x = currentX
-            currentX = currentX + (c.width or 100) + 10
-        end
+        local currentY = self.y + self.gap
 
-        -- alignItems vertical
-        if self.alignItems == "start" then
-            for _, c in ipairs(self.children) do
-                c.y = self.y + 10
+        for _, c in ipairs(self.children) do
+            if self.flexWrap == "wrap" and currentX + c.width > self.width then
+                -- wrap to next line
+                currentX = startX
+                currentY = currentY + c.height + self.gap
             end
-        elseif self.alignItems == "center" then
-            local totalHeight = 0
-            for _, c in ipairs(self.children) do
-                totalHeight = totalHeight + (c.height or 30)
-            end
-            local paddingBetweenH = (numChildren - 1) * 10
-            totalHeight = totalHeight + paddingBetweenH
-            local startY = self.y + (self.height - totalHeight) / 2
-            for _, c in ipairs(self.children) do
-                c.y = startY
-                startY = startY + (c.height or 30) + 10
-            end
-        elseif self.alignItems == "end" then
-            local totalHeight = 0
-            for _, c in ipairs(self.children) do
-                totalHeight = totalHeight + (c.height or 30)
-            end
-            local paddingBetweenH = (numChildren - 1) * 10
-            totalHeight = totalHeight + paddingBetweenH
-            local startY = self.y + self.height - totalHeight - 10
-            for _, c in ipairs(self.children) do
-                c.y = startY
-                startY = startY + (c.height or 30) + 10
-            end
-        else
-            for _, c in ipairs(self.children) do
-                c.y = self.y + 10
-            end
+            c.x = currentX
+            c.y = currentY
+            currentX = currentX + c.width + self.gap
         end
     elseif self.flexDirection == "vertical" then
         -- compute total height of all children including padding between them
         local totalHeight = 0
         for _, c in ipairs(self.children) do
-            totalHeight = totalHeight + (c.height or 30)
+            totalHeight = totalHeight + c.height
         end
-        local paddingBetween = (numChildren - 1) * 10
-
+        local paddingBetween = (numChildren - 1) * self.gap
         totalHeight = totalHeight + paddingBetween
 
         -- determine starting y based on justifyContent
         local startY
         if self.justifyContent == "start" then
-            startY = self.y + 10
+            startY = self.y + self.gap
         elseif self.justifyContent == "center" then
             startY = self.y + (self.height - totalHeight) / 2
         elseif self.justifyContent == "end" then
-            startY = self.y + self.height - totalHeight - 10
+            startY = self.y + self.height - totalHeight - self.gap
         else
-            startY = self.y + 10 -- default
+            startY = self.y + self.gap -- default
         end
 
+        local currentX = self.x + self.gap
         local currentY = startY
-        for _, c in ipairs(self.children) do
-            c.y = currentY
-            currentY = currentY + (c.height or 30) + 10
-        end
 
-        -- alignItems horizontal
-        if self.alignItems == "start" then
-            for _, c in ipairs(self.children) do
-                c.x = self.x + 10
+        for _, c in ipairs(self.children) do
+            if self.flexWrap == "wrap" and currentY + c.height > self.height then
+                -- wrap to next column
+                currentX = currentX + c.width + self.gap
+                currentY = startY
             end
-        elseif self.alignItems == "center" then
-            local totalWidth = 0
-            for _, c in ipairs(self.children) do
-                totalWidth = totalWidth + (c.width or 100)
-            end
-            local paddingBetweenW = (numChildren - 1) * 10
-            totalWidth = totalWidth + paddingBetweenW
-            local startX = self.x + (self.width - totalWidth) / 2
-            for _, c in ipairs(self.children) do
-                c.x = startX
-                startX = startX + (c.width or 100) + 10
-            end
-        elseif self.alignItems == "end" then
-            local totalWidth = 0
-            for _, c in ipairs(self.children) do
-                totalWidth = totalWidth + (c.width or 100)
-            end
-            local paddingBetweenW = (numChildren - 1) * 10
-            totalWidth = totalWidth + paddingBetweenW
-            local startX = self.x + self.width - totalWidth - 10
-            for _, c in ipairs(self.children) do
-                c.x = startX
-                startX = startX + (c.width or 100) + 10
-            end
-        else
-            for _, c in ipairs(self.children) do
-                c.x = self.x + 10
-            end
+            c.x = currentX
+            c.y = currentY
+            currentY = currentY + c.height + self.gap
         end
-    else
-        -- default: no layout, keep as is
     end
 end
 
@@ -243,11 +242,6 @@ function Window:draw()
     if self.border.left then love.graphics.line(self.x, self.y, self.x, self.y + self.height) end
     if self.border.right then
         love.graphics.line(self.x + self.width, self.y, self.x + self.width, self.y + self.height)
-    end
-    if self.title ~= "" then
-        local tx, ty = self:getTitlePosition()
-        love.graphics.setColor(self.textColor:toRGBA())
-        love.graphics.print(self.title, tx, ty)
     end
     for _, child in ipairs(self.children) do
         child:draw()
@@ -270,17 +264,33 @@ function Window:resize(newGameWidth, newGameHeight)
     local prevH = self.prevGameSize.height
     local ratioW = newGameWidth / prevW
     local ratioH = newGameHeight / prevH
-    -- Update window size
-    self.width = self.width * ratioW
-    self.height = self.height * ratioH
+
+    -- Create animation for resizing
+    if not self.animation then
+        self.animation = Animation.new(
+            ratioW,
+            { width = self.width, height = self.height },
+            { width = self.width * ratioW, height = self.height * ratioH }
+        )
+    else
+        self.animation:update(0) -- reset elapsed
+    end
+
+    -- Update window size using animation interpolation
+    local anim = self.animation:interpolate()
+    self.width = anim.width
+    self.height = anim.height
     self.x = self.x * ratioW
     self.y = self.y * ratioH
+
     -- Update children positions and sizes
     for _, child in ipairs(self.children) do
         child:resize(ratioW, ratioH)
     end
+
     -- Re-layout children after resizing
     self:layoutChildren()
+
     self.prevGameSize.width = newGameWidth
     self.prevGameSize.height = newGameHeight
 end
@@ -326,6 +336,7 @@ function Window:calculateAutoHeight()
 end
 
 --- Get title position based on placement
+--- NOTE: This will be updated and replaced in future, with the title having a section dedicated to it
 function Window:getTitlePosition()
     local font = love.graphics.getFont()
     local titleWidth = font:getWidth(self.title)
@@ -536,10 +547,10 @@ function Button:update(dt)
         local tx, ty = love.touch.getPosition(id)
         if tx >= bx and tx <= bx + self.width and ty >= by and ty <= by + self.height then
             -- touch pressed flag
-            self._touchPressed = true
-        elseif not love.touch.isDown(id) and self._touchPressed then
+            self._touchPressed[id] = true
+        elseif not love.touch.isDown(id) and self._touchPressed[id] then
             self.callback(self)
-            self._touchPressed = false
+            self._touchPressed[id] = false
         end
     end
 end
