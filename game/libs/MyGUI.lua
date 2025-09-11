@@ -26,7 +26,9 @@ local Gui = {}
 ---@field title string
 ---@field titlePlacement Placement?
 ---@field border Border
+---@field borderColor Color? -- default: black
 ---@field background Color?
+---@field textColor Color
 ---@field prevGameSize {width:number, height:number}
 local Window = {}
 Window.__index = Window
@@ -38,9 +40,14 @@ Window.__index = Window
 ---@field h number
 ---@field title string?
 ---@field titlePlacement Placement? -- default: TOP_LEFT
----@field border Border? -- default: none
+---@field border Border
+---@field borderColor Color? -- default: black? -- default: none
 ---@field background Color?  --default: transparent
+---@field layout string? -- default: horizontal
+---@field justifyContent string? -- default: start
+---@field alignItems string? -- default: start
 ---@field initVisible boolean? --default: `false`
+---@field textColor Color? -- default: black
 local WindowProps = {}
 
 ---@param props WindowProps
@@ -69,6 +76,8 @@ function Window.new(props)
         }
 
     self.background = props.background or Color.new(0, 0, 0, 0)
+    self.borderColor = props.borderColor or Color.new(0, 0, 0, 1)
+    self.textColor = props.textColor or Color.new(0, 0, 0, 1)
     self.visible = props.initVisible or true
     local gw, gh = love.window.getMode()
     self.prevGameSize = { width = gw, height = gh }
@@ -84,6 +93,136 @@ function Window:getBounds() return { x = self.x, y = self.y, width = self.width,
 function Window:addChild(child)
     child.parent = self
     table.insert(self.children, child)
+
+    local numChildren = #self.children
+
+    if self.layout == "horizontal" then
+        -- compute total width of all children including padding between them
+        local totalWidth = 0
+        for _, c in ipairs(self.children) do
+            totalWidth = totalWidth + (c.width or 100)
+        end
+        local paddingBetween = (numChildren - 1) * 10
+
+        totalWidth = totalWidth + paddingBetween
+
+        -- determine starting x based on justifyContent
+        local startX
+        if self.justifyContent == "start" then
+            startX = self.x + 10
+        elseif self.justifyContent == "center" then
+            startX = self.x + (self.width - totalWidth) / 2
+        elseif self.justifyContent == "end" then
+            startX = self.x + self.width - totalWidth - 10
+        else
+            startX = self.x + 10 -- default
+        end
+
+        local currentX = startX
+        for _, c in ipairs(self.children) do
+            c.x = currentX
+            currentX = currentX + (c.width or 100) + 10
+        end
+
+        -- alignItems vertical
+        if self.alignItems == "start" then
+            for _, c in ipairs(self.children) do
+                c.y = self.y + 10
+            end
+        elseif self.alignItems == "center" then
+            local totalHeight = 0
+            for _, c in ipairs(self.children) do
+                totalHeight = totalHeight + (c.height or 30)
+            end
+            local paddingBetweenH = (numChildren - 1) * 10
+            totalHeight = totalHeight + paddingBetweenH
+            local startY = self.y + (self.height - totalHeight) / 2
+            for _, c in ipairs(self.children) do
+                c.y = startY
+                startY = startY + (c.height or 30) + 10
+            end
+        elseif self.alignItems == "end" then
+            local totalHeight = 0
+            for _, c in ipairs(self.children) do
+                totalHeight = totalHeight + (c.height or 30)
+            end
+            local paddingBetweenH = (numChildren - 1) * 10
+            totalHeight = totalHeight + paddingBetweenH
+            local startY = self.y + self.height - totalHeight - 10
+            for _, c in ipairs(self.children) do
+                c.y = startY
+                startY = startY + (c.height or 30) + 10
+            end
+        else
+            for _, c in ipairs(self.children) do
+                c.y = self.y + 10
+            end
+        end
+    elseif self.layout == "vertical" then
+        -- compute total height of all children including padding between them
+        local totalHeight = 0
+        for _, c in ipairs(self.children) do
+            totalHeight = totalHeight + (c.height or 30)
+        end
+        local paddingBetween = (numChildren - 1) * 10
+
+        totalHeight = totalHeight + paddingBetween
+
+        -- determine starting y based on justifyContent
+        local startY
+        if self.justifyContent == "start" then
+            startY = self.y + 10
+        elseif self.justifyContent == "center" then
+            startY = self.y + (self.height - totalHeight) / 2
+        elseif self.justifyContent == "end" then
+            startY = self.y + self.height - totalHeight - 10
+        else
+            startY = self.y + 10 -- default
+        end
+
+        local currentY = startY
+        for _, c in ipairs(self.children) do
+            c.y = currentY
+            currentY = currentY + (c.height or 30) + 10
+        end
+
+        -- alignItems horizontal
+        if self.alignItems == "start" then
+            for _, c in ipairs(self.children) do
+                c.x = self.x + 10
+            end
+        elseif self.alignItems == "center" then
+            local totalWidth = 0
+            for _, c in ipairs(self.children) do
+                totalWidth = totalWidth + (c.width or 100)
+            end
+            local paddingBetweenW = (numChildren - 1) * 10
+            totalWidth = totalWidth + paddingBetweenW
+            local startX = self.x + (self.width - totalWidth) / 2
+            for _, c in ipairs(self.children) do
+                c.x = startX
+                startX = startX + (c.width or 100) + 10
+            end
+        elseif self.alignItems == "end" then
+            local totalWidth = 0
+            for _, c in ipairs(self.children) do
+                totalWidth = totalWidth + (c.width or 100)
+            end
+            local paddingBetweenW = (numChildren - 1) * 10
+            totalWidth = totalWidth + paddingBetweenW
+            local startX = self.x + self.width - totalWidth - 10
+            for _, c in ipairs(self.children) do
+                c.x = startX
+                startX = startX + (c.width or 100) + 10
+            end
+        else
+            for _, c in ipairs(self.children) do
+                c.x = self.x + 10
+            end
+        end
+    else
+        -- default: no layout, keep as is
+    end
 end
 
 --- Draw window and its children
@@ -93,8 +232,7 @@ function Window:draw()
     love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
     love.graphics.setColor(0, 0, 0)
     -- Draw borders based on border property
-    love.graphics.setLineWidth(1)
-    love.graphics.setLineStyle("smooth")
+    love.graphics.setColor(self.borderColor:toRGBA())
     if self.border.top then love.graphics.line(self.x, self.y, self.x + self.width, self.y) end
     if self.border.bottom then
         love.graphics.line(self.x, self.y + self.height, self.x + self.width, self.y + self.height)
@@ -105,6 +243,7 @@ function Window:draw()
     end
     if self.title ~= "" then
         local tx, ty = self:getTitlePosition()
+        love.graphics.setColor(self.textColor:toRGBA())
         love.graphics.print(self.title, tx, ty)
     end
     for _, child in ipairs(self.children) do
@@ -137,6 +276,8 @@ function Window:resize(newGameWidth, newGameHeight)
     for _, child in ipairs(self.children) do
         child:resize(ratioW, ratioH)
     end
+    -- Re-layout children after resizing
+    self:layoutChildren()
     self.prevGameSize.width = newGameWidth
     self.prevGameSize.height = newGameHeight
 end
@@ -222,9 +363,11 @@ end
 ---@field py number
 ---@field text string
 ---@field border Border
+---@field borderColor Color?
 ---@field background Color
 ---@field parent Window
 ---@field callback function
+---@field textColor Color?
 local Button = {}
 Button.__index = Button
 
@@ -240,6 +383,8 @@ Button.__index = Button
 ---@field callback function?
 ---@field background Color?
 ---@field border Border?
+---@field borderColor Color? -- default: black
+---@field textColor Color? -- default: black,
 local ButtonProps = {}
 
 ---@param props ButtonProps
@@ -267,6 +412,8 @@ function Button.new(props)
             bottom = true,
             left = true,
         }
+    self.borderColor = props.borderColor or Color.new(0, 0, 0, 1)
+    self.textColor = props.textColor
     self.background = props.background or Color.new(0, 0, 0, 0)
     self.callback = props.callback or function() end
     self._pressed = false
@@ -305,8 +452,7 @@ function Button:draw()
     love.graphics.rectangle("fill", self.parent.x + self.x, self.parent.y + self.y, self.width, self.height)
     love.graphics.setColor(0, 0, 0)
     -- Draw borders based on border property
-    love.graphics.setLineWidth(1)
-    love.graphics.setLineStyle("smooth")
+    love.graphics.setColor(self.borderColor:toRGBA())
     if self.border.top then
         love.graphics.line(
             self.parent.x + self.x,
@@ -340,6 +486,8 @@ function Button:draw()
         )
     end
 
+    local textColor = self.textColor or self.parent.textColor
+    love.graphics.setColor(textColor:toRGBA())
     local tx = self.parent.x + self.x + (self.width - self:calculateTextWidth()) / 2
     local ty = self.parent.y + self.y + (self.height - self:calculateTextHeight()) / 3
     love.graphics.print(self.text, tx, ty)

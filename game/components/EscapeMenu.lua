@@ -1,4 +1,5 @@
-local Gui = require("libs.MyGUI")
+local Color = require("game.utils.color")
+local Gui = require("game.libs.MyGUI")
 ---@class EscapeMenu
 ---@field visible boolean
 local EscapeMenu = {}
@@ -18,17 +19,12 @@ end
 
 function EscapeMenu:draw()
     if self.visible then
-        -- Dim all other windows by setting their visibility to false
-        --for _, win in ipairs(Gui.windows) do
-        --win.visible = false
-        --end
-        -- Draw dimming overlay
         love.graphics.setColor(0, 0, 0, 0.5)
         local w, h = love.window.getMode()
         love.graphics.rectangle("fill", 0, 0, w, h)
         -- Create or update the escape menu window if not already created
         if self.menuWindow == nil then
-            local props = {
+            local win = Gui.newWindow({
                 x = 0,
                 y = 0,
                 w = w,
@@ -37,8 +33,8 @@ function EscapeMenu:draw()
                 border = { top = true, right = true, bottom = true, left = true },
                 background = nil,
                 initVisible = true,
-            }
-            local win = Gui.newWindow(props)
+                textColor = Color.new(1, 1, 1, 1),
+            })
             self.menuWindow = win
             -- Add buttons
             local closeBtn = Gui.Button.new({
@@ -60,6 +56,7 @@ function EscapeMenu:draw()
                 h = 20,
                 px = 0,
                 py = 0,
+                borderColor = Color.new(1, 1, 1, 1),
                 text = "Save Game",
                 callback = function() print("Saving game") end,
             })
@@ -71,6 +68,7 @@ function EscapeMenu:draw()
                 h = 20,
                 px = 0,
                 py = 0,
+                borderColor = Color.new(1, 1, 1, 1),
                 text = "Load Game",
                 callback = function() print("Loading game") end,
             })
@@ -82,11 +80,10 @@ function EscapeMenu:draw()
                 h = 20,
                 px = 0,
                 py = 0,
+                borderColor = Color.new(1, 1, 1, 1),
                 text = "Main Menu",
                 callback = function() Logger:debug("Returning to main menu") end,
             })
-        else
-            -- Update button positions if needed
         end
         self.menuWindow:draw()
     end
