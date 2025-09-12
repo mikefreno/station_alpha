@@ -6,8 +6,6 @@ local ShapeType = enums.ShapeType
 ---@class EntityManager
 ---@field entities   table<number, boolean>
 ---@field components table<ComponentType, table<number, any>>
----@field god integer
----@field dot integer
 local EntityManager = {}
 EntityManager.__index = EntityManager
 
@@ -19,7 +17,6 @@ function EntityManager.init()
     self.entities = {}
     self.components = {}
     instance = self
-    self.dot = self:createEntity()
   end
   return instance
 end
@@ -57,6 +54,13 @@ function EntityManager:find(type, data)
   end
 
   for id, comp in pairs(byType) do
+    -- direct comparison checks
+    if type == ComponentType.SELECTED then
+      if comp == data then
+        return id
+      end
+    end
+    -- vector checks
     if type == ComponentType.POSITION or type == ComponentType.MAPTILETAG then
       if comp.x == data.x and comp.y == data.y then
         return id
@@ -67,12 +71,26 @@ function EntityManager:find(type, data)
   return nil
 end
 
----@param type ComponentType.POSITION | ComponentType.MAPTILETAG
----@param data  Vec2 – the world point you want to search from
----@return integer?  The entity id of the nearest matching tile, or nil
-function EntityManager:findNearest(type, data)
+---@param type ComponentType.POSITION | ComponentType.MAPTILETAG -- the type to check for
+---@param data  Vec2 -- the grid point you want to search from
+---@param ignoreTypes ComponentType[]? -- component types which if present on the entity will ignore the entity
+---@return integer? --   the entity id of the nearest matching tile, or nil
+function EntityManager:findNearest(type, data, ignoreTypes)
   if not data or not data.x or not data.y then
     return nil
+  end
+
+  -- Helper to check if an entity should be ignored
+  local function shouldIgnore(id)
+    if not ignoreTypes then
+      return false
+    end
+    for _, ignoreType in ipairs(ignoreTypes) do
+      if self.components[ignoreType] and self.components[ignoreType][id] then
+        return true
+      end
+    end
+    return false
   end
 
   local nearest = nil
@@ -81,6 +99,11 @@ function EntityManager:findNearest(type, data)
   -- ------------------------------------------------------------------
   -- Helper that checks a single entity id against the data point.
   local function check(id, pos)
+    -- Skip if entity should be ignored
+    if shouldIgnore(id) then
+      return
+    end
+
     local dx = pos.x - data.x
     local dy = pos.y - data.y
     local distSq = dx * dx + dy * dy
@@ -89,6 +112,7 @@ function EntityManager:findNearest(type, data)
       nearest = id
     end
   end
+
   -- ------------------------------------------------------------------
   if type == ComponentType.POSITION then
     local positions = self.components[ComponentType.POSITION]
@@ -98,7 +122,6 @@ function EntityManager:findNearest(type, data)
   elseif type == ComponentType.MAPTILETAG then
     local positions = self.components[ComponentType.POSITION]
     local tags = self.components[ComponentType.MAPTILETAG]
-
     for id, pos in pairs(positions) do
       if tags[id] then
         check(id, pos)

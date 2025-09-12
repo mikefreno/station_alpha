@@ -17,7 +17,7 @@ fi
 
 # Convert directory to absolute path
 DIR=$(cd "$DIR" && pwd)
-OUTPUT="$DIR/$OUTPUT"
+OUTPUT="$(pwd)/$OUTPUT"
 
 # Create/clear output file
 > "$OUTPUT"
@@ -60,15 +60,15 @@ fi
 eval "$find_cmd" | while IFS= read -r -d '' file; do
     # Get relative path for cleaner output
     rel_path="${file#$DIR/}"
-    
+
     # Skip if file is not readable
     if [[ ! -r "$file" ]]; then
         echo "Warning: Cannot read '$rel_path' - skipping"
         continue
     fi
-    
+
     echo "Processing: $rel_path"
-    
+
     # Write to output file with markers
     echo "--- START OF FILE: $rel_path ---" >> "$OUTPUT"
     cat "$file" >> "$OUTPUT"

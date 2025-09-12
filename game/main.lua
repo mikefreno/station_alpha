@@ -1,3 +1,4 @@
+Logger = require("game.logger"):init()
 local Color = require("game.utils.color")
 local Schedule = require("game.components.Schedule")
 local enums = require("game.utils.enums")
@@ -20,7 +21,6 @@ local constants = require("game.utils.constants")
 local overlayStats = require("game.libs.OverlayStats")
 local pathfinder = require("game.systems.PathFinder")
 local taskManager = require("game.systems.TaskManager")
-Logger = require("game.logger"):init()
 local PauseMenu = require("game.components.PauseMenu")
 local Gui = require("game.libs.MyGUI")
 
@@ -40,15 +40,16 @@ end
 
 ---NOTE: temporary for demoing purposes---
 local function initDot()
-  EntityManager:addComponent(EntityManager.dot, ComponentType.NAME, "Testing Dot")
-  EntityManager:addComponent(EntityManager.dot, ComponentType.POSITION, Vec2.new(1, 1))
-  EntityManager:addComponent(EntityManager.dot, ComponentType.VELOCITY, Vec2.new())
+  local dot = EntityManager:createEntity()
+  EntityManager:addComponent(dot, ComponentType.NAME, "Testing Dot")
+  EntityManager:addComponent(dot, ComponentType.POSITION, Vec2.new(1, 1))
+  EntityManager:addComponent(dot, ComponentType.VELOCITY, Vec2.new())
   -- 100 meters(50 tiles) in 70 seconds
-  EntityManager:addComponent(EntityManager.dot, ComponentType.SPEEDSTAT, 50 / 70)
-  EntityManager:addComponent(EntityManager.dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
-  EntityManager:addComponent(EntityManager.dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
-  EntityManager:addComponent(EntityManager.dot, ComponentType.TASKQUEUE, TaskQueue.new(EntityManager.dot))
-  EntityManager:addComponent(EntityManager.dot, ComponentType.SCHEDULE, Schedule.new())
+  EntityManager:addComponent(dot, ComponentType.SPEEDSTAT, 50 / 70)
+  EntityManager:addComponent(dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
+  EntityManager:addComponent(dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
+  EntityManager:addComponent(dot, ComponentType.TASKQUEUE, TaskQueue.new(dot))
+  EntityManager:addComponent(dot, ComponentType.SCHEDULE, Schedule.new())
 end
 
 local function initBottomBar()

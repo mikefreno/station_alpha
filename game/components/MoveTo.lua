@@ -18,7 +18,6 @@ end
 ---@param id integer
 ---@param cleanupFunc function
 function MoveTo:update(id, cleanupFunc)
-  Logger:debug(id)
   local pos = EntityManager:getComponent(id, ComponentType.POSITION)
   local distToTarget = self.target:sub(pos):length()
   if distToTarget <= 1e-2 then

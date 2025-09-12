@@ -24,8 +24,6 @@ function TaskManager:update(dt)
       if #tq.queue == 0 then
         ---idling, create task
         EntityManager:getComponent(e, ComponentType.SCHEDULE)
-      else
-        Logger:debug(#tq.queue)
       end
     end
   end

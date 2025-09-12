@@ -23,6 +23,7 @@ function RightClickMenu.init()
   if instance ~= nil then
     return instance
   end
+  Logger:debug("creating new RCM")
   local self = setmetatable({}, RightClickMenu)
   self.position = nil
   self.showing = false
@@ -34,7 +35,6 @@ function RightClickMenu.init()
 end
 
 function RightClickMenu:updatePosition(x, y)
-  self:hide()
   self.position = Vec2.new(x, y)
   self.showing = true
 end
@@ -54,34 +54,11 @@ function RightClickMenu:draw()
       flexDirection = FlexDirection.VERTICAL,
       gap = 10,
     })
-    Gui.Window.new({
-      parent = self.window,
-      text = "",
-    })
 
-    local gridPos = MapManager:worldToGrid(self.position)
-    local function GoTo()
-      local currentDotPos = EntityManager:getComponent(EntityManager.dot, ComponentType.POSITION)
-      local dotShape = EntityManager:getComponent(EntityManager.dot, ComponentType.SHAPE)
+    local selected = EntityManager:find(ComponentType.SELECTED, true)
 
-      local worldX = (self.position.x / Camera.zoom) + (Camera.position.x * constants.pixelSize)
-      local worldY = (self.position.y / Camera.zoom) + (Camera.position.y * constants.pixelSize)
-      local clickGrid = MapManager:worldToGrid(Vec2.new(worldX, worldY))
-      local path = Pathfinder:findPath(currentDotPos:add(dotShape.size / 2, dotShape.size / 2), clickGrid)
-      if path ~= nil then
-        TaskManager:newPath(EntityManager.dot, path)
-      end
-      self.showing = false
-      ButtonPressed = false
-    end
+    RightClickMenu:setupSelectionBasedComponents(selected)
 
-    Gui.Button.new({
-      parent = self.window,
-      background = Color.new(0.2, 0.7, 0.7, 0.9),
-      text = "Go To: " .. gridPos.x .. "," .. gridPos.y,
-      callback = GoTo,
-      positioning = Positioning.FLEX,
-    })
     self.window:draw()
   elseif self.window ~= nil then
     self.window:destroy()
@@ -93,7 +70,6 @@ function RightClickMenu:handleMousePressed(x, y, button, istouch)
   if self.window then
     local bounds = self.window:getBounds()
     if x < bounds.x or x > bounds.x + bounds.width or y < bounds.y or y > bounds.y + bounds.height then
-      Logger:debug("hiding")
       self:hide()
     end
   end
@@ -107,5 +83,48 @@ function RightClickMenu:hide()
     self.window = nil
   end
 end
+
+---@param entity integer?
+function RightClickMenu:setupSelectionBasedComponents(entity)
+  if entity then
+    Logger:debug(self.position)
+    if not self.position then
+      return
+    end
+    local gridPos = MapManager:worldToGrid(self.position)
+    local targetEntity = EntityManager:findNearest(ComponentType.POSITION, gridPos, { ComponentType.MAPTILETAG })
+    -- can the entity move?
+    local speedStat = EntityManager:getComponent(entity, ComponentType.SPEEDSTAT)
+    Logger:debug(speedStat)
+    if speedStat then
+      self:addMoveTo(entity, gridPos)
+    end
+  end
+end
+
+---@param entity integer
+---@param gridPos Vec2
+function RightClickMenu:addMoveTo(entity, gridPos)
+  local entityPos = EntityManager:getComponent(entity, ComponentType.POSITION)
+  local function GoTo()
+    local entityShape = EntityManager:getComponent(entity, ComponentType.SHAPE)
+    local path = Pathfinder:findPath(entityPos:add(entityShape.size / 2, entityShape.size / 2), gridPos)
+    if path ~= nil then
+      TaskManager:newPath(entity, path)
+    end
+    self.showing = false
+    ButtonPressed = false
+  end
+
+  Gui.Button.new({
+    parent = self.window,
+    background = Color.new(0.2, 0.7, 0.7, 0.9),
+    text = "Go To: " .. gridPos.x .. "," .. gridPos.y,
+    callback = GoTo,
+    positioning = Positioning.FLEX,
+  })
+end
+
+function RightClickMenu:nonTileTargetInteractions() end
 
 return RightClickMenu.init()
