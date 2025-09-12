@@ -60,7 +60,7 @@ tools/                 # Tools for building, installing dependencies, et
 .gitignore
 .luarc.json
 .stylua.toml
-AGENT.md
+AGENTS.md
 flake.lock
 flake.nix
 README.md
