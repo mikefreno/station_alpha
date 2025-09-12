@@ -458,12 +458,12 @@ end
 --- Calculate auto width based on children
 function Window:calculateAutoWidth()
   if not self.children or #self.children == 0 then
-    return 200
+    return 0
   end
 
   local maxWidth = 0
   for _, child in ipairs(self.children) do
-    local childWidth = child.width or 100
+    local childWidth = child.width or 0
     local childX = child.x or 0
     local totalWidth = childX + childWidth
 
@@ -472,18 +472,18 @@ function Window:calculateAutoWidth()
     end
   end
 
-  return maxWidth + 20
+  return maxWidth
 end
 
 --- Calculate auto height based on children
 function Window:calculateAutoHeight()
   if not self.children or #self.children == 0 then
-    return 150
+    return 0
   end
 
   local maxHeight = 0
   for _, child in ipairs(self.children) do
-    local childHeight = child.height or 30
+    local childHeight = child.height or 0
     local childY = child.y or 0
     local totalHeight = childY + childHeight
 
@@ -492,7 +492,7 @@ function Window:calculateAutoHeight()
     end
   end
 
-  return maxHeight + 20
+  return maxHeight
 end
 
 ---@class Button
@@ -502,7 +502,7 @@ end
 ---@field height number
 ---@field px number
 ---@field py number
----@field text string
+---@field text string?
 ---@field border Border
 ---@field borderColor Color?
 ---@field background Color
@@ -542,9 +542,9 @@ function Button.new(props)
   self.y = props.y or 0
   self.px = props.px or 0
   self.py = props.py or 0
-  self.width = props.w or self:calculateTextWidth(props.text) + self.px
-  self.height = props.h or self:calculateTextHeight() + self.py
-  self.text = props.text or ""
+  self.width = props.w or 0
+  self.height = props.h or 0
+  self.text = props.text or nil
   self.border = props.border
       and {
         top = props.border.top or true,
@@ -652,10 +652,13 @@ end
 
 --- Calculate text width for button
 ---@return number
-function Button:calculateTextWidth(text)
+function Button:calculateTextWidth()
+  if self.text == nil then
+    return 0
+  end
   local font = love.graphics.getFont()
 
-  local width = font:getWidth(self.text or text or "")
+  local width = font:getWidth(self.text)
   return width
 end
 

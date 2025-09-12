@@ -47,8 +47,6 @@ function RightClickMenu:set()
   self.window = Gui.Window.new({
     x = self.worldPosition.x,
     y = self.worldPosition.y,
-    w = 120,
-    h = 200,
     border = { top = true, right = true, bottom = true, left = true },
     background = Color.new(0.6, 0.6, 0.8, 1),
     initVisible = true,
