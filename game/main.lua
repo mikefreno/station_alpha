@@ -21,7 +21,7 @@ local overlayStats = require("game.libs.OverlayStats")
 local pathfinder = require("game.systems.PathFinder")
 local taskManager = require("game.systems.TaskManager")
 Logger = require("game.logger"):init()
-local EscapeMenu = require("game.components.EscapeMenu")
+local PauseMenu = require("game.components.PauseMenu")
 local Gui = require("game.libs.MyGUI")
 
 local function isLoading()
@@ -53,7 +53,7 @@ end
 
 local function initBottomBar()
   local w, h = love.window.getMode()
-  local win = Gui.newWindow({
+  BottomBar = Gui.Window.new({
     x = 0,
     y = h * 0.9,
     w = w,
@@ -66,22 +66,22 @@ local function initBottomBar()
   local function minimizeWindow(btn)
     w, h = love.window.getMode()
     if minimized then
-      win.height = h * 0.1
-      win.width = w
-      win.y = h * 0.9
+      BottomBar.height = h * 0.1
+      BottomBar.width = w
+      BottomBar.y = h * 0.9
       btn.y = 10
       btn:updateText("-", true)
     else
-      win.height = 0
-      win.width = 0
-      win.y = h
+      BottomBar.height = 0
+      BottomBar.width = 0
+      BottomBar.y = h
       btn.y = -40
       btn:updateText("+", true)
     end
     minimized = not minimized
   end
   local minButton =
-    Gui.Button.new({ parent = win, x = 10, y = 10, px = 4, py = 4, text = "-", callback = minimizeWindow })
+    Gui.Button.new({ parent = BottomBar, x = 10, y = 10, px = 4, py = 4, text = "-", callback = minimizeWindow })
 end
 
 function love.load()
@@ -147,7 +147,7 @@ function love.draw()
   Camera:unapply()
   LoadingIndicator:draw()
   Gui.draw()
-  EscapeMenu:draw()
+  PauseMenu:draw()
   Logger:draw()
   overlayStats.draw()
 end

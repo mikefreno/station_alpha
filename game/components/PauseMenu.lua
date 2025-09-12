@@ -1,19 +1,19 @@
 local Color = require("game.utils.color")
 local Gui = require("game.libs.MyGUI")
 local enums = require("game.utils.enums")
-local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems =
-  enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems
+local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems, TextAlign =
+  enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems, enums.TextAlign
 
----@class EscapeMenu
+---@class PauseMenu
 ---@field visible boolean
-local EscapeMenu = {}
-EscapeMenu.__index = EscapeMenu
+local PauseMenu = {}
+PauseMenu.__index = PauseMenu
 
 local instance
 
-function EscapeMenu.init()
+function PauseMenu.init()
   if instance == nil then
-    local self = setmetatable({}, EscapeMenu)
+    local self = setmetatable({}, PauseMenu)
     self.visible = false
     self.menuWindow = nil
     instance = self
@@ -21,19 +21,17 @@ function EscapeMenu.init()
   return instance
 end
 
-function EscapeMenu:draw()
+function PauseMenu:draw()
   if self.visible then
     local w, h = love.window.getMode()
     if self.menuWindow == nil then
-      local win = Gui.newWindow({
+      self.menuWindow = Gui.Window.new({
         x = 0,
         y = 0,
         w = w,
         h = h,
-        title = "Escape Menu",
         border = { top = true, right = true, bottom = true, left = true },
         background = Color.new(0, 0, 0, 0.5),
-        initVisible = true,
         textColor = Color.new(1, 1, 1, 1),
         positioning = Positioning.FLEX,
         flexDirection = FlexDirection.VERTICAL,
@@ -41,12 +39,10 @@ function EscapeMenu:draw()
         alignItems = AlignContent.CENTER,
         gap = 10,
       })
-      self.menuWindow = win
+      Gui.Window.new({ parent = self.menuWindow, text = "Pause Menu", textAlign = TextAlign.CENTER })
       -- Add buttons
-      local closeBtn = Gui.Button.new({
-        parent = win,
-        w = 40,
-        h = 40,
+      Gui.Button.new({
+        parent = self.menuWindow,
         x = 40,
         y = 40,
         px = 0,
@@ -58,8 +54,20 @@ function EscapeMenu:draw()
           self.visible = false
         end,
       })
-      local saveBtn = Gui.Button.new({
-        parent = win,
+      Gui.Button.new({
+        parent = self.menuWindow,
+        x = w - 40,
+        y = 40,
+        px = 0,
+        borderColor = Color.new(1, 1, 1, 1),
+        positioning = Positioning.ABSOLUTE,
+        text = "settings",
+        callback = function()
+          self.visible = false
+        end,
+      })
+      Gui.Button.new({
+        parent = self.menuWindow,
         w = 80,
         h = 20,
         px = 0,
@@ -67,11 +75,12 @@ function EscapeMenu:draw()
         borderColor = Color.new(1, 1, 1, 1),
         text = "Save Game",
         callback = function()
-          print("Saving game")
+          -- TODO: implement saving function
+          Logger:error("Save function not yet implemented")
         end,
       })
-      local loadBtn = Gui.Button.new({
-        parent = win,
+      Gui.Button.new({
+        parent = self.menuWindow,
         w = 80,
         h = 20,
         px = 0,
@@ -79,11 +88,12 @@ function EscapeMenu:draw()
         borderColor = Color.new(1, 1, 1, 1),
         text = "Load Game",
         callback = function()
-          print("Loading game")
+          -- TODO: implement loading function
+          Logger:error("Loading function not yet implemented")
         end,
       })
-      local menuBtn = Gui.Button.new({
-        parent = win,
+      Gui.Button.new({
+        parent = self.menuWindow,
         w = 80,
         h = 20,
         px = 0,
@@ -91,7 +101,8 @@ function EscapeMenu:draw()
         borderColor = Color.new(1, 1, 1, 1),
         text = "Main Menu",
         callback = function()
-          Logger:debug("Returning to main menu")
+          -- TODO: implement main menu function
+          Logger:error("Main menu not yet implemented")
         end,
       })
     end
@@ -105,4 +116,4 @@ function EscapeMenu:draw()
   end
 end
 
-return EscapeMenu.init()
+return PauseMenu.init()

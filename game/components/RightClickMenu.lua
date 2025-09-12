@@ -2,12 +2,18 @@ local EntityManager = require("game.systems.EntityManager")
 local Vec2 = require("game.utils.Vec2")
 local constants = require("game.utils.constants")
 local ComponentType = require("game.utils.enums").ComponentType
+local Gui = require("game.libs.MyGUI")
+local enums = require("game.utils.enums")
+local Color = require("game.utils.color")
+local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems =
+  enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems
 
 ---@class RightClickMenu
 ---@field position Vec2?
 ---@field showing boolean
 ---@field contents {}
 ---@field hovered boolean
+---@field window Window?
 local RightClickMenu = {}
 RightClickMenu.__index = RightClickMenu
 
@@ -17,12 +23,27 @@ function RightClickMenu.new()
   self.showing = false
   self.contents = {}
   self.hovered = false
+  self.window = nil
   return self
 end
 
 function RightClickMenu:render()
   if self.showing then
-    if ButtonPressed then
+    self.window = Gui.Window.new({
+      x = self.position.x,
+      y = self.position.y,
+      border = { top = true, right = true, bottom = true, left = true },
+      background = Color.new(0.6, 0.6, 0.8, 1),
+      initVisible = true,
+      textColor = Color.new(1, 1, 1, 1),
+      positioning = Positioning.FLEX,
+      flexDirection = FlexDirection.VERTICAL,
+      justifyContent = JustifyContent.FLEX_START,
+      gap = 10,
+    })
+
+    local gridPos = MapManager:worldToGrid(self.position)
+    local function GoTo()
       local currentDotPos = EntityManager:getComponent(EntityManager.dot, ComponentType.POSITION)
       local dotShape = EntityManager:getComponent(EntityManager.dot, ComponentType.SHAPE)
 
@@ -36,8 +57,11 @@ function RightClickMenu:render()
       self.showing = false
       ButtonPressed = false
     end
+    Gui.Button.new({ parent = self.window, text = "Go To: " .. gridPos.x .. "," .. gridPos.y, callback = GoTo })
   end
 end
+
+function RightClickMenu.handleMousePressed(x, y, button, istouch) end
 
 function RightClickMenu:hide()
   self.showing = false

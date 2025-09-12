@@ -7,6 +7,37 @@ local AlignItems = enums.AlignItems
 local Positioning = enums.Positioning
 local TextAlign = enums.TextAlign
 
+--- Top level GUI manager
+local Gui = {}
+Gui.topWindows = {}
+
+function Gui.resize()
+  local newWidth, newHeight = love.window.getMode()
+  for _, win in ipairs(Gui.topWindows) do
+    win:resize(newWidth, newHeight)
+  end
+end
+
+function Gui.draw()
+  for _, win in ipairs(Gui.topWindows) do
+    win:draw()
+  end
+end
+
+function Gui.update(dt)
+  for _, win in ipairs(Gui.topWindows) do
+    win:update(dt)
+  end
+end
+
+--- Destroy all windows and their children
+function Gui.destroy()
+  for _, win in ipairs(Gui.topWindows) do
+    win:destroy()
+  end
+  Gui.topWindows = {}
+end
+
 -- Simple GUI library for LOVE2D
 -- Provides window and button creation, drawing, and click handling.
 
@@ -59,8 +90,6 @@ local FONT_CACHE = {}
 ---@field bottom boolean?
 ---@field left boolean?
 
-local Gui = {}
-
 -- ====================
 -- Window Object
 -- ====================
@@ -70,8 +99,7 @@ local Gui = {}
 ---@field width number
 ---@field height number
 ---@field children table<integer, Button|Window>
----@field parent Window
----@field visible boolean
+---@field parent Window?
 ---@field border Border
 ---@field borderColor Color
 ---@field background Color
@@ -89,18 +117,18 @@ local Window = {}
 Window.__index = Window
 
 ---@class WindowProps
----@field x number
----@field y number
----@field w number
----@field h number
----@field border Border
+---@field parent Window?
+---@field x number?
+---@field y number?
+---@field w number?
+---@field h number?
+---@field border Border?
 ---@field borderColor Color? -- default: black? -- default: none
 ---@field background Color?  --default: transparent
 ---@field gap number? -- default: 10
 ---@field text string? -- default: nil
 ---@field titleColor Color? -- default: black
 ---@field textAlign TextAlign?
----@field initVisible boolean? --default: `false`
 ---@field textColor Color? -- default: black
 ---@field positioning Positioning? -- default: ABSOLUTE
 ---@field flexDirection FlexDirection? -- default: HORIZONTAL
@@ -113,8 +141,8 @@ local WindowProps = {}
 ---@return Window
 function Window.new(props)
   local self = setmetatable({}, Window)
-  self.x = props.x
-  self.y = props.y
+  self.x = props.x or 0
+  self.y = props.y or 0
   self.width = props.w or self:calculateAutoWidth()
   self.height = props.h or self:calculateAutoHeight()
   self.children = {}
@@ -134,8 +162,15 @@ function Window.new(props)
 
   self.background = props.background or Color.new(0, 0, 0, 0)
   self.borderColor = props.borderColor or Color.new(0, 0, 0, 1)
-  self.textColor = props.textColor or Color.new(0, 0, 0, 1)
-  self.visible = props.initVisible or true
+
+  if props.textColor then
+    self.textColor = props.textColor
+  elseif props.parent then
+    self.textColor = props.parent.textColor
+  else
+    self.textColor = Color.new(0, 0, 0, 1)
+  end
+
   self.gap = props.gap or 10
   self.text = props.text
   self.textColor = props.textColor or Color.new(0, 0, 0, 1)
@@ -152,6 +187,9 @@ function Window.new(props)
   local gw, gh = love.window.getMode()
   self.prevGameSize = { width = gw, height = gh }
 
+  if props.parent == nil then
+    table.insert(Gui.topWindows, self)
+  end
   return self
 end
 
@@ -260,11 +298,21 @@ end
 --- Destroy window and its children
 function Window:destroy()
   -- Remove from global windows list
-  for i, win in ipairs(Gui.windows) do
+  for i, win in ipairs(Gui.topWindows) do
     if win == self then
-      table.remove(Gui.windows, i)
+      table.remove(Gui.topWindows, i)
       break
     end
+  end
+
+  if self.parent then
+    for i, child in ipairs(self.parent.children) do
+      if child == self then
+        table.remove(self.parent.children, i)
+        break
+      end
+    end
+    self.parent = nil
   end
 
   -- Destroy all children
@@ -286,12 +334,8 @@ end
 
 --- Draw window and its children
 function Window:draw()
-  if not self.visible then
-    return
-  end
   love.graphics.setColor(self.background:toRGBA())
   love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
-  love.graphics.setColor(0, 0, 0)
   -- Draw borders based on border property
   love.graphics.setColor(self.borderColor:toRGBA())
   if self.border.top then
@@ -306,6 +350,35 @@ function Window:draw()
   if self.border.right then
     love.graphics.line(self.x + self.width, self.y, self.x + self.width, self.y + self.height)
   end
+
+  -- Draw window text if present
+  if self.text then
+    love.graphics.setColor(self.textColor:toRGBA())
+
+    -- Calculate text position based on textAlign
+    local font = love.graphics.getFont()
+    local textWidth = font:getWidth(self.text)
+    local textHeight = font:getHeight()
+
+    local tx, ty
+
+    if self.textAlign == TextAlign.START then
+      tx = self.x + 10
+      ty = self.y + 10
+    elseif self.textAlign == TextAlign.CENTER then
+      tx = self.x + (self.width - textWidth) / 2
+      ty = self.y + (self.height - textHeight) / 2
+    elseif self.textAlign == TextAlign.END then
+      tx = self.x + self.width - textWidth - 10
+      ty = self.y + self.height - textHeight - 10
+    elseif self.textAlign == TextAlign.JUSTIFY then
+      tx = self.x + 10
+      ty = self.y + 10
+    end
+
+    love.graphics.print(self.text, tx, ty)
+  end
+
   for _, child in ipairs(self.children) do
     child:draw()
   end
@@ -361,8 +434,7 @@ end
 --- Calculate auto width based on children
 function Window:calculateAutoWidth()
   if not self.children or #self.children == 0 then
-    self.width = 200 -- default minimum width
-    return
+    return 200
   end
 
   local maxWidth = 0
@@ -376,15 +448,13 @@ function Window:calculateAutoWidth()
     end
   end
 
-  -- Add some padding for window edges and title
-  self.width = maxWidth + 20
+  return maxWidth + 20
 end
 
 --- Calculate auto height based on children
 function Window:calculateAutoHeight()
   if not self.children or #self.children == 0 then
-    self.height = 150 -- default minimum height
-    return
+    return 150
   end
 
   local maxHeight = 0
@@ -398,41 +468,7 @@ function Window:calculateAutoHeight()
     end
   end
 
-  -- Add some padding for window edges and title
-  self.height = maxHeight + 20
-end
-
---- Get title position based on placement
---- NOTE: This will be updated and replaced in future, with the title having a section dedicated to it
-function Window:getTitlePosition()
-  local font = love.graphics.getFont()
-  local titleWidth = font:getWidth(self.title)
-  local titleHeight = font:getHeight()
-
-  -- Default to TOP_LEFT if no placement specified
-  local placement = self.titlePlacement or 1
-
-  if placement == 1 then -- TOP_LEFT
-    return self.x + 10, self.y + 5
-  elseif placement == 2 then -- TOP_CENTER
-    return self.x + (self.width - titleWidth) / 2, self.y + 5
-  elseif placement == 3 then -- TOP_RIGHT
-    return self.x + self.width - titleWidth - 10, self.y + 5
-  elseif placement == 4 then -- CENTER_LEFT
-    return self.x + 10, self.y + (self.height - titleHeight) / 2
-  elseif placement == 5 then -- CENTER_RIGHT
-    return self.x + self.width - titleWidth - 10, self.y + (self.height - titleHeight) / 2
-  elseif placement == 6 then -- CENTER_CENTER
-    return self.x + (self.width - titleWidth) / 2, self.y + (self.height - titleHeight) / 2
-  elseif placement == 7 then -- BOTTOM_LEFT
-    return self.x + 10, self.y + self.height - titleHeight - 5
-  elseif placement == 8 then -- BOTTOM_CENTER
-    return self.x + (self.width - titleWidth) / 2, self.y + self.height - titleHeight - 5
-  elseif placement == 9 then -- BOTTOM_RIGHT
-    return self.x + self.width - titleWidth - 10, self.y + self.height - titleHeight - 5
-  else
-    return self.x + 10, self.y + 5 -- fallback to TOP_LEFT
-  end
+  return maxHeight + 20
 end
 
 ---@class Button
@@ -480,8 +516,8 @@ function Button.new(props)
   self.y = props.y or 0
   self.px = props.px or 0
   self.py = props.py or 0
-  self.width = props.w or self:calculateTextWidth(props.text) + props.px
-  self.height = props.h or self:calculateTextHeight() + props.py
+  self.width = props.w or self:calculateTextWidth(props.text) + self.px
+  self.height = props.h or self:calculateTextHeight() + self.py
   self.text = props.text or ""
   self.border = props.border
       and {
@@ -645,43 +681,6 @@ function Button:destroy()
   self._touchPressed = nil
 end
 
---- Global GUI manager
-Gui.windows = {}
-
----@param props WindowProps
----@return Window
-function Gui.newWindow(props)
-  local win = Window.new(props)
-  table.insert(Gui.windows, win)
-  return win
-end
-
-function Gui.resize()
-  local newWidth, newHeight = love.window.getMode()
-  for _, win in ipairs(Gui.windows) do
-    win:resize(newWidth, newHeight)
-  end
-end
-
-function Gui.draw()
-  for _, win in ipairs(Gui.windows) do
-    win:draw()
-  end
-end
-
-function Gui.update(dt)
-  for _, win in ipairs(Gui.windows) do
-    win:update(dt)
-  end
-end
-
---- Destroy all windows and their children
-function Gui.destroy()
-  for _, win in ipairs(Gui.windows) do
-    win:destroy()
-  end
-  Gui.windows = {}
-end
-
 Gui.Button = Button
+Gui.Window = Window
 return Gui
