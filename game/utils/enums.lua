@@ -13,6 +13,7 @@ enums.ComponentType = {
   MOVETO = 9,
   SCHEDULE = 10,
   SELECTED = 11,
+  NAME = 12,
 }
 
 --- @enum TaskType

@@ -3,9 +3,9 @@
 ## Build/Lint/Test Commands
 - Build: `./tools/build.sh`
 - Install dependencies: `./tools/install.sh`
-- Run single test: `lua testing/__tests__/*.lua`
-- Style: `stylua --check *.lua`
-- Linting: `lua-language-server --check *.lua`
+- Run single test: `lua testing/__tests__/<file_name>.lua`
+- Style: `stylua --check <file_name>.lua`
+- Linting: `lua-language-server --check <file_name>.lua`
 
 ## Code Style Guidelines
 - Lua formatting with stylua (2-space indent, Unix line endings)
@@ -19,4 +19,4 @@
 
 ## Additional Info
 - All game related files are within the game directory
-- Always lint at end of turn, do not run prior
+- Always run lint, do not run prior

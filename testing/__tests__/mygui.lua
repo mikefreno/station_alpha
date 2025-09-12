@@ -1,5 +1,6 @@
+package.path = package.path .. ";./?.lua;./game/?.lua;./game/utils/?.lua;./game/components/?.lua;./game/systems/?.lua"
 local luaunit = require("testing.luaunit")
-local Gui = require("game.libs.MyGUI")
+local Gui = require("libs.MyGUI")
 
 TestMyGUIPositioning = {}
 

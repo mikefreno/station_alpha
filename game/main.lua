@@ -2,7 +2,7 @@ local Color = require("game.utils.color")
 local Schedule = require("game.components.Schedule")
 local enums = require("game.utils.enums")
 local mapManager = require("game.systems.MapManager")
-local rightClickMenu = require("game.components.RightClickMenu")
+local RightClickMenu = require("game.components.RightClickMenu")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 local TaskType = enums.TaskType
@@ -35,12 +35,12 @@ local function initSystems()
   MapManager = mapManager.new(constants.MAP_W, constants.MAP_H)
   MapManager:createLevelMap()
   TaskManager = taskManager.new()
-  RCM = rightClickMenu.new()
   Pathfinder = pathfinder.new()
 end
 
 ---NOTE: temporary for demoing purposes---
 local function initDot()
+  EntityManager:addComponent(EntityManager.dot, ComponentType.NAME, "Testing Dot")
   EntityManager:addComponent(EntityManager.dot, ComponentType.POSITION, Vec2.new(1, 1))
   EntityManager:addComponent(EntityManager.dot, ComponentType.VELOCITY, Vec2.new())
   -- 100 meters(50 tiles) in 70 seconds
@@ -146,7 +146,8 @@ function love.draw()
   RenderSystem:update(Camera:getVisibleBounds())
   Camera:unapply()
   LoadingIndicator:draw()
-  Gui.draw()
+  RightClickMenu:draw()
+  BottomBar:draw()
   PauseMenu:draw()
   Logger:draw()
   overlayStats.draw()

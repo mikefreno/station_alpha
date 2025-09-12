@@ -8,8 +8,7 @@ local Positioning = enums.Positioning
 local TextAlign = enums.TextAlign
 
 --- Top level GUI manager
-local Gui = {}
-Gui.topWindows = {}
+local Gui = { topWindows = {} }
 
 function Gui.resize()
   local newWidth, newHeight = love.window.getMode()
@@ -187,13 +186,13 @@ function Window.new(props)
   local gw, gh = love.window.getMode()
   self.prevGameSize = { width = gw, height = gh }
 
-  if props.parent == nil then
+  if not props.parent then
     table.insert(Gui.topWindows, self)
   end
   return self
 end
 
----@return table
+---@return { x:number, y:number, width:number, height:number }
 function Window:getBounds()
   return { x = self.x, y = self.y, width = self.width, height = self.height }
 end
@@ -261,30 +260,29 @@ function Window:layoutChildren()
       goto continue
     end
     if self.flexDirection == FlexDirection.VERTICAL then
-      child.x = self.x + currentPos
-      child.y = self.y
+      child.x = currentPos
+      child.y = 0
 
       -- Apply alignment to vertical axis (alignItems)
       if self.alignItems == AlignItems.FLEX_START then
-        child.y = self.y
+        --nothing, currentPos is all
       elseif self.alignItems == AlignItems.CENTER then
-        child.y = self.y + (self.height - (child.height or 0)) / 2
+        child.y = (self.height - (child.height or 0)) / 2
       elseif self.alignItems == AlignItems.FLEX_END then
-        child.y = self.y + self.height - (child.height or 0)
+        child.y = self.height - (child.height or 0)
       elseif self.alignItems == AlignItems.STRETCH then
         child.height = self.height
       end
       currentPos = currentPos + (child.width or 0) + self.gap
     else
-      child.x = self.x
-      child.y = self.y + currentPos
+      child.y = currentPos
       -- Apply alignment to horizontal axis (alignItems)
       if self.alignItems == AlignItems.FLEX_START then
-        child.x = self.x
+        --nothing, currentPos is all
       elseif self.alignItems == AlignItems.CENTER then
-        child.x = self.x + (self.width - (child.width or 0)) / 2
+        child.x = (self.width - (child.width or 0)) / 2
       elseif self.alignItems == AlignItems.FLEX_END then
-        child.x = self.x + self.width - (child.width or 0)
+        child.x = self.width - (child.width or 0)
       elseif self.alignItems == AlignItems.STRETCH then
         child.width = self.width
       end
@@ -390,6 +388,19 @@ function Window:update(dt)
   for _, child in ipairs(self.children) do
     child:update(dt)
   end
+
+  -- Update animation if exists
+  if self.animation then
+    local finished = self.animation:update(dt)
+    if finished then
+      self.animation = nil -- remove finished animation
+    else
+      -- Apply animation interpolation during update
+      local anim = self.animation:interpolate()
+      self.width = anim.width
+      self.height = anim.height
+    end
+  end
 end
 
 --- Resize window and its children based on game window size change
@@ -400,33 +411,17 @@ function Window:resize(newGameWidth, newGameHeight)
   local prevH = self.prevGameSize.height
   local ratioW = newGameWidth / prevW
   local ratioH = newGameHeight / prevH
-
-  -- Create animation for resizing
-  if not self.animation then
-    self.animation = Animation.new({
-      duration = ratioW,
-      start = { width = self.width, height = self.height },
-      final = { width = self.width * ratioW, height = self.height * ratioH },
-    })
-  else
-    self.animation:update(0) -- reset elapsed
-  end
-
-  -- Update window size using animation interpolation
-  local anim = self.animation:interpolate()
-  self.width = anim.width
-  self.height = anim.height
+  -- Update window size
+  self.width = self.width * ratioW
+  self.height = self.height * ratioH
   self.x = self.x * ratioW
   self.y = self.y * ratioH
-
   -- Update children positions and sizes
   for _, child in ipairs(self.children) do
     child:resize(ratioW, ratioH)
   end
-
   -- Re-layout children after resizing
   self:layoutChildren()
-
   self.prevGameSize.width = newGameWidth
   self.prevGameSize.height = newGameHeight
 end
@@ -556,8 +551,8 @@ end
 function Button:resize(ratioW, ratioH)
   self.x = self.x * (ratioW or 1)
   self.y = self.y * (ratioH or 1)
-  self.width = self.width * (ratioW or 1)
-  self.height = self.height * (ratioH or 1)
+  self.width = math.max(self.width * (ratioW or 1), self:calculateTextWidth())
+  self.height = math.max(self.height * (ratioH or 1), self:calculateTextHeight())
 end
 
 ---@param newText string
@@ -573,7 +568,6 @@ end
 function Button:draw()
   love.graphics.setColor(self.background:toRGBA())
   love.graphics.rectangle("fill", self.parent.x + self.x, self.parent.y + self.y, self.width, self.height)
-  love.graphics.setColor(0, 0, 0)
   -- Draw borders based on border property
   love.graphics.setColor(self.borderColor:toRGBA())
   if self.border.top then

@@ -107,12 +107,9 @@ function PauseMenu:draw()
       })
     end
     self.menuWindow:draw()
-  else
-    -- Destroy the menu window if it exists and is not visible
-    if self.menuWindow ~= nil then
-      self.menuWindow:destroy()
-      self.menuWindow = nil
-    end
+  elseif self.menuWindow ~= nil then
+    self.menuWindow:destroy()
+    self.menuWindow = nil
   end
 end
 

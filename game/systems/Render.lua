@@ -43,12 +43,6 @@ function RenderSystem:update(bounds)
   end)
 
   for _, e in ipairs(entities) do
-    --NOTE: The rightclickmenu can be rendered anywhere... therefore we dont want to do any kind of culling to affect it, it should also remain static to its position
-    if e == 1 then
-      if RCM then
-        RCM:render()
-      end
-    end
     local pos = EntityManager:getComponent(e, ComponentType.POSITION)
 
     if

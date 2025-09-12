@@ -2,6 +2,7 @@ local ComponentType = require("game.utils.enums").ComponentType
 local EntityManager = require("game.systems.EntityManager")
 local PauseMenu = require("game.components.PauseMenu")
 local Vec2 = require("game.utils.Vec2")
+local RightClickMenu = require("game.components.RightClickMenu")
 
 local InputSystem = {}
 InputSystem.__index = InputSystem
@@ -15,8 +16,8 @@ function InputSystem:update() end
 
 function InputSystem:keypressed(key, scancode, isrepeat)
   if key == "escape" then
-    if RCM.showing then
-      RCM.showing = false
+    if RightClickMenu.showing then
+      RightClickMenu.showing = false
     else
       PauseMenu.visible = not PauseMenu.visible
     end
@@ -31,6 +32,7 @@ end
 ---@param istouch boolean
 function InputSystem:handleMousePressed(x, y, button, istouch)
   if button == 1 then
+    RightClickMenu:handleMousePressed(x, y, button, istouch)
     -- Find entities at the click position that are not map tiles
     local entities = EntityManager:query(ComponentType.POSITION)
     for _, entityId in ipairs(entities) do
@@ -52,13 +54,8 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
     end
     --if not RCM.hovered then RCM:hide() end
   elseif button == 2 then
-    if RCM and not RCM.position then
-      RCM.position = Vec2.new()
-    end
-    if RCM then
-      RCM.position.x = x
-      RCM.position.y = y
-      RCM.showing = true
+    if RightClickMenu then
+      RightClickMenu:updatePosition(x, y)
     else
       Logger:error("No RCM found")
     end
@@ -66,7 +63,7 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
 end
 
 function InputSystem:handleWheelMoved(x, y)
-  if RCM.showing then
+  if RightClickMenu.showing then
   else
     Camera:wheelmoved(x, y)
   end
