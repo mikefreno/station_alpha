@@ -17,9 +17,9 @@ function InputSystem:update() end
 function InputSystem:keypressed(key, scancode, isrepeat)
   if key == "escape" then
     if RightClickMenu.showing then
-      RightClickMenu.showing = false
+      RightClickMenu:toggle()
     else
-      PauseMenu.visible = not PauseMenu.visible
+      PauseMenu:toggle()
     end
   else
   end

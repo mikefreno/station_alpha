@@ -112,6 +112,7 @@ local FONT_CACHE = {}
 ---@field justifyContent JustifyContent -- default: start
 ---@field alignItems AlignItems -- default: start
 ---@field alignContent AlignContent -- default: start
+---@field textSize number?
 local Window = {}
 Window.__index = Window
 
@@ -129,6 +130,7 @@ Window.__index = Window
 ---@field titleColor Color? -- default: black
 ---@field textAlign TextAlign?
 ---@field textColor Color? -- default: black
+---@field textSize number? -- default: nil
 ---@field positioning Positioning? -- default: ABSOLUTE
 ---@field flexDirection FlexDirection? -- default: HORIZONTAL
 ---@field justifyContent JustifyContent? -- default: FLEX_START
@@ -144,6 +146,10 @@ function Window.new(props)
   self.y = props.y or 0
   self.width = props.w or self:calculateAutoWidth()
   self.height = props.h or self:calculateAutoHeight()
+  self.parent = props.parent
+  if props.parent then
+    props.parent:addChild(self)
+  end
   self.children = {}
   self.border = props.border
       and {
@@ -172,10 +178,27 @@ function Window.new(props)
 
   self.gap = props.gap or 10
   self.text = props.text
-  self.textColor = props.textColor or Color.new(0, 0, 0, 1)
-  self.textAlign = props.textAlign or TextAlign.START
 
-  self.positioning = props.positioning or Positioning.ABSOLUTE
+  self.textColor = props.textColor
+  if self.textColor == nil then
+    if props.parent then
+      self.textColor = props.parent.textColor
+    else
+      self.textColor = Color.new(0, 0, 0, 1)
+    end
+  end
+  self.textAlign = props.textAlign or TextAlign.START
+  self.textSize = props.textSize
+
+  self.positioning = props.positioning
+  if self.positioning == nil then
+    if props.parent then
+      self.positioning = props.parent.positioning
+    else
+      self.positioning = Positioning.ABSOLUTE
+    end
+  end
+
   if self.positioning == Positioning.FLEX then
     self.positioning = props.positioning
     self.justifyContent = props.justifyContent or JustifyContent.FLEX_START
@@ -198,7 +221,7 @@ function Window:getBounds()
 end
 
 --- Add child to window
----@param child Button
+---@param child Button|Window
 function Window:addChild(child)
   child.parent = self
   table.insert(self.children, child)
@@ -353,16 +376,19 @@ function Window:draw()
   if self.text then
     love.graphics.setColor(self.textColor:toRGBA())
 
-    -- Calculate text position based on textAlign
+    local origFont = love.graphics.getFont()
+    local tempFont
+    if self.textSize then
+      tempFont = love.graphics.newFont(self.textSize)
+      love.graphics.setFont(tempFont)
+    end
     local font = love.graphics.getFont()
     local textWidth = font:getWidth(self.text)
     local textHeight = font:getHeight()
-
     local tx, ty
-
     if self.textAlign == TextAlign.START then
-      tx = self.x + 10
-      ty = self.y + 10
+      tx = self.x
+      ty = self.y
     elseif self.textAlign == TextAlign.CENTER then
       tx = self.x + (self.width - textWidth) / 2
       ty = self.y + (self.height - textHeight) / 2
@@ -370,11 +396,14 @@ function Window:draw()
       tx = self.x + self.width - textWidth - 10
       ty = self.y + self.height - textHeight - 10
     elseif self.textAlign == TextAlign.JUSTIFY then
-      tx = self.x + 10
-      ty = self.y + 10
+      --- need to figure out spreading
+      tx = self.x
+      ty = self.y
     end
-
     love.graphics.print(self.text, tx, ty)
+    if self.textSize then
+      love.graphics.setFont(origFont)
+    end
   end
 
   for _, child in ipairs(self.children) do
@@ -482,6 +511,7 @@ end
 ---@field textColor Color?
 ---@field _touchPressed boolean
 ---@field positioning Positioning --default: ABSOLUTE (checks parent first)
+---@field textSize number?
 local Button = {}
 Button.__index = Button
 
@@ -499,6 +529,7 @@ Button.__index = Button
 ---@field border Border?
 ---@field borderColor Color? -- default: black
 ---@field textColor Color? -- default: black,
+---@field textSize number? -- default: nil
 ---@field positioning Positioning? --default: ABSOLUTE (checks parent first)
 local ButtonProps = {}
 
@@ -529,6 +560,7 @@ function Button.new(props)
     }
   self.borderColor = props.borderColor or Color.new(0, 0, 0, 1)
   self.textColor = props.textColor
+  self.textSize = props.textSize
   self.background = props.background or Color.new(0, 0, 0, 0)
 
   self.positioning = props.positioning or props.parent.positioning
@@ -603,11 +635,19 @@ function Button:draw()
     )
   end
 
+  local origFont = love.graphics.getFont()
+  if self.textSize then
+    local tempFont = love.graphics.newFont(self.textSize)
+    love.graphics.setFont(tempFont)
+  end
   local textColor = self.textColor or self.parent.textColor
   love.graphics.setColor(textColor:toRGBA())
   local tx = self.parent.x + self.x + (self.width - self:calculateTextWidth()) / 2
   local ty = self.parent.y + self.y + (self.height - self:calculateTextHeight()) / 3
   love.graphics.print(self.text, tx, ty)
+  if self.textSize then
+    love.graphics.setFont(origFont)
+  end
 end
 
 --- Calculate text width for button

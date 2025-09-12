@@ -1,5 +1,6 @@
 local constants = require("game.utils.constants")
 local Vec2 = require("game.utils.Vec2")
+local PauseMenu = require("game.components.PauseMenu")
 
 local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 
@@ -59,6 +60,9 @@ end
 --- Handle keyboard + mouse input for camera movement + zoom
 ---@param dt number
 function Camera:update(dt)
+  if PauseMenu.visible then
+    return
+  end
   local speed = self.baseSpeed / self.zoom * dt
 
   ---panning---

@@ -1,0 +1,62 @@
+local Gui = require("game.libs.MyGUI")
+local Color = require("game.utils.color")
+
+---@class BottomBar
+---@field window Window
+---@field minimized boolean
+---@field minimizeButton Button
+local BottomBar = {}
+BottomBar.__index = BottomBar
+local instance
+
+function BottomBar:init()
+  if instance ~= nil then
+    return instance
+  end
+  local self = setmetatable({}, BottomBar)
+
+  local w, h = love.window.getMode()
+
+  self.window = Gui.Window.new({
+    x = 0,
+    y = h * 0.9,
+    w = w,
+    h = h * 0.1,
+    border = { top = true },
+    background = Color.new(0.2, 0.2, 0.2, 0.95),
+  })
+
+  self.minimizeButton = Gui.Button.new({
+    parent = self.window,
+    x = 10,
+    y = 10,
+    px = 4,
+    py = 4,
+    text = "-",
+    textColor = Color.new(1, 1, 1),
+    borderColor = Color.new(1, 1, 1),
+    callback = function()
+      self:toggleWindow()
+    end,
+  })
+end
+
+function BottomBar:toggleWindow()
+  local w, h = love.window.getMode()
+  if self.minimized then
+    self.window.height = h * 0.1
+    self.window.width = w
+    self.window.y = h * 0.9
+    self.minimizeButton.y = 10
+    self.minimizeButton:updateText("-", true)
+  else
+    self.window.height = 0
+    self.window.width = 0
+    self.window.y = h
+    self.minimizeButton.y = -40
+    self.minimizeButton:updateText("+", true)
+  end
+  self.minimized = not self.minimized
+end
+
+return BottomBar:init()

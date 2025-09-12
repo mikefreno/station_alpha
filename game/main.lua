@@ -23,6 +23,7 @@ local pathfinder = require("game.systems.PathFinder")
 local taskManager = require("game.systems.TaskManager")
 local PauseMenu = require("game.components.PauseMenu")
 local Gui = require("game.libs.MyGUI")
+local BottomBar = require("game.components.BottomBar")
 
 local function isLoading()
   if not MapManager.graph or MapManager.dirtyGraph == true then
@@ -52,43 +53,9 @@ local function initDot()
   EntityManager:addComponent(dot, ComponentType.SCHEDULE, Schedule.new())
 end
 
-local function initBottomBar()
-  local w, h = love.window.getMode()
-  BottomBar = Gui.Window.new({
-    x = 0,
-    y = h * 0.9,
-    w = w,
-    h = h * 0.1,
-    border = { top = true },
-    background = Color.new(0.2, 0.2, 0.2, 0.95),
-  })
-  local minimized = false
-  ---@param btn Button
-  local function minimizeWindow(btn)
-    w, h = love.window.getMode()
-    if minimized then
-      BottomBar.height = h * 0.1
-      BottomBar.width = w
-      BottomBar.y = h * 0.9
-      btn.y = 10
-      btn:updateText("-", true)
-    else
-      BottomBar.height = 0
-      BottomBar.width = 0
-      BottomBar.y = h
-      btn.y = -40
-      btn:updateText("+", true)
-    end
-    minimized = not minimized
-  end
-  local minButton =
-    Gui.Button.new({ parent = BottomBar, x = 10, y = 10, px = 4, py = 4, text = "-", callback = minimizeWindow })
-end
-
 function love.load()
   initSystems()
   initDot()
-  initBottomBar()
   overlayStats.load()
 end
 

@@ -24,7 +24,6 @@ function RightClickMenu.init()
   if instance ~= nil then
     return instance
   end
-  Logger:debug("creating new RCM")
   local self = setmetatable({}, RightClickMenu)
   self.worldPosition = nil
   self.gridPosition = nil
@@ -37,16 +36,20 @@ function RightClickMenu.init()
 end
 
 function RightClickMenu:updatePosition(x, y)
+  self.showing = false
+  if self.window then
+    self.window:destroy()
+    self.window = nil
+  end
   local vec = Vec2.new(x, y)
-  self.worldPosition = vec
   Logger:debug(vec)
+  self.worldPosition = vec
   self.gridPosition = MapManager:worldToGrid(vec)
-  Logger:debug(self.gridPosition)
-
-  self.showing = true
+  self:toggle()
 end
 
-function RightClickMenu:draw()
+function RightClickMenu:toggle()
+  self.showing = not self.showing
   if self.showing then
     self.window = Gui.Window.new({
       x = self.worldPosition.x,
@@ -64,8 +67,10 @@ function RightClickMenu:draw()
 
     local selected = EntityManager:find(ComponentType.SELECTED, true)
 
-    RightClickMenu:setupSelectionBasedComponents(selected)
-  elseif self.window ~= nil then
+    if selected then
+      RightClickMenu:setupSelectionBasedComponents(selected)
+    end
+  else
     self.window:destroy()
     self.window = nil
   end
@@ -75,27 +80,15 @@ function RightClickMenu:handleMousePressed(x, y, button, istouch)
   if self.window then
     local bounds = self.window:getBounds()
     if x < bounds.x or x > bounds.x + bounds.width or y < bounds.y or y > bounds.y + bounds.height then
-      self:hide()
+      self:toggle()
     end
   end
 end
 
-function RightClickMenu:hide()
-  Logger:debug("hide called")
-  self.showing = false
-  self.position = nil
-  self.gridPosition = nil
-  if self.window then
-    self.window:destroy()
-    self.window = nil
-  end
-end
-
----@param entity integer?
+---@param entity integer
 function RightClickMenu:setupSelectionBasedComponents(entity)
   if self.gridPosition == nil then
-    Logger:debug("no grid")
-    Logger:debug(self.position)
+    Logger:debug("early return")
     return
   end
   if entity then

@@ -19,4 +19,5 @@
 
 ## Additional Info
 - All game related files are within the game directory
-- Always run lint, do not run prior
+- Always run lint at end of turn, do not run prior
+- You can check the README.md for more information
