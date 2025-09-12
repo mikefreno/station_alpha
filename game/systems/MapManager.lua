@@ -171,8 +171,8 @@ end
 --- @param pos Vec2 (pixel space)
 --- @return Vec2 (grid indices)
 function MapManager:worldToGrid(pos)
-  local x = math.floor(pos.x / constants.pixelSize)
-  local y = math.floor(pos.y / constants.pixelSize)
+  local x = math.floor((pos.x + constants.pixelSize / 2) / constants.pixelSize)
+  local y = math.floor((pos.y + constants.pixelSize / 2) / constants.pixelSize)
   return Vec2.new(x, y)
 end
 

@@ -37,7 +37,7 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
     local entities = EntityManager:query(ComponentType.POSITION)
     for _, entityId in ipairs(entities) do
       local selected = EntityManager:getComponent(entityId, ComponentType.SELECTED)
-      if selected == true then
+      if selected == true and not RightClickMenu:clickWithin(x, y) then
         EntityManager:addComponent(entityId, ComponentType.SELECTED, false)
       end
       -- Skip map tile entities

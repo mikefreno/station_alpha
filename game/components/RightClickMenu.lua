@@ -36,69 +36,67 @@ function RightClickMenu.init()
 end
 
 function RightClickMenu:updatePosition(x, y)
-  self.showing = false
+  self:destroy()
+  local vec = Vec2.new(x, y)
+  self.worldPosition = vec
+  self.gridPosition = MapManager:worldToGrid(vec)
+  self:set()
+end
+
+function RightClickMenu:set()
+  self.window = Gui.Window.new({
+    x = self.worldPosition.x,
+    y = self.worldPosition.y,
+    w = 120,
+    h = 200,
+    border = { top = true, right = true, bottom = true, left = true },
+    background = Color.new(0.6, 0.6, 0.8, 1),
+    initVisible = true,
+    textColor = Color.new(1, 1, 1, 1),
+    positioning = Positioning.FLEX,
+    flexDirection = FlexDirection.VERTICAL,
+    gap = 10,
+  })
+
+  local selected = EntityManager:find(ComponentType.SELECTED, true)
+
+  if selected then
+    self:setupSelectionBasedComponents(selected)
+  end
+end
+
+function RightClickMenu:destroy()
   if self.window then
     self.window:destroy()
     self.window = nil
   end
-  local vec = Vec2.new(x, y)
-  Logger:debug(vec)
-  self.worldPosition = vec
-  self.gridPosition = MapManager:worldToGrid(vec)
-  self:toggle()
 end
 
-function RightClickMenu:toggle()
-  self.showing = not self.showing
-  if self.showing then
-    self.window = Gui.Window.new({
-      x = self.worldPosition.x,
-      y = self.worldPosition.y,
-      w = 120,
-      h = 200,
-      border = { top = true, right = true, bottom = true, left = true },
-      background = Color.new(0.6, 0.6, 0.8, 1),
-      initVisible = true,
-      textColor = Color.new(1, 1, 1, 1),
-      positioning = Positioning.FLEX,
-      flexDirection = FlexDirection.VERTICAL,
-      gap = 10,
-    })
-
-    local selected = EntityManager:find(ComponentType.SELECTED, true)
-
-    if selected then
-      RightClickMenu:setupSelectionBasedComponents(selected)
-    end
-  else
-    self.window:destroy()
-    self.window = nil
+function RightClickMenu:clickWithin(x, y)
+  if self.window == nil then
+    return false
   end
+  local bounds = self.window:getBounds()
+  if x < bounds.x or x > bounds.x + bounds.width or y < bounds.y or y > bounds.y + bounds.height then
+    return false
+  end
+  return true
 end
 
 function RightClickMenu:handleMousePressed(x, y, button, istouch)
-  if self.window then
-    local bounds = self.window:getBounds()
-    if x < bounds.x or x > bounds.x + bounds.width or y < bounds.y or y > bounds.y + bounds.height then
-      self:toggle()
-    end
+  if not self:clickWithin(x, y) then
+    self:destroy()
   end
 end
 
 ---@param entity integer
 function RightClickMenu:setupSelectionBasedComponents(entity)
-  if self.gridPosition == nil then
-    Logger:debug("early return")
-    return
-  end
-  if entity then
-    local targetEntity =
-      EntityManager:findNearest(ComponentType.POSITION, self.gridPosition, { ComponentType.MAPTILETAG })
-    -- can the entity move?
-    local speedStat = EntityManager:getComponent(entity, ComponentType.SPEEDSTAT)
-    if speedStat then
-      self:addMoveTo(entity)
-    end
+  local targetEntity =
+    EntityManager:findNearest(ComponentType.POSITION, self.gridPosition, { ComponentType.MAPTILETAG })
+  -- can the entity move?
+  local speedStat = EntityManager:getComponent(entity, ComponentType.SPEEDSTAT)
+  if speedStat then
+    self:addMoveTo(entity)
   end
 end
 
