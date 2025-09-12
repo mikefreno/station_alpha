@@ -5,11 +5,14 @@ A tile-based colony strategy game built with Lua and LÖVE 2D. Currently in the 
 ## Project Structure
 
 ```
+.git/
+build/
 game/
 ├── components/        # Game entities and their properties
 │   ├── Camera.lua
 │   ├── LoadingIndicator.lua
 │   ├── MoveTo.lua
+│   ├── PauseMenu.lua
 │   ├── RightClickMenu.lua
 │   ├── Schedule.lua
 │   ├── Shape.lua
@@ -17,6 +20,11 @@ game/
 │   ├── Texture.lua
 │   ├── Tile.lua
 │   └── Topography.lua
+├── libs/              # 'Third' party libraries 
+│   ├── Cartographer.lua
+│   ├── MyGUI.lua      # A UI Lib I am developing
+│   └── OverlayStats.lua
+├── runtime/           # Native libraries for HTTPS support
 ├── systems/           # Game logic and systems
 │   ├── EntityManager.lua
 │   ├── Input.lua
@@ -36,6 +44,26 @@ game/
 ├── main.lua           # LÖVE entrypoint 
 ├── conf.lua           # LÖVE configuration
 └── logger.lua         # Logging system
+resources/
+testing/
+├── __tests__/         # Tests for various components or systems
+│   ├── mygui.lua
+│   └── pathfiner.lua
+└── luaunit.lua        # Testing lib
+tools/                 # Tools for building, installing dependencies, et
+├── build-love.sh
+├── build.sh
+├── context.sh
+├── install.sh
+└── test-html.sh
+.editorconfig
+.gitignore
+.luarc.json
+.stylua.toml
+flake.lock
+flake.nix
+README.md
+USAGE.md
 ```
 
 ## Core Concepts
