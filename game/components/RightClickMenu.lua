@@ -2,9 +2,11 @@ local EntityManager = require("game.systems.EntityManager")
 local Vec2 = require("game.utils.Vec2")
 local constants = require("game.utils.constants")
 local ComponentType = require("game.utils.enums").ComponentType
-local Gui = require("game.libs.MyGUI")
-local enums = require("game.utils.enums")
-local Color = require("game.utils.color")
+local ZIndexing = require("game.utils.enums").ZIndexing
+local FlexLove = require("game.libs.FlexLove")
+local Gui = FlexLove.GUI
+local Color = FlexLove.Color
+local enums = FlexLove.enums
 local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems =
   enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems
 
@@ -47,6 +49,7 @@ function RightClickMenu:set()
   self.window = Gui.Window.new({
     x = self.worldPosition.x,
     y = self.worldPosition.y,
+    z = ZIndexing.RightClickMenu,
     border = { top = true, right = true, bottom = true, left = true },
     background = Color.new(0.6, 0.6, 0.8, 1),
     initVisible = true,

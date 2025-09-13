@@ -1,6 +1,8 @@
-local Color = require("game.utils.color")
-local Gui = require("game.libs.MyGUI")
-local enums = require("game.utils.enums")
+local ZIndexing = require("game.utils.enums").ZIndexing
+local FlexLove = require("game.libs.FlexLove")
+local enums = FlexLove.enums
+local Gui = FlexLove.GUI
+local Color = FlexLove.Color
 local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems, TextAlign =
   enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems, enums.TextAlign
 
@@ -29,6 +31,7 @@ function PauseMenu:toggle()
     self.window = Gui.Window.new({
       x = 0,
       y = 0,
+      z = ZIndexing.PauseMenu,
       w = w,
       h = h,
       border = { top = true, right = true, bottom = true, left = true },

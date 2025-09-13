@@ -1,5 +1,4 @@
 Logger = require("game.logger"):init()
-local Color = require("game.utils.color")
 local Schedule = require("game.components.Schedule")
 local enums = require("game.utils.enums")
 local mapManager = require("game.systems.MapManager")
@@ -22,7 +21,9 @@ local overlayStats = require("game.libs.OverlayStats")
 local pathfinder = require("game.systems.PathFinder")
 local taskManager = require("game.systems.TaskManager")
 local PauseMenu = require("game.components.PauseMenu")
-local Gui = require("game.libs.MyGUI")
+local FlexLove = require("game.libs.FlexLove")
+local Gui = FlexLove.GUI
+local Color = FlexLove.Color
 local BottomBar = require("game.components.BottomBar")
 
 local function isLoading()
@@ -83,7 +84,6 @@ end
 function love.keypressed(key, scancode, isrepeat)
   Logger:keypressed(key, scancode)
   overlayStats.handleKeyboard(key)
-  -- Forward keypress to input system if needed
   InputSystem:keypressed(key, scancode, isrepeat)
 end
 
@@ -114,9 +114,6 @@ function love.draw()
   RenderSystem:update(Camera:getVisibleBounds())
   Camera:unapply()
   LoadingIndicator:draw()
-  --RightClickMenu:draw()
-  --BottomBar:draw()
-  --PauseMenu:draw()
   Gui.draw()
   Logger:draw()
   overlayStats.draw()

@@ -35,4 +35,11 @@ enums.TopographyType = {
   INACCESSIBLE = 3,
 }
 
+--- @enum ZIndexing
+enums.ZIndexing = {
+  BottomBar = 0,
+  RightClickMenu = 1,
+  PauseMenu = 2,
+}
+
 return enums

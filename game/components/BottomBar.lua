@@ -1,5 +1,7 @@
-local Gui = require("game.libs.MyGUI")
-local Color = require("game.utils.color")
+local ZIndexing = require("game.utils.enums").ZIndexing
+local FlexLove = require("game.libs.FlexLove")
+local Gui = FlexLove.GUI
+local Color = FlexLove.Color
 
 ---@class BottomBar
 ---@field window Window
@@ -20,6 +22,7 @@ function BottomBar:init()
   self.window = Gui.Window.new({
     x = 0,
     y = h * 0.9,
+    z = ZIndexing.BottomBar,
     w = w,
     h = h * 0.1,
     border = { top = true },
