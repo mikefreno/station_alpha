@@ -13,7 +13,6 @@ local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems =
 ---@class RightClickMenu
 ---@field worldPosition Vec2?
 ---@field gridPosition Vec2?
----@field showing boolean
 ---@field contents {}
 ---@field hovered boolean
 ---@field window Window?
@@ -29,7 +28,6 @@ function RightClickMenu.init()
   local self = setmetatable({}, RightClickMenu)
   self.worldPosition = nil
   self.gridPosition = nil
-  self.showing = false
   self.contents = {}
   self.hovered = false
   self.window = nil
@@ -110,7 +108,6 @@ function RightClickMenu:addMoveTo(entity)
     if path ~= nil then
       TaskManager:newPath(entity, path)
     end
-    self.showing = false
     ButtonPressed = false
   end
 

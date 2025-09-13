@@ -16,8 +16,8 @@ function InputSystem:update() end
 
 function InputSystem:keypressed(key, scancode, isrepeat)
   if key == "escape" then
-    if RightClickMenu.showing then
-      RightClickMenu:toggle()
+    if RightClickMenu.window then
+      RightClickMenu:destroy()
     else
       PauseMenu:toggle()
     end
@@ -32,7 +32,12 @@ end
 ---@param istouch boolean
 function InputSystem:handleMousePressed(x, y, button, istouch)
   if button == 1 then
-    RightClickMenu:handleMousePressed(x, y, button, istouch)
+    if RightClickMenu.window and not RightClickMenu:clickWithin(x, y) then
+      RightClickMenu:destroy()
+    end
+    if PauseMenu.window then
+      return
+    end
     -- Find entities at the click position that are not map tiles
     local entities = EntityManager:query(ComponentType.POSITION)
     for _, entityId in ipairs(entities) do
@@ -63,7 +68,7 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
 end
 
 function InputSystem:handleWheelMoved(x, y)
-  if RightClickMenu.showing then
+  if RightClickMenu.window then
   else
     Camera:wheelmoved(x, y)
   end
