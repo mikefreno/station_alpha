@@ -2,10 +2,8 @@ Logger = require("game.logger"):init()
 local Schedule = require("game.components.Schedule")
 local enums = require("game.utils.enums")
 local mapManager = require("game.systems.MapManager")
-local RightClickMenu = require("game.components.RightClickMenu")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
-local TaskType = enums.TaskType
 EntityManager = require("game.systems.EntityManager")
 local InputSystem = require("game.systems.Input")
 local LoadingIndicator = require("game.components.LoadingIndicator")
@@ -20,11 +18,14 @@ local constants = require("game.utils.constants")
 local overlayStats = require("game.libs.OverlayStats")
 local pathfinder = require("game.systems.PathFinder")
 local taskManager = require("game.systems.TaskManager")
-local PauseMenu = require("game.components.PauseMenu")
 local FlexLove = require("game.libs.FlexLove")
 local Gui = FlexLove.GUI
-local Color = FlexLove.Color
-local BottomBar = require("game.components.BottomBar")
+
+---GUI Init---
+require("game.components.PauseMenu")
+require("game.components.RightClickMenu")
+require("game.components.BottomBar")
+--------------
 
 local function isLoading()
   if not MapManager.graph or MapManager.dirtyGraph == true then

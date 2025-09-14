@@ -12,15 +12,6 @@ fi
 mkdir -p "$libs_dir"
 cd "$libs_dir" || { echo "❌  Could not cd to $libs_dir"; exit 1; }
 
-#NOTE: Attempting to make my own gui lib, so slab is being removed
-#if [[ -d "Slab/.git" ]]; then
-  #echo "✅  Slab is already present at $(pwd)/Slab"
-#else
-  #git clone https://github.com/flamendless/Slab.git
-  #echo "✅  Slab cloned successfully"
-#fi
-
-
 download_file() {
   url=$1
   dest=$2
@@ -49,6 +40,8 @@ download_file() {
 
 download_file "https://raw.githubusercontent.com/tesselode/cartographer/master/cartographer.lua" "Cartographer.lua"
 download_file "https://raw.githubusercontent.com/Oval-Tutu/bootstrap-love2d-project/main/game/lib/overlayStats.lua" "OverlayStats.lua"
+#shouldn't be necessary (submodule)
+#download_file "https://raw.githubusercontent.com/mikefreno/FlexLove/main/FlexLove.lua" "FlexLove.lua"
 
 echo "🎉  All libraries installed successfully"
 
