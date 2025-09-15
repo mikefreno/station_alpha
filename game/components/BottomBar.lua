@@ -13,7 +13,7 @@ local BottomBar = {}
 BottomBar.__index = BottomBar
 local instance
 
-function BottomBar:init()
+function BottomBar.init()
   if instance ~= nil then
     return instance
   end

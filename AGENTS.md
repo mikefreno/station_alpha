@@ -20,4 +20,5 @@
 ## Additional Info
 - All game related files are within the game directory
 - The GUI Library 'FlexLove' is fine to edit
+- game/libs is a git submodule
 - You can check the README.md for more information
