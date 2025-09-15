@@ -25,6 +25,7 @@ local Gui = FlexLove.GUI
 require("game.components.PauseMenu")
 require("game.components.RightClickMenu")
 require("game.components.BottomBar")
+require("game.components.AnimDemo")
 --------------
 
 local function isLoading()

@@ -10,11 +10,11 @@ local Color = FlexLove.Color
 local AnimDemo = {}
 AnimDemo.__index = AnimDemo
 
-function AnimDemo:init()
+function AnimDemo.init()
   local self = setmetatable({}, AnimDemo)
-  
-  local w, h = love.window.getMode()
-  
+
+  local w, _ = love.window.getMode()
+
   -- Create a demo window
   self.window = Gui.Window.new({
     x = 100,
@@ -24,9 +24,9 @@ function AnimDemo:init()
     h = 200,
     background = Color.new(0.1, 0.1, 0.3, 0.8),
     border = { top = true, bottom = true, left = true, right = true },
-    borderColor = Color.new(0.7, 0.7, 0.7, 1)
+    borderColor = Color.new(0.7, 0.7, 0.7, 1),
   })
-  
+
   -- Create a demo button
   self.button = Gui.Button.new({
     parent = self.window,
@@ -44,7 +44,7 @@ function AnimDemo:init()
       scaleAnim:apply(self.button)
     end,
   })
-  
+
   -- Create a fade button
   self.fadeButton = Gui.Button.new({
     parent = self.window,
@@ -62,7 +62,7 @@ function AnimDemo:init()
       fadeAnim:apply(self.window)
     end,
   })
-  
+
   -- Create a scale button
   self.scaleButton = Gui.Button.new({
     parent = self.window,
@@ -80,17 +80,8 @@ function AnimDemo:init()
       scaleAnim:apply(self.button)
     end,
   })
-  
+
   return self
 end
 
-function AnimDemo:update(dt)
-  -- Update the window's animation if exists (handled by Window.update)
-  self.window:update(dt)
-end
-
-function AnimDemo:draw()
-  self.window:draw()
-end
-
-return AnimDemo:init()
+return AnimDemo.init()

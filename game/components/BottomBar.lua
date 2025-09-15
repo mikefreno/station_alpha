@@ -50,7 +50,7 @@ function BottomBar:init()
     parent = self.window,
     y = h - tabHeight,
   })
-  Gui.Button.new({})
+  --Gui.Button.new({})
 end
 
 function BottomBar:showColonists()
