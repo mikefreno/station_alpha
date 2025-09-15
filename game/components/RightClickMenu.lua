@@ -91,7 +91,7 @@ end
 ---@param entity integer
 function RightClickMenu:setupSelectionBasedComponents(entity)
   local targetEntity =
-    EntityManager:findNearest(ComponentType.POSITION, self.gridPosition, { ComponentType.MAPTILETAG })
+    EntityManager:findNearest(ComponentType.POSITION, self.gridPosition, { ComponentType.MAPTILE_TAG })
   -- can the entity move?
   local speedStat = EntityManager:getComponent(entity, ComponentType.SPEEDSTAT)
   if speedStat then

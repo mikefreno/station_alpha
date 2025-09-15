@@ -27,8 +27,8 @@ function RenderSystem:update(bounds)
 
   -- Sort entities so that map tiles are rendered first (lower z-index)
   table.sort(entities, function(a, b)
-    local aIsMapTile = EntityManager:getComponent(a, ComponentType.MAPTILETAG) ~= nil
-    local bIsMapTile = EntityManager:getComponent(b, ComponentType.MAPTILETAG) ~= nil
+    local aIsMapTile = EntityManager:getComponent(a, ComponentType.MAPTILE_TAG) ~= nil
+    local bIsMapTile = EntityManager:getComponent(b, ComponentType.MAPTILE_TAG) ~= nil
 
     -- Map tiles go first (lower z-index)
     if aIsMapTile and not bIsMapTile then
@@ -56,7 +56,7 @@ function RenderSystem:update(bounds)
 
     local tex = EntityManager:getComponent(e, ComponentType.TEXTURE)
     local shape = EntityManager:getComponent(e, ComponentType.SHAPE)
-    local mapTile = EntityManager:getComponent(e, ComponentType.MAPTILETAG)
+    local mapTile = EntityManager:getComponent(e, ComponentType.MAPTILE_TAG)
     local selected = EntityManager:getComponent(e, ComponentType.SELECTED)
 
     local r, g, b = 1, 1, 1

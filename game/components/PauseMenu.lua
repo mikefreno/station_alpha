@@ -43,12 +43,12 @@ function PauseMenu:toggle()
       alignItems = AlignContent.CENTER,
       gap = 10,
     })
-    Gui.Window.new({
-      parent = self.window,
-      text = "Pause Menu",
-      textAlign = TextAlign.CENTER,
-      textSize = 40,
-    })
+    --Gui.Window.new({
+    --parent = self.window,
+    --text = "Pause Menu",
+    --textAlign = TextAlign.CENTER,
+    --textSize = 40,
+    --})
     -- Add buttons
     Gui.Button.new({
       parent = self.window,

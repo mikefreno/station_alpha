@@ -1,3 +1,5 @@
+local enums = require("game.utils.enums")
+local ComponentType = enums.ComponentType
 local ZIndexing = require("game.utils.enums").ZIndexing
 local FlexLove = require("game.libs.FlexLove")
 local Gui = FlexLove.GUI
@@ -42,7 +44,28 @@ function BottomBar:init()
       self:toggleWindow()
     end,
   })
+  local tabHeight = 20
+  -- menu tab container
+  Gui.Window.new({
+    parent = self.window,
+    y = h - tabHeight,
+  })
+  Gui.Button.new({})
 end
+
+function BottomBar:showColonists()
+  local colonists = EntityManager:query(ComponentType.COLONIST_TAG)
+  for _, colonist in pairs(colonists) do
+    EntityManager:getComponent(colonist, ComponentType.TEXTURE)
+    Gui.Button.new({ parent = self.window })
+  end
+end
+
+function BottomBar:highlightSelected()
+  --- Check for selected colonist, if selected, then show details according to that colonist (schedule, health etc.), add (x) to clear selection and contextual menus
+end
+
+function BottomBar:showAdditionSelectedDetails() end
 
 function BottomBar:toggleWindow()
   local w, h = love.window.getMode()

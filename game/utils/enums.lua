@@ -8,12 +8,13 @@ enums.ComponentType = {
   TEXTURE = 4,
   SHAPE = 5,
   TOPOGRAPHY = 6,
-  MAPTILETAG = 7,
+  MAPTILE_TAG = 7,
   SPEEDSTAT = 8, --tiles/sec
   MOVETO = 9,
   SCHEDULE = 10,
   SELECTED = 11,
   NAME = 12,
+  COLONIST_TAG = 13,
 }
 
 --- @enum TaskType

@@ -61,7 +61,7 @@ function EntityManager:find(type, data)
       end
     end
     -- vector checks
-    if type == ComponentType.POSITION or type == ComponentType.MAPTILETAG then
+    if type == ComponentType.POSITION or type == ComponentType.MAPTILE_TAG then
       if comp.x == data.x and comp.y == data.y then
         return id
       end
@@ -71,7 +71,7 @@ function EntityManager:find(type, data)
   return nil
 end
 
----@param type ComponentType.POSITION | ComponentType.MAPTILETAG -- the type to check for
+---@param type ComponentType.POSITION | ComponentType.MAPTILE_TAG -- the type to check for
 ---@param data  Vec2 -- the grid point you want to search from
 ---@param ignoreTypes ComponentType[]? -- component types which if present on the entity will ignore the entity
 ---@return integer? --   the entity id of the nearest matching tile, or nil
@@ -119,9 +119,9 @@ function EntityManager:findNearest(type, data, ignoreTypes)
     for id, pos in pairs(positions) do
       check(id, pos)
     end
-  elseif type == ComponentType.MAPTILETAG then
+  elseif type == ComponentType.MAPTILE_TAG then
     local positions = self.components[ComponentType.POSITION]
-    local tags = self.components[ComponentType.MAPTILETAG]
+    local tags = self.components[ComponentType.MAPTILE_TAG]
     for id, pos in pairs(positions) do
       if tags[id] then
         check(id, pos)

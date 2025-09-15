@@ -46,15 +46,7 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
         EntityManager:addComponent(entityId, ComponentType.SELECTED, false)
       end
       -- Skip map tile entities
-      if EntityManager:getComponent(entityId, ComponentType.MAPTILETAG) == nil then
-        local bounds = EntityManager:getEntityBounds(entityId)
-        if bounds then
-          -- Check if click position is within entity bounds
-          if x >= bounds.x and x <= bounds.x + bounds.width and y >= bounds.y and y <= bounds.y + bounds.height then
-            EntityManager:addComponent(entityId, ComponentType.SELECTED, true)
-            break
-          end
-        end
+      if EntityManager:getComponent(entityId, ComponentType.MAPTILE_TAG) == nil then
       end
     end
     --if not RCM.hovered then RCM:hide() end

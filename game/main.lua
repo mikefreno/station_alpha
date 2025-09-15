@@ -53,6 +53,7 @@ local function initDot()
   EntityManager:addComponent(dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
   EntityManager:addComponent(dot, ComponentType.TASKQUEUE, TaskQueue.new(dot))
   EntityManager:addComponent(dot, ComponentType.SCHEDULE, Schedule.new())
+  EntityManager:addComponent(dot, ComponentType.COLONIST_TAG, true)
 end
 
 function love.load()

@@ -73,7 +73,7 @@ function MapManager:createCell(xIndex, yIndex)
   EntityManager:addComponent(tileId, ComponentType.SHAPE, Shape.new(ShapeType.SQUARE, 1))
   EntityManager:addComponent(tileId, ComponentType.TOPOGRAPHY, Topography.new(result.style, result.speedMultiplier))
   -- store grid tag as x,y indices
-  EntityManager:addComponent(tileId, ComponentType.MAPTILETAG, Vec2.new(xIndex, yIndex))
+  EntityManager:addComponent(tileId, ComponentType.MAPTILE_TAG, Vec2.new(xIndex, yIndex))
   return tileId
 end
 

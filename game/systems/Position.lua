@@ -31,7 +31,7 @@ function PositionSystem:update(dt)
       local speedStat = EntityManager:getComponent(e, ComponentType.SPEEDSTAT)
       local intx = math.floor(p.x + 0.5) -- dot (and future entities will render at center, need to align with visuals)
       local inty = math.floor(p.y + 0.5)
-      local currentTileEntity = EntityManager:find(ComponentType.MAPTILETAG, Vec2.new(intx, inty))
+      local currentTileEntity = EntityManager:find(ComponentType.MAPTILE_TAG, Vec2.new(intx, inty))
       if currentTileEntity == nil then
         Logger:error("could not place entity: " .. e .. "(" .. intx .. "," .. inty)
         return
