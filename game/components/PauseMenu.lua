@@ -28,6 +28,7 @@ function PauseMenu:toggle()
   self.visible = not self.visible
   if self.visible then
     local w, h = love.window.getMode()
+    Logger:debug(w .. "," .. h)
     self.window = Gui.Window.new({
       x = 0,
       y = 0,
