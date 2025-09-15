@@ -114,6 +114,7 @@ function RightClickMenu:addMoveTo(entity)
   Gui.Button.new({
     parent = self.window,
     background = Color.new(0.2, 0.7, 0.7, 0.9),
+    px = 4,
     text = "Go To: " .. self.gridPosition.x .. "," .. self.gridPosition.y,
     callback = GoTo,
     positioning = Positioning.FLEX,
