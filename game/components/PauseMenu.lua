@@ -28,7 +28,6 @@ function PauseMenu:toggle()
   self.visible = not self.visible
   if self.visible then
     local w, h = love.window.getMode()
-    Logger:debug(w .. "," .. h)
     self.window = Gui.Window.new({
       x = 0,
       y = 0,
@@ -44,19 +43,17 @@ function PauseMenu:toggle()
       alignItems = AlignContent.CENTER,
       gap = 10,
     })
-    --Gui.Window.new({
-    --parent = self.window,
-    --text = "Pause Menu",
-    --textAlign = TextAlign.CENTER,
-    --textSize = 40,
-    --})
+    Gui.Window.new({
+      parent = self.window,
+      text = "Pause Menu",
+      textAlign = TextAlign.CENTER,
+      textSize = 40,
+    })
     -- Add buttons
     Gui.Button.new({
       parent = self.window,
       x = 40,
       y = 40,
-      px = 0,
-      py = 0,
       borderColor = Color.new(1, 1, 1, 1),
       positioning = Positioning.ABSOLUTE,
       text = "X",
@@ -69,8 +66,6 @@ function PauseMenu:toggle()
       parent = self.window,
       w = 80,
       h = 20,
-      px = 0,
-      py = 0,
       borderColor = Color.new(1, 1, 1, 1),
       text = "Settings",
       callback = function()
@@ -82,8 +77,6 @@ function PauseMenu:toggle()
       parent = self.window,
       w = 80,
       h = 20,
-      px = 0,
-      py = 0,
       borderColor = Color.new(1, 1, 1, 1),
       text = "Save Game",
       callback = function()
@@ -95,8 +88,6 @@ function PauseMenu:toggle()
       parent = self.window,
       w = 80,
       h = 20,
-      px = 0,
-      py = 0,
       borderColor = Color.new(1, 1, 1, 1),
       text = "Load Game",
       callback = function()
@@ -108,8 +99,6 @@ function PauseMenu:toggle()
       parent = self.window,
       w = 80,
       h = 20,
-      px = 0,
-      py = 0,
       borderColor = Color.new(1, 1, 1, 1),
       text = "Main Menu",
       callback = function()
