@@ -9,6 +9,7 @@ local Color = FlexLove.Color
 ---@field window Window
 ---@field minimized boolean
 ---@field minimizeButton Button
+---@field mode string
 local BottomBar = {}
 BottomBar.__index = BottomBar
 local instance
@@ -18,6 +19,7 @@ function BottomBar.init()
     return instance
   end
   local self = setmetatable({}, BottomBar)
+  self.mode = "colonists"
 
   local w, h = love.window.getMode()
 
@@ -28,6 +30,9 @@ function BottomBar.init()
     w = w,
     h = h * 0.1,
     border = { top = true },
+    positioning = "flex",
+    alignContent = "center",
+    justifyContent = "flex-end",
     background = Color.new(0.2, 0.2, 0.2, 0.95),
   })
 
@@ -38,6 +43,7 @@ function BottomBar.init()
     px = 4,
     py = 4,
     text = "-",
+    positioning = "absolute",
     textColor = Color.new(1, 1, 1),
     borderColor = Color.new(1, 1, 1),
     callback = function()
@@ -46,18 +52,26 @@ function BottomBar.init()
   })
   local tabHeight = 20
   -- menu tab container
-  Gui.Window.new({
+  local menuTab = Gui.Window.new({
     parent = self.window,
-    y = h - tabHeight,
+    positioning = "flex",
+    y = h - tabHeight, -- Position at bottom
   })
-  --Gui.Button.new({})
+  Gui.Button.new({
+    parent = menuTab,
+    text = "Colonists",
+    textColor = Color.new(1, 1, 1, 1),
+    border = { top = true, right = true, bottom = true, left = true },
+    positioning = "flex", -- Set buttons to absolute positioning so they can be managed individually
+  })
 end
 
 function BottomBar:showColonists()
   local colonists = EntityManager:query(ComponentType.COLONIST_TAG)
   for _, colonist in pairs(colonists) do
-    EntityManager:getComponent(colonist, ComponentType.TEXTURE)
-    Gui.Button.new({ parent = self.window })
+    local texture = EntityManager:getComponent(colonist, ComponentType.TEXTURE)
+    local name = EntityManager:getComponent(colonist, ComponentType.NAME)
+    Gui.Button.new({ parent = self.window, text = name })
   end
 end
 
