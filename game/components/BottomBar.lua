@@ -55,7 +55,7 @@ function BottomBar.init()
   local menuTab = Gui.new({
     positioning = "flex",
     flexDirection = "horizontal",
-    y = h - tabHeight,
+    y = h * 0.1 - tabHeight,
     w = w,
   })
   Gui.new({
