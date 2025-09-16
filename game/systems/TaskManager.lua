@@ -26,6 +26,9 @@ function TaskManager:update(dt)
       if #tq.queue == 0 then
         ---idling, create task
         local eSchedule = EntityManager:getComponent(e, ComponentType.SCHEDULE)
+        if not eSchedule then
+          return
+        end
         eSchedule:selectNextTask(self.openTasks)
       end
     end

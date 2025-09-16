@@ -29,7 +29,7 @@ function PauseMenu:toggle()
   if self.visible then
     local w, h = love.window.getMode()
 
-    self.window = Gui.new({
+    self.window = Gui.Element.new({
       x = 0,
       y = 0,
       z = ZIndexing.PauseMenu,
@@ -45,7 +45,7 @@ function PauseMenu:toggle()
       gap = 10,
     })
 
-    Gui.new({
+    Gui.Element.new({
       parent = self.window,
       text = "Pause Menu",
       border = { top = true, right = true, bottom = true, left = true },
@@ -54,7 +54,7 @@ function PauseMenu:toggle()
       textSize = 40,
     })
     -- Add buttons
-    Gui.new({
+    Gui.Element.new({
       parent = self.window,
       x = 40,
       y = 40,
@@ -67,7 +67,7 @@ function PauseMenu:toggle()
         self:toggle()
       end,
     })
-    Gui.new({
+    Gui.Element.new({
       parent = self.window,
       w = 80,
       h = 20,
@@ -78,7 +78,7 @@ function PauseMenu:toggle()
         Logger:error("Settings screen not yet implemented")
       end,
     })
-    Gui.new({
+    Gui.Element.new({
       parent = self.window,
       w = 80,
       h = 20,
@@ -89,7 +89,7 @@ function PauseMenu:toggle()
         Logger:error("Save function not yet implemented")
       end,
     })
-    Gui.new({
+    Gui.Element.new({
       parent = self.window,
       w = 80,
       h = 20,

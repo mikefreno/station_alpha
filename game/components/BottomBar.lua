@@ -23,7 +23,7 @@ function BottomBar.init()
 
   local w, h = love.window.getMode()
 
-  self.window = Gui.new({
+  self.window = Gui.Element.new({
     x = 0,
     y = h * 0.9,
     z = ZIndexing.BottomBar,
@@ -99,4 +99,4 @@ function BottomBar:toggleWindow()
   self.minimized = not self.minimized
 end
 
-return BottomBar:init()
+return BottomBar.init()
