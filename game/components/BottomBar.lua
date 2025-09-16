@@ -40,10 +40,10 @@ function BottomBar.init()
     parent = self.window,
     x = 10,
     y = 10,
-    px = 4,
-    py = 4,
+    padding = { top = 4, right = 4, bottom = 4, left = 4 },
     text = "-",
     positioning = "absolute",
+    border = { top = true, right = true, bottom = true, left = true },
     textColor = Color.new(1, 1, 1),
     borderColor = Color.new(1, 1, 1),
     callback = function()
@@ -53,16 +53,22 @@ function BottomBar.init()
   local tabHeight = 20
   -- menu tab container
   local menuTab = Gui.new({
-    parent = self.window,
     positioning = "flex",
-    y = h - tabHeight, -- Position at bottom
+    flexDirection = "horizontal",
+    y = h - tabHeight,
+    w = w,
   })
   Gui.new({
     parent = menuTab,
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
     border = { top = true, right = true, bottom = true, left = true },
-    positioning = "flex", -- Set buttons to absolute positioning so they can be managed individually
+  })
+  Gui.new({
+    parent = menuTab,
+    text = "Schedule",
+    textColor = Color.new(1, 1, 1, 1),
+    border = { top = true, right = true, bottom = true, left = true },
   })
 end
 

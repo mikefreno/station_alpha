@@ -29,7 +29,7 @@ function PauseMenu:toggle()
   if self.visible then
     local w, h = love.window.getMode()
 
-    self.window = Gui.Element.new({
+    self.window = Gui.new({
       x = 0,
       y = 0,
       z = ZIndexing.PauseMenu,
@@ -45,7 +45,7 @@ function PauseMenu:toggle()
       gap = 10,
     })
 
-    Gui.Element.new({
+    Gui.new({
       parent = self.window,
       text = "Pause Menu",
       border = { top = true, right = true, bottom = true, left = true },
@@ -53,12 +53,12 @@ function PauseMenu:toggle()
       textAlign = TextAlign.CENTER,
       textSize = 40,
     })
-    -- Add buttons
-    Gui.Element.new({
+    Gui.new({
       parent = self.window,
       x = 40,
       y = 40,
-      padding = { left = 12, right = 0 },
+      padding = { horizontal = 8 },
+      border = { top = true, right = true, bottom = true, left = true },
       borderColor = Color.new(1, 1, 1, 1),
       positioning = Positioning.ABSOLUTE,
       text = "X",
@@ -67,21 +67,25 @@ function PauseMenu:toggle()
         self:toggle()
       end,
     })
-    Gui.Element.new({
+    Gui.new({
       parent = self.window,
       w = 80,
       h = 20,
       borderColor = Color.new(1, 1, 1, 1),
+      border = { top = true, right = true, bottom = true, left = true },
       text = "Settings",
+      textAlign = "center",
       callback = function()
         -- TODO: implement Settings screen function
         Logger:error("Settings screen not yet implemented")
       end,
     })
-    Gui.Element.new({
+    Gui.new({
       parent = self.window,
       w = 80,
       h = 20,
+      textAlign = "center",
+      border = { top = true, right = true, bottom = true, left = true },
       borderColor = Color.new(1, 1, 1, 1),
       text = "Save Game",
       callback = function()
@@ -89,12 +93,14 @@ function PauseMenu:toggle()
         Logger:error("Save function not yet implemented")
       end,
     })
-    Gui.Element.new({
+    Gui.new({
       parent = self.window,
       w = 80,
       h = 20,
+      border = { top = true, right = true, bottom = true, left = true },
       borderColor = Color.new(1, 1, 1, 1),
       text = "Load Game",
+      textAlign = "center",
       callback = function()
         -- TODO: implement loading function
         Logger:error("Loading function not yet implemented")
@@ -106,6 +112,8 @@ function PauseMenu:toggle()
       h = 20,
       borderColor = Color.new(1, 1, 1, 1),
       text = "Main Menu",
+      textAlign = "center",
+      border = { top = true, right = true, bottom = true, left = true },
       callback = function()
         -- TODO: implement main menu function
         Logger:error("Main menu not yet implemented")
