@@ -15,7 +15,7 @@ local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems =
 ---@field gridPosition Vec2?
 ---@field contents {}
 ---@field hovered boolean
----@field window Window?
+---@field window Element?
 local RightClickMenu = {}
 RightClickMenu.__index = RightClickMenu
 
@@ -44,13 +44,12 @@ function RightClickMenu:updatePosition(x, y)
 end
 
 function RightClickMenu:set()
-  self.window = Gui.Window.new({
+  self.window = Gui.new({
     x = self.worldPosition.x,
     y = self.worldPosition.y,
     z = ZIndexing.RightClickMenu,
     border = { top = true, right = true, bottom = true, left = true },
     background = Color.new(0.6, 0.6, 0.8, 1),
-    initVisible = true,
     textColor = Color.new(1, 1, 1, 1),
     positioning = Positioning.FLEX,
     flexDirection = FlexDirection.VERTICAL,
@@ -111,7 +110,7 @@ function RightClickMenu:addMoveTo(entity)
     ButtonPressed = false
   end
 
-  Gui.Button.new({
+  Gui.new({
     parent = self.window,
     background = Color.new(0.2, 0.7, 0.7, 0.9),
     px = 4,
