@@ -5,7 +5,7 @@ Logger = require("logger")
 local Vec2 = require("utils.Vec2")
 local PathFinder = require("systems.PathFinder")
 local MapManager = require("systems.MapManager")
-local EntityManager = require("systems.EntityManager")
+EntityManager = require("systems.EntityManager")
 local constants = require("utils.constants")
 
 local function createMockMapManager(width, height)
