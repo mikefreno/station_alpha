@@ -8,7 +8,7 @@ local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems, Text
 
 ---@class PauseMenu
 ---@field visible boolean
----@field window Window
+---@field window Element
 local PauseMenu = {}
 PauseMenu.__index = PauseMenu
 
@@ -28,7 +28,8 @@ function PauseMenu:toggle()
   self.visible = not self.visible
   if self.visible then
     local w, h = love.window.getMode()
-    self.window = Gui.Window.new({
+
+    self.window = Gui.new({
       x = 0,
       y = 0,
       z = ZIndexing.PauseMenu,
@@ -43,7 +44,8 @@ function PauseMenu:toggle()
       alignItems = AlignContent.CENTER,
       gap = 10,
     })
-    Gui.Window.new({
+
+    Gui.new({
       parent = self.window,
       text = "Pause Menu",
       border = { top = true, right = true, bottom = true, left = true },
@@ -52,7 +54,7 @@ function PauseMenu:toggle()
       textSize = 40,
     })
     -- Add buttons
-    Gui.Button.new({
+    Gui.new({
       parent = self.window,
       x = 40,
       y = 40,
@@ -65,7 +67,7 @@ function PauseMenu:toggle()
         self:toggle()
       end,
     })
-    Gui.Button.new({
+    Gui.new({
       parent = self.window,
       w = 80,
       h = 20,
@@ -76,7 +78,7 @@ function PauseMenu:toggle()
         Logger:error("Settings screen not yet implemented")
       end,
     })
-    Gui.Button.new({
+    Gui.new({
       parent = self.window,
       w = 80,
       h = 20,
@@ -87,7 +89,7 @@ function PauseMenu:toggle()
         Logger:error("Save function not yet implemented")
       end,
     })
-    Gui.Button.new({
+    Gui.new({
       parent = self.window,
       w = 80,
       h = 20,
@@ -98,7 +100,7 @@ function PauseMenu:toggle()
         Logger:error("Loading function not yet implemented")
       end,
     })
-    Gui.Button.new({
+    Gui.new({
       parent = self.window,
       w = 80,
       h = 20,
