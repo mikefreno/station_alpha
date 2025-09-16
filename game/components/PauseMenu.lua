@@ -46,6 +46,8 @@ function PauseMenu:toggle()
     Gui.Window.new({
       parent = self.window,
       text = "Pause Menu",
+      border = { top = true, right = true, bottom = true, left = true },
+      borderColor = Color.new(1, 1, 1, 1),
       textAlign = TextAlign.CENTER,
       textSize = 40,
     })
@@ -54,7 +56,7 @@ function PauseMenu:toggle()
       parent = self.window,
       x = 40,
       y = 40,
-      px = 12,
+      padding = { left = 12, right = 0 },
       borderColor = Color.new(1, 1, 1, 1),
       positioning = Positioning.ABSOLUTE,
       text = "X",

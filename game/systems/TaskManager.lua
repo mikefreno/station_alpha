@@ -5,6 +5,7 @@ local Vec2 = require("game.utils.Vec2")
 ---this class servers to choose what the next task should be for its attached
 ---entity
 ---@class TaskManager
+---@field openTasks table<TaskType, table>
 local TaskManager = {}
 TaskManager.__index = TaskManager
 
@@ -12,6 +13,7 @@ TaskManager.__index = TaskManager
 ---@return TaskManager
 function TaskManager.new()
   local self = setmetatable({}, TaskManager)
+  self.openTasks = {}
   return self
 end
 
@@ -23,14 +25,21 @@ function TaskManager:update(dt)
       tq:update(dt)
       if #tq.queue == 0 then
         ---idling, create task
-        EntityManager:getComponent(e, ComponentType.SCHEDULE)
+        local eSchedule = EntityManager:getComponent(e, ComponentType.SCHEDULE)
+        eSchedule:selectNextTask(self.openTasks)
       end
     end
   end
 end
 
+---@param taskType TaskType
+---@param task any
+function TaskManager:addTask(taskType, task)
+  table.insert(self.openTasks[taskType], task)
+end
+
 ---@param entity integer
----@param path table<integer, {type:TaskType, data:Vec2}>
+---@param path table<integer, {type:ActionType, data:Vec2}>
 function TaskManager:newPath(entity, path)
   if path and #path > 0 then
     local taskQueue = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)

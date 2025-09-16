@@ -17,8 +17,8 @@ enums.ComponentType = {
   COLONIST_TAG = 13,
 }
 
---- @enum TaskType
-enums.TaskType = {
+--- @enum ActionType
+enums.ActionType = {
   MOVETO = 1,
   WORK = 2,
 }
@@ -41,6 +41,21 @@ enums.ZIndexing = {
   BottomBar = 0,
   RightClickMenu = 1,
   PauseMenu = 2,
+}
+
+--- @enum TaskType
+enums.TaskType = {
+  MINE = 1,
+  CONSTRUCT = 2,
+  OPERATE = 3,
+  CROP_TEND = 4,
+  ANIMAL_TEND = 5,
+  DOCTOR = 6,
+  FIREFIGHT = 7,
+  COMBAT = 8,
+  GUARD = 9,
+  RESEARCH = 10,
+  CLEAN = 11,
 }
 
 return enums
