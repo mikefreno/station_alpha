@@ -23,7 +23,8 @@ function BottomBar.init()
 
   local w, h = love.window.getMode()
 
-  self.window = Gui.Element.new({
+  -- Create the main window with flex layout
+  self.window = Gui.new({
     x = 0,
     y = h * 0.9,
     z = ZIndexing.BottomBar,
@@ -33,12 +34,16 @@ function BottomBar.init()
     background = Color.new(0.2, 0.2, 0.2, 0.95),
   })
 
+  -- Create minimize button (absolute positioning)
   self.minimizeButton = Gui.new({
     parent = self.window,
-    x = self.window.x + 10,
-    y = self.window.y + 10,
+    x = 10,
+    y = 10,
+    w = 20,
+    h = 20,
     padding = { top = 4, right = 4, bottom = 4, left = 4 },
     text = "-",
+    textAlign = "center",
     positioning = "absolute",
     border = { top = true, right = true, bottom = true, left = true },
     textColor = Color.new(1, 1, 1),
@@ -47,34 +52,65 @@ function BottomBar.init()
       self:toggleWindow()
     end,
   })
+
+  -- Create a flex container for the menu tabs
   local tabHeight = 20
-  -- menu tab container
   local menuTab = Gui.new({
     parent = self.window,
+    y = h * 0.1 - tabHeight,
+    h = tabHeight,
+    w = w,
+    border = { top = true, right = true, bottom = true, left = true },
+    borderColor = Color.new(1, 1, 1, 1),
     positioning = "flex",
     flexDirection = "horizontal",
-    y = self.window.y - tabHeight,
+    alignSelf = "center",
+    justifyContent = "center",
+    callback = function(ele)
+      Logger:debug(ele.y .. " of " .. h)
+    end,
   })
+
   Gui.new({
     parent = menuTab,
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
     border = { top = true, right = true, bottom = true, left = true },
   })
+
   Gui.new({
     parent = menuTab,
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),
     border = { top = true, right = true, bottom = true, left = true },
   })
+
+  return self
 end
 
 function BottomBar:showColonists()
   local colonists = EntityManager:query(ComponentType.COLONIST_TAG)
+  -- Create a container for colonists with flex layout
+  local colonistContainer = Gui.new({
+    parent = self.window,
+    positioning = "flex",
+    flexDirection = "horizontal",
+    justifyContent = "center",
+    alignItems = "center",
+    gap = 10,
+    w = self.window.width,
+    h = self.window.height * 0.8, -- Leave room for other UI elements
+  })
+
   for _, colonist in pairs(colonists) do
-    local texture = EntityManager:getComponent(colonist, ComponentType.TEXTURE)
     local name = EntityManager:getComponent(colonist, ComponentType.NAME)
-    Gui.new({ parent = self.window, text = name })
+    Gui.new({
+      parent = colonistContainer,
+      text = name,
+      padding = { top = 4, right = 8, bottom = 4, left = 8 },
+      border = { top = true, right = true, bottom = true, left = true },
+      textColor = Color.new(1, 1, 1, 1),
+    })
   end
 end
 
@@ -91,13 +127,13 @@ function BottomBar:toggleWindow()
     self.window.width = w
     self.window.y = h * 0.9
     self.minimizeButton.y = self.window.y + 10
-    self.minimizeButton:updateText("-", true)
+    self.minimizeButton.text = "-"
   else
     self.window.height = 0
     self.window.width = 0
     self.window.y = h
     self.minimizeButton.y = self.window.y - 40
-    self.minimizeButton:updateText("+", true)
+    self.minimizeButton.text = "+"
   end
   self.minimized = not self.minimized
 end
