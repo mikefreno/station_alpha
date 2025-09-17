@@ -50,31 +50,27 @@ function BottomBar.init()
       self:toggleWindow()
     end,
   })
-local tabHeight = 20
-   -- menu tab container
-   local menuTab = Gui.new({
-     parent = self.window,
-     positioning = "flex",
-     flexDirection = "horizontal",
-     justifyContent = "flex-start",
-     alignItems = "center",
-     w = w,
-     h = tabHeight,
-   })
-Gui.new({
-     parent = menuTab,
-     text = "Colonists",
-     textColor = Color.new(1, 1, 1, 1),
-     border = { top = true, right = true, bottom = true, left = true },
-     width = 80,
-   })
-   Gui.new({
-     parent = menuTab,
-     text = "Schedule",
-     textColor = Color.new(1, 1, 1, 1),
-     border = { top = true, right = true, bottom = true, left = true },
-     width = 80,
-   })
+  local tabHeight = 20
+  -- menu tab container
+  local menuTab = Gui.new({
+    parent = self.window,
+    positioning = "absolute",
+    y = h * 0.1 - tabHeight,
+  })
+  Gui.new({
+    parent = menuTab,
+    text = "Colonists",
+    textColor = Color.new(1, 1, 1, 1),
+    border = { top = true, right = true, bottom = true, left = true },
+    w = 80,
+  })
+  Gui.new({
+    parent = menuTab,
+    text = "Schedule",
+    textColor = Color.new(1, 1, 1, 1),
+    border = { top = true, right = true, bottom = true, left = true },
+    w = 80,
+  })
 end
 
 function BottomBar:showColonists()
