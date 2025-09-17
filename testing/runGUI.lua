@@ -4,13 +4,13 @@ local luaunit = require("testing.luaunit")
 
 -- Run only GUI tests in the flexlove directory
 local testFiles = {
-  "testing/__tests__/flexlove/absolute-positioning.lua",
-  "testing/__tests__/flexlove/align-items-tests.lua",
-  "testing/__tests__/flexlove/align-self-tests.lua",
-  "testing/__tests__/flexlove/flex-container-tests.lua",
-  "testing/__tests__/flexlove/flex-direction-tests.lua",
-  "testing/__tests__/flexlove/justify-content-tests.lua",
-  "testing/__tests__/flexlove/nested-layout-tests.lua",
+  "game/libs/testing/absolute-positioning.lua",
+  "game/libs/testing/align-items-tests.lua",
+  "game/libs/testing/align-self-tests.lua",
+  "game/libs/testing/flex-container-tests.lua",
+  "game/libs/testing/flex-direction-tests.lua",
+  "game/libs/testing/justify-content-tests.lua",
+  "game/libs/testing/nested-layout-tests.lua",
 }
 
 -- Run all tests, but don't exit on error
