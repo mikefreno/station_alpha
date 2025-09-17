@@ -30,16 +30,13 @@ function BottomBar.init()
     w = w,
     h = h * 0.1,
     border = { top = true },
-    positioning = "flex",
-    alignContent = "center",
-    justifyContent = "flex-end",
     background = Color.new(0.2, 0.2, 0.2, 0.95),
   })
 
   self.minimizeButton = Gui.new({
     parent = self.window,
-    x = 10,
-    y = 10,
+    x = self.window.x + 10,
+    y = self.window.y + 10,
     padding = { top = 4, right = 4, bottom = 4, left = 4 },
     text = "-",
     positioning = "absolute",
@@ -54,22 +51,21 @@ function BottomBar.init()
   -- menu tab container
   local menuTab = Gui.new({
     parent = self.window,
-    positioning = "absolute",
-    y = h * 0.1 - tabHeight,
+    positioning = "flex",
+    flexDirection = "horizontal",
+    y = self.window.y - tabHeight,
   })
   Gui.new({
     parent = menuTab,
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
     border = { top = true, right = true, bottom = true, left = true },
-    w = 80,
   })
   Gui.new({
     parent = menuTab,
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),
     border = { top = true, right = true, bottom = true, left = true },
-    w = 80,
   })
 end
 
@@ -94,13 +90,13 @@ function BottomBar:toggleWindow()
     self.window.height = h * 0.1
     self.window.width = w
     self.window.y = h * 0.9
-    self.minimizeButton.y = 10
+    self.minimizeButton.y = self.window.y + 10
     self.minimizeButton:updateText("-", true)
   else
     self.window.height = 0
     self.window.width = 0
     self.window.y = h
-    self.minimizeButton.y = -40
+    self.minimizeButton.y = self.window.y - 40
     self.minimizeButton:updateText("+", true)
   end
   self.minimized = not self.minimized

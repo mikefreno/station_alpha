@@ -60,6 +60,7 @@ function TestPathFinder:testSingleStepPath()
     Vec2.new(2 * constants.pixelSize, 1 * constants.pixelSize),
   }
 
+  luaunit.assertNotEquals(path, nil, "Expected a path")
   luaunit.assertEquals(#path, #expectedPath, "Path length does not match for single step")
   for i, v in ipairs(path) do
     luaunit.assertEquals(v.x, expectedPath[i].x, "X position does not match at index " .. i)

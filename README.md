@@ -9,6 +9,7 @@ A tile-based colony strategy game built with Lua and LÖVE 2D. Currently in the 
 build/
 game/
 ├── components/        # Game entities and their properties
+│   ├── BottomBar.lua
 │   ├── Camera.lua
 │   ├── LoadingIndicator.lua
 │   ├── MoveTo.lua
@@ -20,10 +21,13 @@ game/
 │   ├── Texture.lua
 │   ├── Tile.lua
 │   └── Topography.lua
-├── libs/              # 'Third' party libraries 
+├── libs/              # Third-party libraries 
+│   ├── examples/      # contains example usage of FlexLove
+│   ├── testing/       # contains test files specifically for FlexLove
 │   ├── Cartographer.lua
-│   ├── MyGUI.lua      # A UI Lib I am developing
-│   └── OverlayStats.lua
+│   ├── FlexLove.lua   # A UI Lib I am developing
+│   ├── OverlayStats.lua   # A UI Lib I am developing
+│   └── LICENSE
 ├── runtime/           # Native libraries for HTTPS support
 ├── systems/           # Game logic and systems
 │   ├── EntityManager.lua
@@ -39,17 +43,17 @@ game/
 │   ├── constants.lua
 │   ├── enums.lua
 │   └── helperFunctions.lua
-├── runtime/           # Runtime libraries
-│   └── https/
 ├── main.lua           # LÖVE entrypoint 
 ├── conf.lua           # LÖVE configuration
 └── logger.lua         # Logging system
 resources/
 testing/
 ├── __tests__/         # Tests for various components or systems
-│   ├── mygui.lua
-│   └── pathfiner.lua
-└── luaunit.lua        # Testing lib
+│   └── pathfinder.lua
+├── love_helper.lua    # Stub file containing love functions to not need entire love runtime
+├── luaunit.lua        # Testing lib
+├── runAll.lua         # Runs all tests
+└── runGUI.lua         # Runs all GUI related tests
 tools/                 # Tools for building, installing dependencies, et
 ├── build-love.sh
 ├── build.sh
@@ -58,6 +62,7 @@ tools/                 # Tools for building, installing dependencies, et
 └── test-html.sh
 .editorconfig
 .gitignore
+.gitmodules
 .luarc.json
 .stylua.toml
 AGENTS.md

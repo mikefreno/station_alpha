@@ -21,4 +21,5 @@
 - All game related files are within the game directory
 - The GUI Library 'FlexLove' is fine to edit
 - game/libs is a git submodule
+- When writing tests that depend upon `love` import the stub file: testing/love_helper.lua, expand it if necessary.
 - You can check the README.md for more information
