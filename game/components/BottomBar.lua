@@ -36,9 +36,8 @@ function BottomBar.init()
 
   -- Create minimize button (absolute positioning)
   self.minimizeButton = Gui.new({
-    parent = self.window,
-    x = 10,
-    y = 10,
+    x = self.window.x + 10,
+    y = self.window.y + 10,
     w = 20,
     h = 20,
     padding = { top = 4, right = 4, bottom = 4, left = 4 },
@@ -67,7 +66,7 @@ function BottomBar.init()
     alignSelf = "center",
     justifyContent = "center",
     callback = function(ele)
-      Logger:debug(ele.y .. " of " .. h)
+      Logger:debug("menuTab: " .. ele.y .. " of " .. h)
     end,
   })
 
@@ -76,6 +75,9 @@ function BottomBar.init()
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
     border = { top = true, right = true, bottom = true, left = true },
+    callback = function(ele)
+      Logger:debug("Colonists button: " .. ele.y .. " of " .. h)
+    end,
   })
 
   Gui.new({
@@ -83,6 +85,9 @@ function BottomBar.init()
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),
     border = { top = true, right = true, bottom = true, left = true },
+    callback = function(ele)
+      Logger:debug("Schedule button: " .. ele.y .. " of " .. h)
+    end,
   })
 
   return self
@@ -123,16 +128,10 @@ function BottomBar:showAdditionSelectedDetails() end
 function BottomBar:toggleWindow()
   local w, h = love.window.getMode()
   if self.minimized then
-    self.window.height = h * 0.1
-    self.window.width = w
-    self.window.y = h * 0.9
-    self.minimizeButton.y = self.window.y + 10
+    self.window:updateOpacity(1)
     self.minimizeButton.text = "-"
   else
-    self.window.height = 0
-    self.window.width = 0
-    self.window.y = h
-    self.minimizeButton.y = self.window.y - 40
+    self.window:updateOpacity(0)
     self.minimizeButton.text = "+"
   end
   self.minimized = not self.minimized
