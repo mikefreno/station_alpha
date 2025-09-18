@@ -205,7 +205,7 @@ function PathFinder:findPath(startWorldPos, endWorldPos)
       local n = current
       while n do
         if not isStart(n) then
-          table.insert(path, 1, { type = ActionType.MOVETO, data = n.position })
+          table.insert(path, 1, n.position)
         end
         n = n.parent
       end

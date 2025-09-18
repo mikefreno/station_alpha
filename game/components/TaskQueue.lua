@@ -6,7 +6,7 @@ local TaskType = enums.TaskType
 
 ---@class TaskQueue
 ---@field ownerId integer
----@field queue table<integer, {type: TaskType, data: any}>
+---@field queue table<integer, Task>
 ---@field currentTask MoveTo?
 local TaskQueue = {}
 
@@ -58,8 +58,8 @@ function TaskQueue:update(dt)
   if nextTask.type == TaskType.MOVETO then
     self.currentTask = MoveTo.new(nextTask.data)
     EntityManager:addComponent(self.ownerId, ComponentType.MOVETO, self.currentTask)
-  elseif nextTask.type == TaskType.WORK then
-    -- handle other task types
+  else
+    -- First detect if we are at the target entity
   end
 end
 

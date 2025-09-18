@@ -15,12 +15,7 @@ enums.ComponentType = {
   SELECTED = 11,
   NAME = 12,
   COLONIST_TAG = 13,
-}
-
---- @enum ActionType
-enums.ActionType = {
-  MOVETO = 1,
-  WORK = 2,
+  HEALTH = 14,
 }
 
 --- @enum ShapeType
@@ -45,17 +40,21 @@ enums.ZIndexing = {
 
 --- @enum TaskType
 enums.TaskType = {
+  MOVETO = 0, -- this isn't assignable by the player, it is used before almost every other task
+  --- these tasks will have a target 'health' and have similar processing
   MINE = 1,
   CONSTRUCT = 2,
   OPERATE = 3,
-  CROP_TEND = 4,
-  ANIMAL_TEND = 5,
-  DOCTOR = 6,
-  FIREFIGHT = 7,
-  COMBAT = 8,
-  GUARD = 9,
-  RESEARCH = 10,
-  CLEAN = 11,
+  FIREFIGHT = 4,
+  COMBAT = 5,
+  HUNT = 6,
+  CLEAN = 7,
+  RESEARCH = 8,
+  --- these tasks have special handling
+  CROP_TEND = 9,
+  ANIMAL_TEND = 10,
+  DOCTOR = 11,
+  GUARD = 12,
 }
 
 return enums

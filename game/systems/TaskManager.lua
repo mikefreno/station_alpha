@@ -1,4 +1,5 @@
 local enum = require("game.utils.enums")
+local Task = require("game.components.Task")
 local ComponentType = enum.ComponentType
 local TaskType = enum.TaskType
 local Vec2 = require("game.utils.Vec2")
@@ -41,15 +42,16 @@ function TaskManager:addTask(taskType, task)
   table.insert(self.openTasks[taskType], task)
 end
 
+---helper function to add a full path in sequence to the queue
 ---@param entity integer
----@param path table<integer, {type:ActionType, data:Vec2}>
+---@param path table<integer, Vec2>
 function TaskManager:newPath(entity, path)
   if path and #path > 0 then
     local taskQueue = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
     if taskQueue then
       taskQueue:reset()
       for _, wp in ipairs(path) do
-        taskQueue:push(wp)
+        taskQueue:push(Task.new(TaskType.MOVETO, wp))
       end
     end
   end

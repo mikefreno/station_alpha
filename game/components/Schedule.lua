@@ -28,7 +28,10 @@ function Schedule:adjustScheduleWeight(taskType, newWeight)
   self.taskTable[TaskType] = newWeight
 end
 
----@param openTasks table
-function Schedule:selectNextTask(openTasks) end
+---@param openTasks table<integer, Task>
+function Schedule:selectNextTask(openTasks)
+  for i, task in ipairs(openTasks) do
+  end
+end
 
 return Schedule
