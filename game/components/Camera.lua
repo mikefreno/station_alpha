@@ -1,6 +1,7 @@
 local constants = require("game.utils.constants")
 local Vec2 = require("game.utils.Vec2")
 local PauseMenu = require("game.components.PauseMenu")
+local BottomBar = require("game.components.BottomBar")
 
 local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 
@@ -10,8 +11,11 @@ local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 ---@field zoom number     -- Scale factor (pure number)
 ---@field zoomRate number -- Speed of zooming (relative change per wheel tick)
 ---@field panningBorder number -- How close to the edge panning starts (0=disabled)
+---@field panningZoneBuffer number -- How long before panning starts (0=start immediately)
 local Camera = {}
 Camera.__index = Camera
+
+local defaultPanningZoneBuffer = 0.5
 
 --- Constructor
 function Camera.new()
@@ -23,6 +27,9 @@ function Camera.new()
   self.zoom = 1
   self.zoomRate = 0.15 -- a bit higher so you see the effect
   self.panningBorder = 0.10
+  self.panningZoneBuffer = defaultPanningZoneBuffer
+  --TODO: Want to add reverse movement cancelling padding
+  --self.prevMousePosition
 
   return self
 end
@@ -65,8 +72,7 @@ function Camera:update(dt)
   end
   local speed = self.baseSpeed / self.zoom * dt
 
-  ---panning---
-  --keyboard
+  -- keyboard
   if love.keyboard.isDown("w") then
     self:move(0, -speed)
   end
@@ -79,10 +85,12 @@ function Camera:update(dt)
   if love.keyboard.isDown("d") then
     self:move(speed, 0)
   end
-  --mouse position
+
+  -- mouse position
   local function speedClamp(x, min, max)
     return math.max(min, math.min(x, max))
   end
+
   local function speedFactor(pos, border)
     local dist
     if pos < border then
@@ -90,27 +98,59 @@ function Camera:update(dt)
     elseif pos > 1 - border then
       dist = pos - (1 - border)
     else
-      dist = border
+      dist = 0
     end
-    local t = (dist / border)
-    local factor = 0.25 + t * t * (3 - 2 * t)
-
+    local t = dist / border
+    local factor = 0.25 + t * (3 - 2 * t) -- Fixed: was "_t_" instead of "*"
     return speedClamp(factor, 0.5, 2)
   end
 
   local mx, my = love.mouse.getPosition()
   local width, height = love.window.getMode()
+  local bottomBarHeight = BottomBar.window.height
+  local offsetHeight = height - bottomBarHeight
 
-  if my / height < self.panningBorder then
-    self:move(0, -speed * speedFactor(my / height, self.panningBorder))
-  elseif my / height > 1 - self.panningBorder then
-    self:move(0, speed * speedFactor(my / height, self.panningBorder))
+  -- Check if mouse is over bottom bar
+  if my > offsetHeight then
+    return
   end
 
-  if mx / width < self.panningBorder then
+  local notOverVerticalPad = false
+
+  if my / height < self.panningBorder then
+    if self.panningZoneBuffer - dt > 0 then
+      self.panningZoneBuffer = self.panningZoneBuffer - dt
+      return
+    end
+    self:move(0, -speed * speedFactor(my / height, self.panningBorder))
+  elseif my > (1 - self.panningBorder) * offsetHeight then
+    if self.panningZoneBuffer - dt > 0 then
+      self.panningZoneBuffer = self.panningZoneBuffer - dt
+      return
+    end
+    self:move(0, speed * speedFactor(my / offsetHeight, self.panningBorder))
+  else
+    notOverVerticalPad = true
+  end
+
+  -- Horizontal panning
+  if mx < self.panningBorder * width then
+    if self.panningZoneBuffer - dt > 0 then
+      self.panningZoneBuffer = self.panningZoneBuffer - dt
+      return
+    end
     self:move(-speed * speedFactor(mx / width, self.panningBorder), 0)
-  elseif mx / width > 1 - self.panningBorder then
+  elseif mx > (1 - self.panningBorder) * width then
+    if self.panningZoneBuffer - dt > 0 then
+      self.panningZoneBuffer = self.panningZoneBuffer - dt
+      return
+    end
     self:move(speed * speedFactor(mx / width, self.panningBorder), 0)
+  else
+    if notOverVerticalPad then
+      --reset timer
+      self.panningZoneBuffer = defaultPanningZoneBuffer
+    end
   end
 end
 

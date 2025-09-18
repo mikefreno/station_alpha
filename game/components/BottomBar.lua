@@ -31,7 +31,7 @@ function BottomBar.init()
     w = w,
     h = h * 0.1,
     border = { top = true },
-    background = Color.new(0.2, 0.2, 0.2, 0.95),
+    background = Color.new(0.2, 0.2, 0.2, 1.0),
   })
 
   -- Create minimize button (absolute positioning)
@@ -54,27 +54,27 @@ function BottomBar.init()
 
   -- Create a flex container for the menu tabs
   local tabHeight = 20
+  local tabWidth = 80
   local menuTab = Gui.new({
     parent = self.window,
     y = h * 0.1 - tabHeight,
     h = tabHeight,
     w = w,
-    border = { top = true, right = true, bottom = true, left = true },
-    borderColor = Color.new(1, 1, 1, 1),
     positioning = "flex",
     flexDirection = "horizontal",
     alignSelf = "center",
     justifyContent = "center",
-    callback = function(ele)
-      Logger:debug("menuTab: " .. ele.y .. " of " .. h)
-    end,
   })
 
   Gui.new({
     parent = menuTab,
+    h = tabHeight,
+    w = tabWidth,
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
+    textAlign = "center",
     border = { top = true, right = true, bottom = true, left = true },
+    borderColor = Color.new(1, 1, 1, 1),
     callback = function(ele)
       Logger:debug("Colonists button: " .. ele.y .. " of " .. h)
     end,
@@ -82,9 +82,13 @@ function BottomBar.init()
 
   Gui.new({
     parent = menuTab,
+    h = tabHeight,
+    w = tabWidth,
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),
+    textAlign = "center",
     border = { top = true, right = true, bottom = true, left = true },
+    borderColor = Color.new(1, 1, 1, 1),
     callback = function(ele)
       Logger:debug("Schedule button: " .. ele.y .. " of " .. h)
     end,
