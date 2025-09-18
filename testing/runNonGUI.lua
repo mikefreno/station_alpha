@@ -5,13 +5,6 @@ local luaunit = require("testing.luaunit")
 -- Run all tests in the __tests__ directory
 local testFiles = {
   "testing/__tests__/pathfinder.lua",
-  ---Gui tests are in this dir for submodule
-  "game/libs/testing/absolute-positioning.lua",
-  "game/libs/testing/branching-layout-tests.lua",
-  "game/libs/testing/complex-nested-layouts.lua",
-  "game/libs/testing/depth-layout-tests.lua",
-  "game/libs/testing/flex-direction-tests.lua",
-  "game/libs/testing/justify-content-tests.lua",
 }
 
 -- Run all tests, but don't exit on error
