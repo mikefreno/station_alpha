@@ -6,7 +6,7 @@ local Vec2 = require("game.utils.Vec2")
 ---this class servers to choose what the next task should be for its attached
 ---entity
 ---@class TaskManager
----@field openTasks table<TaskType, table>
+---@field openTasks table<TaskType, table<integer, Task>>
 local TaskManager = {}
 TaskManager.__index = TaskManager
 
@@ -30,7 +30,12 @@ function TaskManager:update(dt)
         if not eSchedule then
           return
         end
-        eSchedule:selectNextTask(self.openTasks)
+        local selectedTask = eSchedule:selectNextTask(self.openTasks)
+        if selectedTask then
+          tq:push(selectedTask)
+        else
+          --- start wander
+        end
       end
     end
   end
