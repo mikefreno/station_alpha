@@ -14,3 +14,5 @@ function MoveTo.new(target)
   self.target = target
   return self
 end
+
+return MoveTo
