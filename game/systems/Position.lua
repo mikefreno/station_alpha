@@ -1,6 +1,7 @@
 local ComponentType = require("game.utils.enums").ComponentType
 local Vec2 = require("game.utils.Vec2")
 local constants = require("game.utils.constants")
+local TICKSPEED = constants.TICKSPEED
 
 local PositionSystem = {}
 PositionSystem.__index = PositionSystem
@@ -18,7 +19,7 @@ function PositionSystem:update(dt)
     local moveto = EntityManager:getComponent(e, ComponentType.MOVETO)
 
     if moveto then
-      local dirToTarget = moveto.target:sub(p)
+      local dirToTarget = moveto:sub(p)
       local remainingDist = dirToTarget:length()
 
       if remainingDist < 1e-6 then
@@ -37,7 +38,7 @@ function PositionSystem:update(dt)
         return
       end
       local topography = EntityManager:getComponent(currentTileEntity, ComponentType.TOPOGRAPHY)
-      local newVel = moveto.target:sub(p):normalize():mul(topography.speedMultiplier * speedStat)
+      local newVel = moveto.target:sub(p):normalize():mul(topography.speedMultiplier * speedStat / TICKSPEED)
       local step = newVel:mul(dt)
 
       if step:length() >= remainingDist then

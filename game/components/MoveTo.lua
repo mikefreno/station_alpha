@@ -14,17 +14,3 @@ function MoveTo.new(target)
   self.target = target
   return self
 end
-
----@param id integer
----@param cleanupFunc function
-function MoveTo:update(id, cleanupFunc)
-  local pos = EntityManager:getComponent(id, ComponentType.POSITION)
-  local distToTarget = self.target:sub(pos):length()
-  if distToTarget <= 1e-2 then
-    cleanupFunc()
-    return true
-  end
-  return false
-end
-
-return MoveTo

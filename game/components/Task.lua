@@ -1,10 +1,15 @@
 local enums = require("game.utils.enums")
+local constants = require("game.utils.constants")
 local ComponentType = enums.ComponentType
 local TaskType = enums.TaskType
+local TICKSPEED = constants.TICKSPEED
+
 ---@class Task
 ---@field type TaskType
 ---@field target integer|Vec2 -- Entity ID or position(Vec2)
 ---@field performer integer -- Entity ID
+---@field isComplete boolean
+---@field timer number
 local Task = {}
 Task.__index = Task
 
@@ -15,6 +20,8 @@ function Task.new(type, target)
   local self = setmetatable({}, Task)
   self.type = type
   self.target = target
+  self.isComplete = false
+  self.timer = 0
   return self
 end
 
@@ -23,7 +30,7 @@ function Task:assignColonist(colonistEntityId)
   self.performer = colonistEntityId
 end
 
-function Task:perform()
+function Task:perform(dt)
   local targetPos
   if type(self.target) == "integer" then
     --- self.target will only ever be an integer here.

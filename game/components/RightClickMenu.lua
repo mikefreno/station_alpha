@@ -4,6 +4,7 @@ local constants = require("game.utils.constants")
 local ComponentType = require("game.utils.enums").ComponentType
 local ZIndexing = require("game.utils.enums").ZIndexing
 local FlexLove = require("game.libs.FlexLove")
+local Task = require("game.components.Task")
 local Gui = FlexLove.GUI
 local Color = FlexLove.Color
 local enums = FlexLove.enums
@@ -100,13 +101,10 @@ end
 
 ---@param entity integer
 function RightClickMenu:addMoveTo(entity)
-  local entityPos = EntityManager:getComponent(entity, ComponentType.POSITION)
   local function GoTo()
-    local entityShape = EntityManager:getComponent(entity, ComponentType.SHAPE)
-    local path = Pathfinder:findPath(entityPos:add(entityShape.size / 2, entityShape.size / 2), self.gridPosition)
-    if path ~= nil then
-      TaskManager:newPath(entity, path)
-    end
+    local entityTQ = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
+    entityTQ:reset()
+    entityTQ:push(Task.new(0, self.gridPosition))
     ButtonPressed = false
   end
 
