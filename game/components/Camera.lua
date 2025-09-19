@@ -15,7 +15,7 @@ local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 local Camera = {}
 Camera.__index = Camera
 
-local defaultPanningZoneBuffer = 0.5
+local defaultPanningZoneBuffer = 0.2
 
 --- Constructor
 function Camera.new()

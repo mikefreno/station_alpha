@@ -41,7 +41,7 @@ function PauseMenu:toggle()
       positioning = Positioning.FLEX,
       flexDirection = FlexDirection.VERTICAL,
       justifyContent = JustifyContent.CENTER,
-      alignItems = AlignContent.CENTER,
+      alignItems = AlignItems.CENTER,
       gap = 10,
     })
 
