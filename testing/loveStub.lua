@@ -39,6 +39,14 @@ function love_helper.graphics.setColor(r, g, b, a)
   -- Mock color setting
 end
 
+function love_helper.graphics.getHeight()
+  return 600 -- Mock screen height
+end
+
+function love_helper.graphics.getWidth()
+  return 800 -- Mock screen width
+end
+
 function love_helper.graphics.rectangle(mode, x, y, width, height)
   -- Mock rectangle drawing
 end
@@ -69,6 +77,12 @@ end
 
 function love_helper.touch.getPosition(id)
   return 0, 0 -- Default touch position
+end
+
+-- Mock timer functions
+love_helper.timer = {}
+function love_helper.timer.getTime()
+  return os.clock() -- Use system time for mock
 end
 
 _G.love = love_helper

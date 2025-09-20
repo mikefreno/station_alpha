@@ -51,7 +51,6 @@ if [ -d "$libs_dir/.git" ] || [ -f "$libs_dir/.git" ]; then
     cd ../..
 else
     echo "📥  Setting up submodule..."
-    mkdir -p "$(dirname "$libs_dir")"
     git submodule add -b main https://github.com/mikefreno/FlexLove.git "$libs_dir"
     git commit -m "Add FlexLove submodule"
 fi
