@@ -18,8 +18,6 @@ local constants = require("game.utils.constants")
 local overlayStats = require("game.libs.OverlayStats")
 local pathfinder = require("game.systems.PathFinder")
 local taskManager = require("game.systems.TaskManager")
-local TaskExecutionSystem = require("game.systems.TaskExecutionSystem")
-local MovementSystem = require("game.systems.MovementSystem")
 local FlexLove = require("game.libs.FlexLove")
 local Gui = FlexLove.GUI
 
@@ -41,13 +39,6 @@ local function initSystems()
   MapManager:createLevelMap()
   TaskManager = taskManager.new()
   Pathfinder = pathfinder.new()
-  
-  -- Initialize ECS task systems
-  TaskExecutionSystem:init()
-  MovementSystem = MovementSystem.new()
-  
-  -- Register processors with TaskExecutionSystem
-  MovementSystem:registerWithTaskExecutionSystem(TaskExecutionSystem)
 end
 
 ---NOTE: temporary for demoing purposes---
@@ -59,14 +50,8 @@ local function initDot()
   EntityManager:addComponent(dot, ComponentType.SPEEDSTAT, 0.25)
   EntityManager:addComponent(dot, ComponentType.TEXTURE, Texture.new({ r = 1, g = 0.5, b = 0 }))
   EntityManager:addComponent(dot, ComponentType.SHAPE, Shape.new(ShapeType.CIRCLE, 0.75))
-  
-  -- Create TaskQueue and Schedule (always in ECS mode)
-  local taskQueue = TaskQueue.new(dot)
-  EntityManager:addComponent(dot, ComponentType.TASKQUEUE, taskQueue)
-  
-  local schedule = Schedule.new()
-  EntityManager:addComponent(dot, ComponentType.SCHEDULE, schedule)
-  
+  EntityManager:addComponent(dot, ComponentType.TASKQUEUE, TaskQueue.new(dot))
+  EntityManager:addComponent(dot, ComponentType.SCHEDULE, Schedule.new())
   EntityManager:addComponent(dot, ComponentType.COLONIST_TAG, true)
 end
 
@@ -82,11 +67,6 @@ function love.update(dt)
   MapManager:update()
   InputSystem:update()
   TaskManager:update(dt)
-  
-  -- ECS Task Systems
-  TaskExecutionSystem:update(dt)
-  MovementSystem:update(dt)
-  
   Gui.update(dt)
 
   if isLoading() == true and LoadingIndicator.isVisible == false then

@@ -108,11 +108,10 @@ function Camera:update(dt)
   local mx, my = love.mouse.getPosition()
   local width, height = love.window.getMode()
   local bottomBarHeight = BottomBar.window.height
-  local bottomBarMinimized = BottomBar.minimized
   local offsetHeight = height - bottomBarHeight
 
   -- Check if mouse is over bottom bar
-  if not bottomBarMinimized and my > offsetHeight then
+  if my > offsetHeight then
     return
   end
 
@@ -124,18 +123,12 @@ function Camera:update(dt)
       return
     end
     self:move(0, -speed * speedFactor(my / height, self.panningBorder))
-  elseif not bottomBarMinimized and my > (1 - self.panningBorder) * offsetHeight then
+  elseif my > (1 - self.panningBorder) * offsetHeight then
     if self.panningZoneBuffer - dt > 0 then
       self.panningZoneBuffer = self.panningZoneBuffer - dt
       return
     end
     self:move(0, speed * speedFactor(my / offsetHeight, self.panningBorder))
-  elseif bottomBarMinimized and my / height > 1 - self.panningBorder then
-    if self.panningZoneBuffer - dt > 0 then
-      self.panningZoneBuffer = self.panningZoneBuffer - dt
-      return
-    end
-    self:move(0, speed * speedFactor(my / height, self.panningBorder))
   else
     notOverVerticalPad = true
   end

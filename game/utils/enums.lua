@@ -16,12 +16,6 @@ enums.ComponentType = {
   NAME = 12,
   COLONIST_TAG = 13,
   HEALTH = 14,
-  -- Task Component Types (ECS-Optimized)
-  TASK_COMPONENT_BASE = 100,
-  MOVEMENT_TASK = 101,
-  MINING_TASK = 102,
-  CONSTRUCTION_TASK = 103,
-  CLEANING_TASK = 104,
 }
 
 --- @enum ShapeType
@@ -61,37 +55,6 @@ enums.TaskType = {
   ANIMAL_TEND = 10,
   DOCTOR = 11,
   GUARD = 12,
-}
-
---- @enum ToolType
-enums.ToolType = {
-  NONE = 0,
-  PICKAXE = 1,
-  SHOVEL = 2,
-  HAMMER = 3,
-  SAW = 4,
-  BROOM = 5,
-  MOP = 6,
-  SCRUBBER = 7,
-  WRENCH = 8,
-  DRILL = 9,
-}
-
---- @enum ResourceType
-enums.ResourceType = {
-  NONE = 0,
-  STONE = 1,
-  IRON_ORE = 2,
-  GOLD_ORE = 3,
-  COAL = 4,
-  WOOD = 5,
-  CLAY = 6,
-  SAND = 7,
-  WATER = 8,
-  FOOD = 9,
-  METAL = 10,
-  BRICK = 11,
-  CONCRETE = 12,
 }
 
 return enums

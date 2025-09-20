@@ -2,10 +2,9 @@ local EntityManager = require("game.systems.EntityManager")
 local Vec2 = require("game.utils.Vec2")
 local constants = require("game.utils.constants")
 local ComponentType = require("game.utils.enums").ComponentType
-local TaskType = require("game.utils.enums").TaskType
 local ZIndexing = require("game.utils.enums").ZIndexing
 local FlexLove = require("game.libs.FlexLove")
-local Logger = require("logger")
+local Task = require("game.components.Task")
 local Gui = FlexLove.GUI
 local Color = FlexLove.Color
 local enums = FlexLove.enums
@@ -103,29 +102,9 @@ end
 ---@param entity integer
 function RightClickMenu:addMoveTo(entity)
   local function GoTo()
-    Logger:info(
-      "RightClickMenu: GoTo button clicked for entity "
-        .. entity
-        .. " to position "
-        .. self.gridPosition.x
-        .. ","
-        .. self.gridPosition.y
-    )
-
     local entityTQ = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
-    if not entityTQ then
-      Logger:error("RightClickMenu: No TaskQueue found for entity " .. entity)
-      return
-    end
-
-    Logger:debug("RightClickMenu: Found TaskQueue for entity " .. entity)
     entityTQ:reset()
-
-    -- Always use ECS movement task
-    Logger:info("RightClickMenu: Using ECS mode for movement task")
-    entityTQ:addMovementTask(self.gridPosition)
-    Logger:info("RightClickMenu: ECS movement task added successfully")
-
+    entityTQ:push(Task.new(0, self.gridPosition))
     ButtonPressed = false
   end
 
@@ -134,9 +113,7 @@ function RightClickMenu:addMoveTo(entity)
     background = Color.new(0.2, 0.7, 0.7, 0.9),
     px = 4,
     text = "Go To: " .. self.gridPosition.x .. "," .. self.gridPosition.y,
-    callback = function()
-      Logger:debug("hihi")
-    end,
+    callback = GoTo,
     positioning = Positioning.FLEX,
   })
 end
