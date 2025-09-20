@@ -176,6 +176,11 @@ function TaskManager:initializeECSSystems()
     TaskComponentPool:init(love.timer.getTime())
   end
   
+  -- Initialize TaskDependencyResolver
+  if not TaskDependencyResolver.isInitialized then
+    TaskDependencyResolver:init()
+  end
+  
   -- Set up dependency resolver
   TaskExecutionSystem:setDependencyResolver(TaskDependencyResolver)
 

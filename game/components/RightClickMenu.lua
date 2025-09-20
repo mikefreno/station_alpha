@@ -1,4 +1,5 @@
 local EntityManager = require("game.systems.EntityManager")
+local MapManager = require("game.systems.MapManager")
 local Vec2 = require("game.utils.Vec2")
 local constants = require("game.utils.constants")
 local ComponentType = require("game.utils.enums").ComponentType
@@ -102,40 +103,36 @@ end
 
 ---@param entity integer
 function RightClickMenu:addMoveTo(entity)
-  local function GoTo()
-    Logger:info(
-      "RightClickMenu: GoTo button clicked for entity "
-        .. entity
-        .. " to position "
-        .. self.gridPosition.x
-        .. ","
-        .. self.gridPosition.y
-    )
-
-    local entityTQ = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
-    if not entityTQ then
-      Logger:error("RightClickMenu: No TaskQueue found for entity " .. entity)
-      return
-    end
-
-    Logger:debug("RightClickMenu: Found TaskQueue for entity " .. entity)
-    entityTQ:reset()
-
-    -- Always use ECS movement task
-    Logger:info("RightClickMenu: Using ECS mode for movement task")
-    entityTQ:addMovementTask(self.gridPosition)
-    Logger:info("RightClickMenu: ECS movement task added successfully")
-
-    ButtonPressed = false
-  end
-
   Gui.new({
     parent = self.window,
     background = Color.new(0.2, 0.7, 0.7, 0.9),
-    px = 4,
     text = "Go To: " .. self.gridPosition.x .. "," .. self.gridPosition.y,
     callback = function()
-      Logger:debug("hihi")
+      Logger:info(
+        "RightClickMenu: GoTo button clicked for entity "
+          .. entity
+          .. " to position "
+          .. self.gridPosition.x
+          .. ","
+          .. self.gridPosition.y
+      )
+
+      local entityTQ = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
+      if not entityTQ then
+        Logger:error("RightClickMenu: No TaskQueue found for entity " .. entity)
+        return
+      end
+
+      Logger:debug("RightClickMenu: Found TaskQueue for entity " .. entity)
+      entityTQ:reset()
+
+      -- Always use ECS movement task
+      Logger:info("RightClickMenu: Using ECS mode for movement task")
+      entityTQ:addMovementTask(self.gridPosition)
+      Logger:info("RightClickMenu: ECS movement task added successfully")
+
+      -- Close the right-click menu after action
+      self:destroy()
     end,
     positioning = Positioning.FLEX,
   })

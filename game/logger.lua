@@ -139,6 +139,9 @@ function Logger:log(message, level)
     level = level,
   })
 
+  -- Print to stdout with level prefix
+  print(level.name .. ": " .. formatted_message)
+
   if #self.logs > self.max_logs then
     table.remove(self.logs, 1)
     local screen_h = love.graphics.getHeight()
