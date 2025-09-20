@@ -20,6 +20,7 @@ function BottomBar.init()
   end
   local self = setmetatable({}, BottomBar)
   self.mode = "colonists"
+  self.minimized = false
 
   local w, h = love.window.getMode()
 
