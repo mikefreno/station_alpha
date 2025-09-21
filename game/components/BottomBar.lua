@@ -21,8 +21,6 @@ function BottomBar.init()
   local self = setmetatable({}, BottomBar)
   self.mode = "colonists"
 
-  local w, h = love.window.getMode()
-
   -- Create the main window with flex layout
   self.window = Gui.new({
     x = 0,
@@ -36,14 +34,15 @@ function BottomBar.init()
 
   -- Create minimize button (absolute positioning)
   self.minimizeButton = Gui.new({
-    x = self.window.x + 10,
-    y = self.window.y + 10,
+    parent = self.window,
+    x = "2%",
+    y = "2%",
     w = 20,
     h = 20,
     padding = { top = 4, right = 4, bottom = 4, left = 4 },
     text = "-",
     textAlign = "center",
-    positioning = "absolute",
+    positioning = "relative",
     border = { top = true, right = true, bottom = true, left = true },
     textColor = Color.new(1, 1, 1),
     borderColor = Color.new(1, 1, 1),
@@ -53,10 +52,11 @@ function BottomBar.init()
   })
 
   -- Create a flex container for the menu tabs
-  local tabWidth = 80
   local menuTab = Gui.new({
     parent = self.window,
     w = "100%",
+    h = "100%",
+    alignItems = "flex-end",
     positioning = "flex",
     flexDirection = "horizontal",
     justifyContent = "center",
@@ -64,27 +64,25 @@ function BottomBar.init()
 
   Gui.new({
     parent = menuTab,
-    w = tabWidth,
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
     border = { top = true, right = true, bottom = true, left = true },
     borderColor = Color.new(1, 1, 1, 1),
     callback = function(ele)
-      Logger:debug("Colonists button: " .. ele.y .. " of " .. h)
+      Logger:debug("Colonists button: " .. ele.y)
     end,
   })
 
   Gui.new({
     parent = menuTab,
-    w = tabWidth,
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
     border = { top = true, right = true, bottom = true, left = true },
     borderColor = Color.new(1, 1, 1, 1),
     callback = function(ele)
-      Logger:debug("Schedule button: " .. ele.y .. " of " .. h)
+      Logger:debug("Schedule button: " .. ele.y)
     end,
   })
 
@@ -124,7 +122,6 @@ end
 function BottomBar:showAdditionSelectedDetails() end
 
 function BottomBar:toggleWindow()
-  local w, h = love.window.getMode()
   if self.minimized then
     self.window:updateOpacity(1)
     self.minimizeButton.text = "-"

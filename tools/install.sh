@@ -9,9 +9,6 @@ if [[ "$current_dir" == "tools" ]]; then
   libs_dir="../${libs_dir}"
 fi
 
-mkdir -p "$libs_dir"
-cd "$libs_dir" || { echo "❌  Could not cd to $libs_dir"; exit 1; }
-
 download_file() {
   url=$1
   dest=$2
@@ -48,9 +45,11 @@ if [ -d "$libs_dir/.git" ] || [ -f "$libs_dir/.git" ]; then
     cd ../..
 else
     echo "📥  Setting up submodule..."
-    git submodule add -b main https://github.com/mikefreno/FlexLove.git .
+    git submodule add -b main https://github.com/mikefreno/FlexLove.git "$libs_dir"
     git commit -m "Add FlexLove submodule"
 fi
+
+cd $libs_dir
 
 download_file "https://raw.githubusercontent.com/tesselode/cartographer/master/cartographer.lua" "Cartographer.lua"
 download_file "https://raw.githubusercontent.com/Oval-Tutu/bootstrap-love2d-project/main/game/lib/overlayStats.lua" "OverlayStats.lua"

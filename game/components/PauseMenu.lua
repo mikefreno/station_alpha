@@ -67,8 +67,6 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      w = 80,
-      h = 20,
       borderColor = Color.new(1, 1, 1, 1),
       border = { top = true, right = true, bottom = true, left = true },
       text = "Settings",
@@ -80,8 +78,6 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      w = 80,
-      h = 20,
       textAlign = "center",
       border = { top = true, right = true, bottom = true, left = true },
       borderColor = Color.new(1, 1, 1, 1),
@@ -93,8 +89,6 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      w = 80,
-      h = 20,
       border = { top = true, right = true, bottom = true, left = true },
       borderColor = Color.new(1, 1, 1, 1),
       text = "Load Game",
@@ -106,8 +100,6 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      w = 80,
-      h = 20,
       borderColor = Color.new(1, 1, 1, 1),
       text = "Main Menu",
       textAlign = "center",

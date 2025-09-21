@@ -71,16 +71,6 @@ function Task:perform(dt)
       Logger:debug("got path")
       TaskManager:newPath(performerPos, path)
     else
-      Logger:error(
-        "Path not created for entity at "
-          .. performerPos.x
-          .. ","
-          .. performerPos.y
-          .. " to target: "
-          .. targetPos.x
-          .. ","
-          .. targetPos.y
-      )
     end
   end
 end

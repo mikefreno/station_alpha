@@ -47,6 +47,8 @@ function TaskManager:addTask(taskType, task)
   table.insert(self.openTasks[taskType], task)
 end
 
+function TaskManager:removeTask() end
+
 ---helper function to add a full path in sequence to the queue
 ---@param entity integer
 ---@param path table<integer, Vec2>
