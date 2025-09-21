@@ -56,7 +56,7 @@ function TaskManager:newPath(entity, path)
     if taskQueue then
       taskQueue:reset()
       for _, wp in ipairs(path) do
-        taskQueue:push(Task.new(TaskType.MOVETO, wp))
+        taskQueue:push(Task.new(TaskType.MOVETO, entity, wp))
       end
     end
   end

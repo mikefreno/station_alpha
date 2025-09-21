@@ -2,3 +2,7 @@
 	path = game/libs
 	url = git@github.com:mikefreno/FlexLove.git
 	branch = main
+[submodule "FlexLove"]
+	path = FlexLove
+	url = https://github.com/mikefreno/FlexLove.git
+	branch = main

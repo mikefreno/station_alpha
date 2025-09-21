@@ -27,14 +27,12 @@ end
 function PauseMenu:toggle()
   self.visible = not self.visible
   if self.visible then
-    local w, h = love.window.getMode()
-
     self.window = Gui.new({
       x = 0,
       y = 0,
       z = ZIndexing.PauseMenu,
-      w = w,
-      h = h,
+      w = "100%",
+      h = "100%",
       border = { top = true, right = true, bottom = true, left = true },
       background = Color.new(0, 0, 0, 0.8),
       textColor = Color.new(1, 1, 1, 1),

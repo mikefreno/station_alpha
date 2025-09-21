@@ -26,10 +26,10 @@ function BottomBar.init()
   -- Create the main window with flex layout
   self.window = Gui.new({
     x = 0,
-    y = h * 0.9,
+    y = "90%",
     z = ZIndexing.BottomBar,
-    w = w,
-    h = h * 0.1,
+    w = "100%",
+    h = "10%",
     border = { top = true },
     background = Color.new(0.2, 0.2, 0.2, 1.0),
   })
@@ -53,22 +53,17 @@ function BottomBar.init()
   })
 
   -- Create a flex container for the menu tabs
-  local tabHeight = 20
   local tabWidth = 80
   local menuTab = Gui.new({
     parent = self.window,
-    y = h * 0.1 - tabHeight,
-    h = tabHeight,
-    w = w,
+    w = "100%",
     positioning = "flex",
     flexDirection = "horizontal",
-    alignSelf = "center",
     justifyContent = "center",
   })
 
   Gui.new({
     parent = menuTab,
-    h = tabHeight,
     w = tabWidth,
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
@@ -82,7 +77,6 @@ function BottomBar.init()
 
   Gui.new({
     parent = menuTab,
-    h = tabHeight,
     w = tabWidth,
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),

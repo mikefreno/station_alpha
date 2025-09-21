@@ -14,11 +14,13 @@ local Task = {}
 Task.__index = Task
 
 ---@param type TaskType
+---@param performer integer
 ---@param target integer | Vec2
-function Task.new(type, target)
+function Task.new(type, performer, target)
   --TODO: may want to check for target existence, for sure will want to before we perform
   local self = setmetatable({}, Task)
   self.type = type
+  self.performer = performer
   self.target = target
   self.isComplete = false
   self.timer = 0
@@ -60,9 +62,13 @@ function Task:perform(dt)
     end
   else
     --- create path to target ---
-    local performerShape = EntityManager:getComponent(performerPos, ComponentType.SHAPE)
-    local path = Pathfinder:findPath(entityPos:add(performerShape.size / 2, performerShape.size / 2), targetPos)
+    local performerShape = EntityManager:getComponent(self.performer, ComponentType.SHAPE)
+    if performerShape == nil then
+      return
+    end
+    local path = Pathfinder:findPath(performerPos:add(performerShape.size / 2, performerShape.size / 2), targetPos)
     if path ~= nil then
+      Logger:debug("got path")
       TaskManager:newPath(performerPos, path)
     else
       Logger:error(

@@ -38,9 +38,6 @@ download_file() {
 }
 
 
-download_file "https://raw.githubusercontent.com/tesselode/cartographer/master/cartographer.lua" "Cartographer.lua"
-download_file "https://raw.githubusercontent.com/Oval-Tutu/bootstrap-love2d-project/main/game/lib/overlayStats.lua" "OverlayStats.lua"
-
 # Check if submodule exists and is initialized
 if [ -d "$libs_dir/.git" ] || [ -f "$libs_dir/.git" ]; then
     echo "🔄  Submodule already exists, updating..."
@@ -51,9 +48,11 @@ if [ -d "$libs_dir/.git" ] || [ -f "$libs_dir/.git" ]; then
     cd ../..
 else
     echo "📥  Setting up submodule..."
-    mkdir -p "$(dirname "$libs_dir")"
-    git submodule add -b main https://github.com/mikefreno/FlexLove.git "$libs_dir"
+    git submodule add -b main https://github.com/mikefreno/FlexLove.git .
     git commit -m "Add FlexLove submodule"
 fi
+
+download_file "https://raw.githubusercontent.com/tesselode/cartographer/master/cartographer.lua" "Cartographer.lua"
+download_file "https://raw.githubusercontent.com/Oval-Tutu/bootstrap-love2d-project/main/game/lib/overlayStats.lua" "OverlayStats.lua"
 
 echo "🎉  All libraries installed successfully"
