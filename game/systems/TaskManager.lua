@@ -1,5 +1,5 @@
 local enum = require("game.utils.enums")
-local Task = require("game.components.Task")
+local Task = require("game.components.task.base")
 local ComponentType = enum.ComponentType
 local TaskType = enum.TaskType
 local Vec2 = require("game.utils.Vec2")

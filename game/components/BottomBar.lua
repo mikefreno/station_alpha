@@ -36,10 +36,8 @@ function BottomBar.init()
   self.minimizeButton = Gui.new({
     parent = self.window,
     x = "2%",
-    y = "2%",
-    w = 20,
-    h = 20,
-    padding = { top = 4, right = 4, bottom = 4, left = 4 },
+    y = "10%",
+    padding = { vertical = 4, horizontal = 4 },
     text = "-",
     textAlign = "center",
     positioning = "relative",

@@ -43,7 +43,7 @@ TaskComponent (Base Interface)
 Frame Update Cycle:
 
 ┌─────────────────────────────────────────────────────────────────┐
-│                    TaskExecutionSystem:update(dt)              │
+│                    TaskExecutionSystem:update(dt)               │
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────────┐│
 │  │ 1. DEPENDENCY RESOLUTION PHASE                              ││
