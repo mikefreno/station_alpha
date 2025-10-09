@@ -116,8 +116,11 @@ function Camera:update(dt)
 
   local mx, my = love.mouse.getPosition()
   local width, height = love.window.getMode()
+
+  -- Check if BottomBar is minimized (invisible)
+  local bottomBarVisible = not BottomBar.minimized
   local bottomBarHeight = BottomBar.window.height
-  local offsetHeight = height - bottomBarHeight
+  local offsetHeight = height - (bottomBarVisible and bottomBarHeight or 0)
 
   -- Check if mouse is over bottom bar
   if my > offsetHeight then
@@ -211,7 +214,11 @@ function Camera:clampPosition()
   local minX = 1 - pad
   local minY = 1 - pad
   local maxX = MAP_W + pad + 1 - logicalW
-  local maxY = MAP_H + pad + 1 - logicalH
+  local maxY = MAP_H
+    + pad
+    + 1
+    - logicalH
+    + ((not BottomBar.minimized and BottomBar.window.height / (constants.pixelSize * self.zoom)) or 0)
 
   -- Clamp the camera’s logical top‑left corner
   self.position.x = math.max(minX, math.min(maxX, self.position.x))
