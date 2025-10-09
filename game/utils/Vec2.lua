@@ -14,6 +14,18 @@ function Vec2.new(x, y)
   return self
 end
 
+--- @param x number
+--- @param y number
+--- @return Vec2
+--- @overload fun(self: Vec2, x:Vec2): boolean
+function Vec2:equals(x, y)
+  if type(x) == "number" then
+    return self.x == x and self.y == y
+  else
+    return self.x == x.x and self.y == x.y
+  end
+end
+
 --- Add two vectors together. Useful for:
 --- - Combining position and velocity (movement)
 --- - Adding forces together

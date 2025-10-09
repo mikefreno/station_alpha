@@ -31,6 +31,15 @@ end
 ---@param type ComponentType
 ---@param data any
 function EntityManager:addComponent(entityId, type, data)
+  --TODO: Will need handling checks if multiple are selected - this will work as last selected
+  -- Check if selecting a colonist, add to camera if so
+  if type == ComponentType.SELECTED then
+    local isColonist = self:getComponent(entityId, ComponentType.COLONIST_TAG)
+    if isColonist then
+      Camera.selectedEntity = entityId
+    end
+  end
+
   if not self.components[type] then
     self.components[type] = {}
   end

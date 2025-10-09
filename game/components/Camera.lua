@@ -1,4 +1,6 @@
 local constants = require("game.utils.constants")
+local enums = require("game.utils.enums")
+local ComponentType = enums.ComponentType
 local Vec2 = require("game.utils.Vec2")
 local PauseMenu = require("game.components.PauseMenu")
 local BottomBar = require("game.components.BottomBar")
@@ -12,6 +14,7 @@ local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 ---@field zoomRate number -- Speed of zooming (relative change per wheel tick)
 ---@field panningBorder number -- How close to the edge panning starts (0=disabled)
 ---@field panningZoneBuffer number -- How long before panning starts (0=start immediately)
+---@field selectedEntity integer? -- Entity to track movement of
 local Camera = {}
 Camera.__index = Camera
 
@@ -23,6 +26,7 @@ function Camera.new()
 
   self.position = Vec2.new(1, 1)
 
+  self.selectedEntity = nil
   self.baseSpeed = 10
   self.zoom = 1
   self.zoomRate = 0.15 -- a bit higher so you see the effect
@@ -30,7 +34,6 @@ function Camera.new()
   self.panningZoneBuffer = defaultPanningZoneBuffer
   --TODO: Want to add reverse movement cancelling padding
   --self.prevMousePosition
-
   return self
 end
 
@@ -70,20 +73,26 @@ function Camera:update(dt)
   if PauseMenu.visible then
     return
   end
+  local startPos = self.position
   local speed = self.baseSpeed / self.zoom * dt
 
   -- keyboard
+  local keypanning = false
   if love.keyboard.isDown("w") then
     self:move(0, -speed)
+    keypanning = true
   end
   if love.keyboard.isDown("s") then
     self:move(0, speed)
+    keypanning = true
   end
   if love.keyboard.isDown("a") then
     self:move(-speed, 0)
+    keypanning = true
   end
   if love.keyboard.isDown("d") then
     self:move(speed, 0)
+    keypanning = true
   end
 
   -- mouse position
@@ -137,20 +146,36 @@ function Camera:update(dt)
   if mx < self.panningBorder * width then
     if self.panningZoneBuffer - dt > 0 then
       self.panningZoneBuffer = self.panningZoneBuffer - dt
-      return
+      goto handleselected
     end
     self:move(-speed * speedFactor(mx / width, self.panningBorder), 0)
   elseif mx > (1 - self.panningBorder) * width then
     if self.panningZoneBuffer - dt > 0 then
       self.panningZoneBuffer = self.panningZoneBuffer - dt
-      return
+      goto handleselected
     end
     self:move(speed * speedFactor(mx / width, self.panningBorder), 0)
   else
     if notOverVerticalPad then
       --reset timer
       self.panningZoneBuffer = defaultPanningZoneBuffer
+      goto handleselected
     end
+  end
+
+  ::handleselected::
+  local selected = EntityManager:getComponent(self.selectedEntity, ComponentType.SELECTED)
+  if not selected or keypanning then
+    self.selectedEntity = nil
+  end
+  -- only track if have not moved manually
+  if startPos:equals(self.position) and self.selectedEntity then
+    Logger:debug(self.position)
+    Logger:debug(startPos)
+    local entityPos = EntityManager:getComponent(self.selectedEntity, ComponentType.POSITION)
+    self:centerOn(entityPos)
+  else
+    self.selectedEntity = nil -- once moved manually, snap off
   end
 end
 
@@ -191,6 +216,13 @@ function Camera:clampPosition()
   -- Clamp the camera’s logical top‑left corner
   self.position.x = math.max(minX, math.min(maxX, self.position.x))
   self.position.y = math.max(minY, math.min(maxY, self.position.y))
+end
+
+---@param point Vec2
+function Camera:centerOn(point)
+  local bounds = self:getVisibleBounds()
+  self.position.x = point.x - bounds.width / 2
+  self.position.y = point.y - bounds.height / 2
 end
 
 function Camera:getVisibleBounds()

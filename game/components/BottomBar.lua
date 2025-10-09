@@ -26,21 +26,19 @@ function BottomBar.init()
     x = 0,
     y = "90%",
     z = ZIndexing.BottomBar,
-    w = "100%",
-    h = "10%",
+    width = "100%",
+    height = "10%",
     border = { top = true },
     background = Color.new(0.2, 0.2, 0.2, 1.0),
   })
 
-  -- Create minimize button (absolute positioning)
   self.minimizeButton = Gui.new({
-    parent = self.window,
     x = "2%",
-    y = "10%",
+    y = "92%",
     padding = { vertical = 4, horizontal = 4 },
     text = "-",
     textAlign = "center",
-    positioning = "relative",
+    positioning = "absolute",
     border = { top = true, right = true, bottom = true, left = true },
     textColor = Color.new(1, 1, 1),
     borderColor = Color.new(1, 1, 1),
@@ -52,8 +50,8 @@ function BottomBar.init()
   -- Create a flex container for the menu tabs
   local menuTab = Gui.new({
     parent = self.window,
-    w = "100%",
-    h = "100%",
+    width = "100%",
+    height = "100%",
     alignItems = "flex-end",
     positioning = "flex",
     flexDirection = "horizontal",
@@ -97,8 +95,8 @@ function BottomBar:showColonists()
     justifyContent = "center",
     alignItems = "center",
     gap = 10,
-    w = self.window.width,
-    h = self.window.height * 0.8, -- Leave room for other UI elements
+    width = "100%",
+    height = "80%",
   })
 
   for _, colonist in pairs(colonists) do
