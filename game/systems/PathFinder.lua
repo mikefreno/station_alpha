@@ -131,8 +131,8 @@ function PathFinder:findPath(startWorldPos, endWorldPos)
     if tile.speedMultiplier and type(tile.speedMultiplier) == "number" then
       return tile.speedMultiplier
     end
-    if tile.id and MapManager.entityManager then
-      local topo = MapManager.entityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
+    if tile.id and EntityManager then
+      local topo = EntityManager:getComponent(tile.id, ComponentType.TOPOGRAPHY)
       if topo and topo.speedMultiplier then
         return topo.speedMultiplier
       end

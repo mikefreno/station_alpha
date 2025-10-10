@@ -4,7 +4,7 @@ local constants = require("game.utils.constants")
 local ComponentType = require("game.utils.enums").ComponentType
 local ZIndexing = require("game.utils.enums").ZIndexing
 local FlexLove = require("game.libs.FlexLove")
-local Task = require("game.components.task.base")
+local MovementTask = require("game.components.task.movement")
 local Gui = FlexLove.GUI
 local Color = FlexLove.Color
 local enums = FlexLove.enums
@@ -90,9 +90,6 @@ end
 
 ---@param entity integer
 function RightClickMenu:setupSelectionBasedComponents(entity)
-  local targetEntity =
-    EntityManager:findNearest(ComponentType.POSITION, self.gridPosition, { ComponentType.MAPTILE_TAG })
-  -- can the entity move?
   local speedStat = EntityManager:getComponent(entity, ComponentType.SPEEDSTAT)
   if speedStat then
     self:addMoveTo(entity)
@@ -103,15 +100,15 @@ end
 function RightClickMenu:addMoveTo(entity)
   local function GoTo()
     local entityTQ = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
-    entityTQ:reset()
-    entityTQ:push(Task.new(0, entity, self.gridPosition))
+    entityTQ:push(MovementTask.new(entity, self.gridPosition))
     ButtonPressed = false
   end
+  local entityName = EntityManager:getComponent(entity, ComponentType.NAME)
 
   Gui.new({
     parent = self.window,
     background = Color.new(0.2, 0.7, 0.7, 0.9),
-    text = "Go To: " .. self.gridPosition.x .. "," .. self.gridPosition.y,
+    text = "Move " .. entityName .. " To: " .. self.gridPosition.x .. "," .. self.gridPosition.y,
     callback = GoTo,
   })
 end

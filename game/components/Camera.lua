@@ -180,8 +180,6 @@ function Camera:update(dt)
   end
   -- only track if have not moved manually
   if startPos:equals(self.position) and self.selectedEntity then
-    Logger:debug(self.position)
-    Logger:debug(startPos)
     local entityPos = EntityManager:getComponent(self.selectedEntity, ComponentType.POSITION)
     self:centerOn(entityPos)
   else

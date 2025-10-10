@@ -39,6 +39,7 @@ function TaskQueue:update(dt)
     if not self.currentTask.isComplete then
       return
     end
+    self.currentTask = nil
   end
 
   if #self.queue == 0 then

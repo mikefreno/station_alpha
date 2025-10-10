@@ -11,16 +11,22 @@ local Priority = {
 
 ---@class Task
 ---@field performerEntity integer
----@field targetEntity integer
+---@field target integer|Vec2 -- Entity or world position
 ---@field priority Priority
+---@field isComplete boolean
 local Task = {}
 Task.__index = Task
 
 ---@param performerEntity integer
----@param targetEntity integer
-function Task.new(performerEntity, targetEntity)
+---@param target integer|Vec2
+---@param priority? Priority
+function Task.new(performerEntity, target, priority)
   local self = setmetatable({}, Task)
   self.performerEntity = performerEntity
-  self.targetEntity = targetEntity
-  self.priority = Priority.normal
+  self.target = target
+  self.priority = priority or Priority.normal
+  self.isComplete = false
+  return self
 end
+
+return Task
