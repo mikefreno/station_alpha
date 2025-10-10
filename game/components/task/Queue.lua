@@ -1,8 +1,4 @@
 local enums = require("game.utils.enums")
-local MoveTo = require("game.components.MoveTo")
-local Vec2 = require("game.utils.Vec2")
-local ComponentType = enums.ComponentType
-local TaskType = enums.TaskType
 
 ---@class TaskQueue
 ---@field ownerId integer

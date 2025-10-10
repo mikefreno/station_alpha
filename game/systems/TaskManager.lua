@@ -49,19 +49,4 @@ end
 
 function TaskManager:removeTask() end
 
----helper function to add a full path in sequence to the queue
----@param entity integer
----@param path table<integer, Vec2>
-function TaskManager:newPath(entity, path)
-  if path and #path > 0 then
-    local taskQueue = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
-    if taskQueue then
-      taskQueue:reset()
-      for _, wp in ipairs(path) do
-        taskQueue:push(Task.new(TaskType.MOVETO, entity, wp))
-      end
-    end
-  end
-end
-
 return TaskManager

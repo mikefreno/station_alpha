@@ -10,41 +10,42 @@ EventBus.listeners = {}
 ---@param eventType string
 ---@param callback function
 function EventBus:on(eventType, callback)
-    if not self.listeners[eventType] then
-        self.listeners[eventType] = {}
-    end
-    table.insert(self.listeners[eventType], callback)
+  if not self.listeners[eventType] then
+    self.listeners[eventType] = {}
+  end
+  table.insert(self.listeners[eventType], callback)
 end
 
 --- Unregister a listener for an event type
 ---@param eventType string
 ---@param callback function
 function EventBus:off(eventType, callback)
-    local listeners = self.listeners[eventType]
-    if not listeners then
-        return
+  local listeners = self.listeners[eventType]
+  if not listeners then
+    return
+  end
+
+  for i, cb in ipairs(listeners) do
+    if cb == callback then
+      table.remove(listeners, i)
+      break
     end
-    
-    for i, cb in ipairs(listeners) do
-        if cb == callback then
-            table.remove(listeners, i)
-            break
-        end
-    end
+  end
 end
 
 --- Emit an event with optional data
 ---@param eventType string
 ---@param data any?
 function EventBus:emit(eventType, data)
-    local listeners = self.listeners[eventType]
-    if not listeners then
-        return
-    end
-    
-    for _, callback in ipairs(listeners) do
-        callback(data)
-    end
+  local listeners = self.listeners[eventType]
+  if not listeners then
+    return
+  end
+  Logger:debug("emitting " .. eventType)
+
+  for _, callback in ipairs(listeners) do
+    callback(data)
+  end
 end
 
 return EventBus

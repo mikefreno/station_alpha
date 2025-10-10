@@ -16,14 +16,14 @@ function PositionSystem:update(dt)
   for _, e in ipairs(self:query(ComponentType.POSITION, ComponentType.VELOCITY, ComponentType.MOVETO)) do
     local p = EntityManager:getComponent(e, ComponentType.POSITION)
     local v = EntityManager:getComponent(e, ComponentType.VELOCITY)
-    local moveto = EntityManager:getComponent(e, ComponentType.MOVETO)
+    local target = EntityManager:getComponent(e, ComponentType.MOVETO)
 
-    if moveto then
-      local dirToTarget = moveto:sub(p)
+    if target then
+      local dirToTarget = target:sub(p)
       local remainingDist = dirToTarget:length()
 
       if remainingDist < 1e-6 then
-        p.x, p.y = moveto.target.x, moveto.target.y
+        p.x, p.y = target.x, target.y
         EntityManager:removeComponent(e, ComponentType.MOVETO)
         v.x, v.y = 0, 0 -- stop moving
         goto next_entity
@@ -38,11 +38,11 @@ function PositionSystem:update(dt)
         return
       end
       local topography = EntityManager:getComponent(currentTileEntity, ComponentType.TOPOGRAPHY)
-      local newVel = moveto.target:sub(p):normalize():mul(topography.speedMultiplier * speedStat / TICKSPEED)
+      local newVel = target:sub(p):normalize():mul(topography.speedMultiplier * speedStat / TICKSPEED)
       local step = newVel:mul(dt)
 
       if step:length() >= remainingDist then
-        p.x, p.y = moveto.target.x, moveto.target.y
+        p.x, p.y = target.x, target.y
         EntityManager:removeComponent(e, ComponentType.MOVETO)
         v.x, v.y = 0, 0
       else

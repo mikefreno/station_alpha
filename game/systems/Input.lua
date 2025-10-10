@@ -24,10 +24,10 @@ function InputSystem:keypressed(key, scancode, isrepeat)
     end
   else
     -- Emit event for keypresses
-    EventBus:emit("input_keypressed", { 
-      key = key, 
-      scancode = scancode, 
-      isrepeat = isrepeat 
+    EventBus:emit("input_keypressed", {
+      key = key,
+      scancode = scancode,
+      isrepeat = isrepeat,
     })
   end
 end
@@ -72,13 +72,13 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
       Logger:error("No RCM found")
     end
   end
-  
+
   -- Emit event for mouse presses
-  EventBus:emit("input_mousepressed", { 
-    x = x, 
-    y = y, 
-    button = button, 
-    istouch = istouch 
+  EventBus:emit("input_mousepressed", {
+    x = x,
+    y = y,
+    button = button,
+    istouch = istouch,
   })
 end
 
@@ -87,7 +87,7 @@ function InputSystem:handleWheelMoved(x, y)
   else
     Camera:wheelmoved(x, y)
   end
-  
+
   -- Emit event for wheel movements
   EventBus:emit("input_wheeled", { x = x, y = y })
 end

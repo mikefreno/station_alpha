@@ -16,6 +16,7 @@ local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 ---@field panningBorder number -- How close to the edge panning starts (0=disabled)
 ---@field panningZoneBuffer number -- How long before panning starts (0=start immediately)
 ---@field selectedEntity integer? -- Entity to track movement of
+---@field lastEmittedPos Vec2?
 local Camera = {}
 Camera.__index = Camera
 
@@ -228,6 +229,12 @@ function Camera:clampPosition()
   -- Clamp the camera’s logical top‑left corner
   self.position.x = math.max(minX, math.min(maxX, self.position.x))
   self.position.y = math.max(minY, math.min(maxY, self.position.y))
+
+  if self.position ~= self.lastEmittedPos then
+    print("emit")
+    EventBus:emit("camera_moved", { position = self.position })
+    self.lastEmittedPos = self.position
+  end
 end
 
 ---@param point Vec2

@@ -32,8 +32,7 @@ function MovementTask.new(performerEntity, target, priority)
   end
   self.path = path
   self.currentPathIndex = 0
-  setmetatable(self, Task)
-  return self
+  return setmetatable(self, MovementTask)
 end
 
 function MovementTask:perform(dt)

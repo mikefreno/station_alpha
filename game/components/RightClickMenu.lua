@@ -10,6 +10,8 @@ local Color = FlexLove.Color
 local enums = FlexLove.enums
 local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems =
   enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems
+local MapManager = require("game.systems.MapManager")
+local EventBus = require("game.systems.EventBus")
 
 ---@class RightClickMenu
 ---@field worldPosition Vec2?
@@ -32,6 +34,15 @@ function RightClickMenu.init()
   self.contents = {}
   self.hovered = false
   self.window = nil
+
+  EventBus:on("camera_moved", function(data)
+    if data and data.position and self.gridPosition then
+      print("updating")
+      self.worldPosition:mutSub(data.position:mul(constants.pixelSize))
+      self:set()
+    end
+  end)
+
   instance = self
   return self
 end
@@ -45,6 +56,9 @@ function RightClickMenu:updatePosition(x, y)
 end
 
 function RightClickMenu:set()
+  if self.window then
+    self.window:destroy()
+  end
   self.window = Gui.new({
     x = self.worldPosition.x,
     y = self.worldPosition.y,
@@ -100,6 +114,7 @@ end
 function RightClickMenu:addMoveTo(entity)
   local function GoTo()
     local entityTQ = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
+    entityTQ:reset()
     entityTQ:push(MovementTask.new(entity, self.gridPosition))
     ButtonPressed = false
   end

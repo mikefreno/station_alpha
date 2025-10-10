@@ -5,6 +5,7 @@ local luaunit = require("testing.luaunit")
 -- Run all tests in the __tests__ directory
 local testFiles = {
   "testing/__tests__/pathfinder.lua",
+  "testing/__tests__/camera_menu_event_tests.lua",
 }
 
 -- Run all tests, but don't exit on error
