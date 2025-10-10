@@ -59,6 +59,7 @@ function love.load()
   initSystems()
   initDot()
   overlayStats.load()
+  Gui.init({})
 end
 
 function love.update(dt)
