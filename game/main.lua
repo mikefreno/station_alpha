@@ -18,6 +18,7 @@ local constants = require("game.utils.constants")
 local overlayStats = require("game.libs.OverlayStats")
 local pathfinder = require("game.systems.PathFinder")
 local taskManager = require("game.systems.TaskManager")
+local EventBus = require("game.systems.EventBus")
 local FlexLove = require("game.libs.FlexLove")
 local Gui = FlexLove.GUI
 
@@ -39,6 +40,7 @@ local function initSystems()
   MapManager:createLevelMap()
   TaskManager = taskManager.new()
   Pathfinder = pathfinder.new()
+  EventBus = EventBus
 end
 
 ---NOTE: temporary for demoing purposes---

@@ -4,6 +4,7 @@ local ZIndexing = require("game.utils.enums").ZIndexing
 local FlexLove = require("game.libs.FlexLove")
 local Gui = FlexLove.GUI
 local Color = FlexLove.Color
+local EventBus = require("game.systems.EventBus")
 
 ---@enum Tabs
 local Tabs = {
@@ -139,19 +140,20 @@ function BottomBar:renderColonistsTab()
 
   for _, colonist in pairs(colonists) do
     local name = EntityManager:getComponent(colonist, ComponentType.NAME)
-    Gui.new({
-      parent = self.colonistContainer,
-      text = name,
-      background = Color.new(0.6, 0.2, 0.4),
-      padding = { horizontal = 8, vertical = 4 },
-      border = { top = true, right = true, bottom = true, left = true },
-      textColor = Color.new(1, 1, 1, 1),
-      callback = function()
-        EntityManager:addComponent(colonist, ComponentType.SELECTED, true)
-        local colPos = EntityManager:getComponent(colonist, ComponentType.POSITION)
-        Camera:centerOn(colPos)
-      end,
-    })
+Gui.new({
+     parent = self.colonistContainer,
+     text = name,
+     background = Color.new(0.6, 0.2, 0.4),
+     padding = { horizontal = 8, vertical = 4 },
+     border = { top = true, right = true, bottom = true, left = true },
+     textColor = Color.new(1, 1, 1, 1),
+     callback = function()
+       EntityManager:addComponent(colonist, ComponentType.SELECTED, true)
+       local colPos = EntityManager:getComponent(colonist, ComponentType.POSITION)
+       -- Emit event instead of directly calling Camera
+       EventBus:emit("entity_selected", { entity = colonist, position = colPos })
+     end,
+   })
   end
 end
 

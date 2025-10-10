@@ -4,6 +4,7 @@ local ComponentType = enums.ComponentType
 local Vec2 = require("game.utils.Vec2")
 local PauseMenu = require("game.components.PauseMenu")
 local BottomBar = require("game.components.BottomBar")
+local EventBus = require("game.systems.EventBus")
 
 local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 
@@ -32,8 +33,14 @@ function Camera.new()
   self.zoomRate = 0.15 -- a bit higher so you see the effect
   self.panningBorder = 0.10
   self.panningZoneBuffer = defaultPanningZoneBuffer
-  --TODO: Want to add reverse movement cancelling padding
-  --self.prevMousePosition
+
+  -- Listen for entity selection events
+  EventBus:on("entity_selected", function(data)
+    if data and data.position then
+      self:centerOn(data.position)
+    end
+  end)
+
   return self
 end
 
