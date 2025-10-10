@@ -26,6 +26,7 @@ function BottomBar.init()
   end
   local self = setmetatable({}, BottomBar)
   self.tab = Tabs.COLONIST
+  self.colonistContainer = nil
 
   -- Create the main window with flex layout
   self.window = Gui.new({
@@ -94,13 +95,12 @@ function BottomBar.init()
     end,
   })
 
-  self:renderCurrentTab()
+  --self:renderCurrentTab() -- would prefer this, but based on timing, must be called after dot - may change on actual colonist implementation
 
   return self
 end
 
 function BottomBar:renderCurrentTab()
-  -- Map tabs to their rendering functions
   local tabMap = {
     [Tabs.COLONIST] = self.renderColonistsTab,
     [Tabs.SCHEDULE] = self.renderScheduleTab,
@@ -108,18 +108,26 @@ function BottomBar:renderCurrentTab()
 
   local renderFunction = tabMap[self.tab]
   if renderFunction then
+    self:tabCleanup()
     renderFunction(self)
   else
     Logger:error("Invalid tab selected: " .. tostring(self.tab))
   end
 end
 
+function BottomBar:tabCleanup()
+  if self.colonistContainer then
+    self.colonistContainer:destroy()
+    self.colonistContainer = nil
+  end
+end
+
 function BottomBar:renderColonistsTab()
   Logger:debug("showing colonists tab")
+
   local colonists = EntityManager:query(ComponentType.COLONIST_TAG)
   self.colonistContainer = Gui.new({
     parent = self.window,
-    background = Color.new(0.3, 0.8, 0.3),
     positioning = "flex",
     flexDirection = "horizontal",
     justifyContent = "center",
@@ -138,13 +146,17 @@ function BottomBar:renderColonistsTab()
       padding = { horizontal = 8, vertical = 4 },
       border = { top = true, right = true, bottom = true, left = true },
       textColor = Color.new(1, 1, 1, 1),
+      callback = function()
+        EntityManager:addComponent(colonist, ComponentType.SELECTED, true)
+        local colPos = EntityManager:getComponent(colonist, ComponentType.POSITION)
+        Camera:centerOn(colPos)
+      end,
     })
   end
 end
 
 function BottomBar:renderScheduleTab()
   Logger:debug("showing schedule tab")
-  self.colonistContainer:destroy()
 end
 
 function BottomBar:highlightSelected()

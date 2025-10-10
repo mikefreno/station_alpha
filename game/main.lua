@@ -24,7 +24,7 @@ local Gui = FlexLove.GUI
 ---GUI Init---
 require("game.components.PauseMenu")
 require("game.components.RightClickMenu")
-require("game.components.BottomBar")
+local BottomBar = require("game.components.BottomBar") -- BottomBar relies upon colonists
 --------------
 
 local function isLoading()
@@ -58,6 +58,7 @@ end
 function love.load()
   initSystems()
   initDot()
+  BottomBar:renderCurrentTab()
   overlayStats.load()
   Gui.init({})
 end
