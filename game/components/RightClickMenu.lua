@@ -12,6 +12,7 @@ local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems =
   enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems
 local MapManager = require("game.systems.MapManager")
 local EventBus = require("game.systems.EventBus")
+local Camera = require("game.components.Camera")
 
 ---@class RightClickMenu
 ---@field worldPosition Vec2?
@@ -36,9 +37,8 @@ function RightClickMenu.init()
   self.window = nil
 
   EventBus:on("camera_moved", function(data)
-    if data and data.position and self.gridPosition then
-      print("updating")
-      self.worldPosition:mutSub(data.position:mul(constants.pixelSize))
+    if data and data.diff and self.gridPosition then
+      self.worldPosition:mutSub(data.diff:mul(constants.pixelSize))
       self:set()
     end
   end)

@@ -34,6 +34,7 @@ function Camera.new()
   self.zoomRate = 0.15 -- a bit higher so you see the effect
   self.panningBorder = 0.10
   self.panningZoneBuffer = defaultPanningZoneBuffer
+  self.lastEmittedPos = self.position:clone()
 
   -- Listen for entity selection events
   EventBus:on("entity_selected", function(data)
@@ -230,10 +231,9 @@ function Camera:clampPosition()
   self.position.x = math.max(minX, math.min(maxX, self.position.x))
   self.position.y = math.max(minY, math.min(maxY, self.position.y))
 
-  if self.position ~= self.lastEmittedPos then
-    print("emit")
-    EventBus:emit("camera_moved", { position = self.position })
-    self.lastEmittedPos = self.position
+  if not self.lastEmittedPos or not self.position:equals(self.lastEmittedPos) then
+    EventBus:emit("camera_moved", { position = self.position, diff = self.position:sub(self.lastEmittedPos) })
+    self.lastEmittedPos = self.position:clone()
   end
 end
 

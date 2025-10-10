@@ -14,6 +14,10 @@ function Vec2.new(x, y)
   return self
 end
 
+function Vec2:clone()
+  return Vec2.new(self.x, self.y)
+end
+
 --- @param x number
 --- @param y number
 --- @return Vec2
