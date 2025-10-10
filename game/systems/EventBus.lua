@@ -16,6 +16,23 @@ function EventBus:on(eventType, callback)
     table.insert(self.listeners[eventType], callback)
 end
 
+--- Unregister a listener for an event type
+---@param eventType string
+---@param callback function
+function EventBus:off(eventType, callback)
+    local listeners = self.listeners[eventType]
+    if not listeners then
+        return
+    end
+    
+    for i, cb in ipairs(listeners) do
+        if cb == callback then
+            table.remove(listeners, i)
+            break
+        end
+    end
+end
+
 --- Emit an event with optional data
 ---@param eventType string
 ---@param data any?

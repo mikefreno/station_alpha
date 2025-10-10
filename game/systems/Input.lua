@@ -3,6 +3,7 @@ local EntityManager = require("game.systems.EntityManager")
 local PauseMenu = require("game.components.PauseMenu")
 local Vec2 = require("game.utils.Vec2")
 local RightClickMenu = require("game.components.RightClickMenu")
+local EventBus = require("game.systems.EventBus")
 
 local InputSystem = {}
 InputSystem.__index = InputSystem
@@ -22,6 +23,12 @@ function InputSystem:keypressed(key, scancode, isrepeat)
       PauseMenu:toggle()
     end
   else
+    -- Emit event for keypresses
+    EventBus:emit("input_keypressed", { 
+      key = key, 
+      scancode = scancode, 
+      isrepeat = isrepeat 
+    })
   end
 end
 
@@ -65,6 +72,14 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
       Logger:error("No RCM found")
     end
   end
+  
+  -- Emit event for mouse presses
+  EventBus:emit("input_mousepressed", { 
+    x = x, 
+    y = y, 
+    button = button, 
+    istouch = istouch 
+  })
 end
 
 function InputSystem:handleWheelMoved(x, y)
@@ -72,6 +87,9 @@ function InputSystem:handleWheelMoved(x, y)
   else
     Camera:wheelmoved(x, y)
   end
+  
+  -- Emit event for wheel movements
+  EventBus:emit("input_wheeled", { x = x, y = y })
 end
 
 return InputSystem.new()

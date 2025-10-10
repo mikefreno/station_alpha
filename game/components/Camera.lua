@@ -237,6 +237,7 @@ function Camera:centerOn(point)
   local bounds = self:getVisibleBounds()
   self.position.x = point.x - bounds.width / 2
   self.position.y = point.y - bounds.height / 2
+  self:clampPosition()
 end
 
 function Camera:getVisibleBounds()

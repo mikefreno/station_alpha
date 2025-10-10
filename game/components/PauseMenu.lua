@@ -5,6 +5,7 @@ local Gui = FlexLove.GUI
 local Color = FlexLove.Color
 local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems, TextAlign =
   enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems, enums.TextAlign
+local EventBus = require("game.systems.EventBus")
 
 ---@class PauseMenu
 ---@field visible boolean
@@ -113,6 +114,9 @@ function PauseMenu:toggle()
     self.window:destroy()
     self.window = nil
   end
+  
+  -- Emit event when pause state changes
+  EventBus:emit("game_paused", { paused = self.visible })
 end
 
 return PauseMenu.init()
