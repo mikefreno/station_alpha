@@ -43,6 +43,10 @@ function MovementTask:perform(dt)
     -- The position system removes these when ready
     return
   end
+  if self.currentPathIndex > #self.path then
+    self.isComplete = true
+    return
+  end
   Logger:debug("making moveto")
   self.currentPathIndex = self.currentPathIndex + 1
   local nextPoint = self.path[self.currentPathIndex]

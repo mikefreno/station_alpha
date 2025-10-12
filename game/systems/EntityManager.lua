@@ -167,33 +167,16 @@ function EntityManager:getEntityBounds(entityId)
   local px = position.x * constants.pixelSize
   local py = position.y * constants.pixelSize
 
-  if shape.shape == ShapeType.CIRCLE then
-    -- For a circle, the bounding box is a square with side length = diameter
-    local size = shape.size * constants.pixelSize
-    return {
-      x = px - size / 2,
-      y = py - size / 2,
-      width = size,
-      height = size,
-    }
-  elseif shape.shape == ShapeType.SQUARE then
-    -- For a square, use the size directly
-    local size = shape.size * constants.pixelSize
-    return {
-      x = px,
-      y = py,
-      width = size,
-      height = size,
-    }
-  else
-    -- Default to a simple rectangle based on position
-    return {
-      x = px,
-      y = py,
-      width = constants.pixelSize,
-      height = constants.pixelSize,
-    }
-  end
+  local size = shape.size * constants.pixelSize
+  local bounds = {
+    x = px - constants.pixelSize / 2,
+    y = py - constants.pixelSize / 2,
+    width = size,
+    height = size,
+  }
+  Logger:debug("Bounds: ")
+  Logger:debug(bounds)
+  return bounds
 end
 
 ---@param ... ComponentType

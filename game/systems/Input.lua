@@ -57,6 +57,8 @@ function InputSystem:handleMousePressed(x, y, button, istouch)
         local bounds = EntityManager:getEntityBounds(entityId)
         if bounds then
           -- Check if click position is within entity bounds
+
+          Logger:debug("Click: " .. x .. "," .. y)
           if x >= bounds.x and x <= bounds.x + bounds.width and y >= bounds.y and y <= bounds.y + bounds.height then
             EntityManager:addComponent(entityId, ComponentType.SELECTED, true)
             break
