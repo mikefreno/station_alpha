@@ -41,12 +41,14 @@ function BottomBar.init()
   })
 
   self.minimizeButton = Gui.new({
-    x = "2%",
-    y = "92%",
+    parent = self.window,
+    x = "0.5%",
+    y = "5%",
+    z = ZIndexing.BottomBar + 20,
     padding = { vertical = 4, horizontal = 8 },
     text = "-",
     textAlign = "center",
-    positioning = "absolute",
+    positioning = "flex",
     border = { top = true, right = true, bottom = true, left = true },
     textColor = Color.new(1, 1, 1),
     borderColor = Color.new(1, 1, 1),
@@ -121,6 +123,10 @@ function BottomBar:tabCleanup()
     self.colonistContainer:destroy()
     self.colonistContainer = nil
   end
+  if self.scheduleContainer then
+    self.scheduleContainer:destroy()
+    self.scheduleContainer = nil
+  end
 end
 
 function BottomBar:renderColonistsTab()
@@ -140,25 +146,131 @@ function BottomBar:renderColonistsTab()
 
   for _, colonist in pairs(colonists) do
     local name = EntityManager:getComponent(colonist, ComponentType.NAME)
-Gui.new({
-     parent = self.colonistContainer,
-     text = name,
-     background = Color.new(0.6, 0.2, 0.4),
-     padding = { horizontal = 8, vertical = 4 },
-     border = { top = true, right = true, bottom = true, left = true },
-     textColor = Color.new(1, 1, 1, 1),
-     callback = function()
-       EntityManager:addComponent(colonist, ComponentType.SELECTED, true)
-       local colPos = EntityManager:getComponent(colonist, ComponentType.POSITION)
-       -- Emit event instead of directly calling Camera
-       EventBus:emit("entity_selected", { entity = colonist, position = colPos })
-     end,
-   })
+    Gui.new({
+      parent = self.colonistContainer,
+      text = name,
+      background = Color.new(0.6, 0.2, 0.4),
+      padding = { horizontal = 8, vertical = 4 },
+      border = { top = true, right = true, bottom = true, left = true },
+      textColor = Color.new(1, 1, 1, 1),
+      callback = function()
+        EntityManager:addComponent(colonist, ComponentType.SELECTED, true)
+        local colPos = EntityManager:getComponent(colonist, ComponentType.POSITION)
+        -- Emit event instead of directly calling Camera
+        EventBus:emit("entity_selected", { entity = colonist, position = colPos })
+      end,
+    })
   end
 end
 
 function BottomBar:renderScheduleTab()
   Logger:debug("showing schedule tab")
+
+  local colonists = EntityManager:query(ComponentType.COLONIST_TAG)
+  local TaskType = enums.TaskType
+
+  -- Get assignable task types (exclude MOVETO)
+  local taskTypes = {}
+  local taskNames = {}
+  for name, value in pairs(TaskType) do
+    if value ~= TaskType.MOVETO then
+      table.insert(taskTypes, { name = name, value = value })
+    end
+  end
+  -- Sort by value to maintain consistent order
+  table.sort(taskTypes, function(a, b)
+    return a.value < b.value
+  end)
+  for _, task in ipairs(taskTypes) do
+    table.insert(taskNames, task.name)
+  end
+
+  -- Calculate grid dimensions: +1 for header row and column
+  local numRows = #colonists + 1 -- +1 for header row
+  local numColumns = #taskTypes + 1 -- +1 for colonist names column
+
+  self.scheduleContainer = Gui.new({
+    parent = self.window,
+    width = "100%",
+    height = "80%",
+    padding = { horizontal = 10, vertical = 8 },
+    positioning = "grid",
+    gridRows = numRows,
+    gridColumns = numColumns,
+    columnGap = 2,
+    rowGap = 2,
+    alignItems = "stretch",
+  })
+
+  -- Create header row (first row)
+  -- Top-left corner cell (empty)
+  Gui.new({
+    parent = self.scheduleContainer,
+    background = Color.new(0.3, 0.3, 0.3, 1.0),
+    border = { top = true, right = true, bottom = true, left = true },
+    borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
+  })
+
+  -- Task type headers
+  for _, taskName in ipairs(taskNames) do
+    Gui.new({
+      parent = self.scheduleContainer,
+      text = taskName,
+      textColor = Color.new(1, 1, 1, 1),
+      textAlign = "center",
+      background = Color.new(0.3, 0.3, 0.3, 1.0),
+      border = { top = true, right = true, bottom = true, left = true },
+      borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
+      textSize = 10,
+    })
+  end
+
+  -- Create rows for each colonist
+  for _, colonist in ipairs(colonists) do
+    local name = EntityManager:getComponent(colonist, ComponentType.NAME)
+
+    -- Colonist name cell (first column)
+    Gui.new({
+      parent = self.scheduleContainer,
+      text = name or "Unknown",
+      textColor = Color.new(1, 1, 1, 1),
+      textAlign = "center",
+      background = Color.new(0.3, 0.3, 0.3, 1.0),
+      border = { top = true, right = true, bottom = true, left = true },
+      borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
+      textSize = 10,
+    })
+
+    -- Task cells for this colonist
+    for _, task in ipairs(taskTypes) do
+      local schedule = EntityManager:getComponent(colonist, ComponentType.SCHEDULE)
+      local isEnabled = schedule and schedule[task.value] or false
+
+      Gui.new({
+        parent = self.scheduleContainer,
+        text = isEnabled and "✓" or "",
+        textColor = Color.new(0, 1, 0, 1),
+        textAlign = "center",
+        background = isEnabled and Color.new(0.2, 0.5, 0.2, 1.0) or Color.new(0.4, 0.4, 0.4, 1.0),
+        border = { top = true, right = true, bottom = true, left = true },
+        borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
+        textSize = 12,
+        callback = function(cell)
+          -- Toggle task assignment
+          local currentSchedule = EntityManager:getComponent(colonist, ComponentType.SCHEDULE) or {}
+          currentSchedule[task.value] = not currentSchedule[task.value]
+          EntityManager:addComponent(colonist, ComponentType.SCHEDULE, currentSchedule)
+
+          -- Update cell appearance
+          local newEnabled = currentSchedule[task.value]
+          cell.text = newEnabled and "✓" or ""
+          cell.background = newEnabled and Color.new(0.2, 0.5, 0.2, 1.0) or Color.new(0.4, 0.4, 0.4, 1.0)
+
+          Logger:debug(string.format("Toggled %s for %s: %s", task.name, name, tostring(newEnabled)))
+        end,
+      })
+    end
+  end
 end
 
 function BottomBar:highlightSelected()
@@ -174,6 +286,7 @@ function BottomBar:toggleWindow()
   else
     self.window:updateOpacity(0)
     self.minimizeButton:updateText("+", false)
+    self.minimizeButton:updateOpacity(1)
   end
   self.minimized = not self.minimized
 end

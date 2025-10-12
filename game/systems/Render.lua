@@ -95,13 +95,7 @@ function RenderSystem:update(bounds)
       love.graphics.setLineStyle("rough")
       love.graphics.setLineWidth(1)
       love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle(
-        "line",
-        px + constants.pixelSize / 8,
-        py + constants.pixelSize / 8,
-        shape.size * constants.pixelSize,
-        shape.size * constants.pixelSize
-      )
+      love.graphics.rectangle("line", px, py, constants.pixelSize, constants.pixelSize)
       love.graphics.setLineStyle("rough")
     end
 

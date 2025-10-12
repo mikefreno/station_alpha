@@ -3,8 +3,14 @@ local FlexLove = require("game.libs.FlexLove")
 local enums = FlexLove.enums
 local Gui = FlexLove.GUI
 local Color = FlexLove.Color
-local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems, TextAlign =
-  enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems, enums.TextAlign
+local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems, TextAlign, TextSize =
+  enums.Positioning,
+  enums.FlexDirection,
+  enums.JustifyContent,
+  enums.AlignContent,
+  enums.AlignItems,
+  enums.TextAlign,
+  enums.TextSize
 local EventBus = require("game.systems.EventBus")
 
 ---@class PauseMenu
@@ -50,7 +56,7 @@ function PauseMenu:toggle()
       border = { top = true, right = true, bottom = true, left = true },
       borderColor = Color.new(1, 1, 1, 1),
       textAlign = TextAlign.CENTER,
-      textSize = 40,
+      textSize = "3xl",
     })
     Gui.new({
       parent = self.window,
@@ -61,7 +67,7 @@ function PauseMenu:toggle()
       borderColor = Color.new(1, 1, 1, 1),
       positioning = Positioning.ABSOLUTE,
       text = "X",
-      textSize = 40,
+      textSize = "3xl",
       callback = function()
         self:toggle()
       end,
@@ -114,7 +120,7 @@ function PauseMenu:toggle()
     self.window:destroy()
     self.window = nil
   end
-  
+
   -- Emit event when pause state changes
   EventBus:emit("game_paused", { paused = self.visible })
 end
