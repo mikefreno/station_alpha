@@ -41,7 +41,7 @@ function PauseMenu:toggle()
       width = "100%",
       height = "100%",
       border = { top = true, right = true, bottom = true, left = true },
-      background = Color.new(0, 0, 0, 0.8),
+      backgroundColor = Color.new(0, 0, 0, 0.8),
       textColor = Color.new(1, 1, 1, 1),
       positioning = Positioning.FLEX,
       flexDirection = FlexDirection.VERTICAL,
@@ -53,8 +53,8 @@ function PauseMenu:toggle()
     Gui.new({
       parent = self.window,
       text = "Pause Menu",
-      border = { top = true, right = true, bottom = true, left = true },
-      borderColor = Color.new(1, 1, 1, 1),
+      themeComponent = "panel",
+      padding = { horizontal = 48, vertical = 24 },
       textAlign = TextAlign.CENTER,
       textSize = "3xl",
     })
@@ -62,22 +62,24 @@ function PauseMenu:toggle()
       parent = self.window,
       x = 40,
       y = 40,
-      padding = { horizontal = 8 },
-      border = { top = true, right = true, bottom = true, left = true },
-      borderColor = Color.new(1, 1, 1, 1),
+      themeComponent = "button",
+      width = "7%",
+      height = "9%",
       positioning = Positioning.ABSOLUTE,
       text = "X",
       textSize = "3xl",
+      textAlign = "center",
       callback = function()
         self:toggle()
       end,
     })
     Gui.new({
       parent = self.window,
-      borderColor = Color.new(1, 1, 1, 1),
-      border = { top = true, right = true, bottom = true, left = true },
+      themeComponent = "button",
       text = "Settings",
       textAlign = "center",
+      width = 160,
+      height = 40,
       callback = function()
         -- TODO: implement Settings screen function
         Logger:error("Settings screen not yet implemented")
@@ -86,8 +88,9 @@ function PauseMenu:toggle()
     Gui.new({
       parent = self.window,
       textAlign = "center",
-      border = { top = true, right = true, bottom = true, left = true },
-      borderColor = Color.new(1, 1, 1, 1),
+      themeComponent = "button",
+      width = 160,
+      height = 40,
       text = "Save Game",
       callback = function()
         -- TODO: implement saving function
@@ -96,10 +99,11 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      border = { top = true, right = true, bottom = true, left = true },
-      borderColor = Color.new(1, 1, 1, 1),
+      themeComponent = "button",
       text = "Load Game",
       textAlign = "center",
+      width = 160,
+      height = 40,
       callback = function()
         -- TODO: implement loading function
         Logger:error("Loading function not yet implemented")
@@ -107,10 +111,11 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      borderColor = Color.new(1, 1, 1, 1),
+      themeComponent = "button",
       text = "Main Menu",
       textAlign = "center",
-      border = { top = true, right = true, bottom = true, left = true },
+      width = 160,
+      height = 40,
       callback = function()
         -- TODO: implement main menu function
         Logger:error("Main menu not yet implemented")

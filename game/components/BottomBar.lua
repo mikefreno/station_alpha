@@ -43,7 +43,7 @@ function BottomBar.init()
 
   self.minimizeButton = Gui.new({
     parent = self.window,
-    x = "0.5%",
+    x = "1%",
     y = "5%",
     z = ZIndexing.BottomBar + 20,
     padding = { top = 3, bottom = 5, horizontal = 8 },
@@ -75,7 +75,7 @@ function BottomBar.init()
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
-    padding = { horizontal = 16, vertical = 4 },
+    padding = { horizontal = 24, vertical = 8 },
     themeComponent = "button",
     callback = function(ele)
       Logger:debug("Colonists button: " .. ele.y)
@@ -89,7 +89,7 @@ function BottomBar.init()
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
-    padding = { horizontal = 16, vertical = 4 },
+    padding = { horizontal = 24, vertical = 8 },
     themeComponent = "button",
     callback = function(ele)
       Logger:debug("Schedule button: " .. ele.y)
@@ -151,6 +151,7 @@ function BottomBar:renderColonistsTab()
       text = name,
       padding = { horizontal = 32, vertical = 8 },
       textColor = Color.new(1, 1, 1, 1),
+      textAlign = "center",
       themeComponent = "button",
       callback = function()
         EntityManager:addComponent(colonist, ComponentType.SELECTED, true)
@@ -192,7 +193,6 @@ function BottomBar:renderScheduleTab()
     parent = self.window,
     width = "100%",
     height = "80%",
-    padding = { horizontal = 10, vertical = 8 },
     positioning = "grid",
     gridRows = numRows,
     gridColumns = numColumns,
