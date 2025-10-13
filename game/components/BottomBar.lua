@@ -36,6 +36,7 @@ function BottomBar.init()
     z = ZIndexing.BottomBar,
     themeComponent = "panel",
     backgroundColor = Color.new(0.2, 0.2, 0.2, 1.0),
+    padding = { horizontal = "5%", vertical = "10%" },
     width = "100%",
     height = "15%",
     cornerRadius = { topLeft = 20, topRight = 20 },
@@ -46,7 +47,9 @@ function BottomBar.init()
     x = "1%",
     y = "5%",
     z = ZIndexing.BottomBar + 20,
-    padding = { top = 3, bottom = 5, horizontal = 8 },
+    padding = { vertical = 4, horizontal = 4 },
+    width = "2.5vh",
+    height = "2.5vh",
     text = "-",
     textAlign = "center",
     positioning = "flex",
@@ -75,7 +78,7 @@ function BottomBar.init()
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
-    padding = { horizontal = 24, vertical = 8 },
+    padding = { horizontal = 8, vertical = 4 },
     themeComponent = "button",
     callback = function(ele)
       Logger:debug("Colonists button: " .. ele.y)
@@ -89,7 +92,7 @@ function BottomBar.init()
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
-    padding = { horizontal = 24, vertical = 8 },
+    padding = { horizontal = 8, vertical = 4 },
     themeComponent = "button",
     callback = function(ele)
       Logger:debug("Schedule button: " .. ele.y)
@@ -149,7 +152,7 @@ function BottomBar:renderColonistsTab()
     Gui.new({
       parent = self.colonistContainer,
       text = name,
-      padding = { horizontal = 32, vertical = 8 },
+      padding = { horizontal = 8, vertical = 4 },
       textColor = Color.new(1, 1, 1, 1),
       textAlign = "center",
       themeComponent = "button",

@@ -54,9 +54,9 @@ function PauseMenu:toggle()
       parent = self.window,
       text = "Pause Menu",
       themeComponent = "panel",
-      padding = { horizontal = 48, vertical = 24 },
+      padding = { horizontal = 24, vertical = 16 },
       textAlign = TextAlign.CENTER,
-      textSize = "3xl",
+      textSize = "4xl",
     })
     Gui.new({
       parent = self.window,
@@ -65,6 +65,7 @@ function PauseMenu:toggle()
       themeComponent = "button",
       width = "7%",
       height = "9%",
+      padding = { horizontal = 12, vertical = 12 },
       positioning = Positioning.ABSOLUTE,
       text = "X",
       textSize = "3xl",
@@ -80,6 +81,7 @@ function PauseMenu:toggle()
       textAlign = "center",
       width = 160,
       height = 40,
+      padding = { horizontal = 12, vertical = 8 },
       callback = function()
         -- TODO: implement Settings screen function
         Logger:error("Settings screen not yet implemented")
@@ -91,6 +93,7 @@ function PauseMenu:toggle()
       themeComponent = "button",
       width = 160,
       height = 40,
+      padding = { horizontal = 12, vertical = 8 },
       text = "Save Game",
       callback = function()
         -- TODO: implement saving function
@@ -104,6 +107,7 @@ function PauseMenu:toggle()
       textAlign = "center",
       width = 160,
       height = 40,
+      padding = { horizontal = 12, vertical = 8 },
       callback = function()
         -- TODO: implement loading function
         Logger:error("Loading function not yet implemented")
@@ -116,6 +120,7 @@ function PauseMenu:toggle()
       textAlign = "center",
       width = 160,
       height = 40,
+      padding = { horizontal = 12, vertical = 8 },
       callback = function()
         -- TODO: implement main menu function
         Logger:error("Main menu not yet implemented")
