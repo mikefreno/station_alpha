@@ -32,12 +32,13 @@ function BottomBar.init()
   -- Create the main window with flex layout
   self.window = Gui.new({
     x = 0,
-    y = "90%",
+    y = "85%",
     z = ZIndexing.BottomBar,
     themeComponent = "panel",
-    background = Color.new(0.2, 0.2, 0.2, 1.0),
+    backgroundColor = Color.new(0.2, 0.2, 0.2, 1.0),
     width = "100%",
-    height = "10%",
+    height = "15%",
+    cornerRadius = { topLeft = 20, topRight = 20 },
   })
 
   self.minimizeButton = Gui.new({
@@ -45,7 +46,7 @@ function BottomBar.init()
     x = "0.5%",
     y = "5%",
     z = ZIndexing.BottomBar + 20,
-    padding = { vertical = 4, horizontal = 8 },
+    padding = { top = 3, bottom = 5, horizontal = 8 },
     text = "-",
     textAlign = "center",
     positioning = "flex",
@@ -74,9 +75,8 @@ function BottomBar.init()
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
-    padding = { horizontal = 8, vertical = 4 },
-    border = { top = true, right = true, bottom = true, left = true },
-    borderColor = Color.new(1, 1, 1, 1),
+    padding = { horizontal = 16, vertical = 4 },
+    themeComponent = "button",
     callback = function(ele)
       Logger:debug("Colonists button: " .. ele.y)
       self.tab = Tabs.COLONIST
@@ -89,9 +89,8 @@ function BottomBar.init()
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
-    padding = { horizontal = 8, vertical = 4 },
-    border = { top = true, right = true, bottom = true, left = true },
-    borderColor = Color.new(1, 1, 1, 1),
+    padding = { horizontal = 16, vertical = 4 },
+    themeComponent = "button",
     callback = function(ele)
       Logger:debug("Schedule button: " .. ele.y)
       self.tab = Tabs.SCHEDULE
@@ -150,10 +149,9 @@ function BottomBar:renderColonistsTab()
     Gui.new({
       parent = self.colonistContainer,
       text = name,
-      background = Color.new(0.6, 0.2, 0.4),
-      padding = { horizontal = 8, vertical = 4 },
-      border = { top = true, right = true, bottom = true, left = true },
+      padding = { horizontal = 32, vertical = 8 },
       textColor = Color.new(1, 1, 1, 1),
+      themeComponent = "button",
       callback = function()
         EntityManager:addComponent(colonist, ComponentType.SELECTED, true)
         local colPos = EntityManager:getComponent(colonist, ComponentType.POSITION)
@@ -207,7 +205,7 @@ function BottomBar:renderScheduleTab()
   -- Top-left corner cell (empty)
   Gui.new({
     parent = self.scheduleContainer,
-    background = Color.new(0.3, 0.3, 0.3, 1.0),
+    backgroundColor = Color.new(0.3, 0.3, 0.3, 1.0),
     border = { top = true, right = true, bottom = true, left = true },
     borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
   })
@@ -219,7 +217,7 @@ function BottomBar:renderScheduleTab()
       text = taskName,
       textColor = Color.new(1, 1, 1, 1),
       textAlign = "center",
-      background = Color.new(0.3, 0.3, 0.3, 1.0),
+      backgroundColor = Color.new(0.3, 0.3, 0.3, 1.0),
       border = { top = true, right = true, bottom = true, left = true },
       borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
       textSize = 10,
@@ -236,7 +234,7 @@ function BottomBar:renderScheduleTab()
       text = name or "Unknown",
       textColor = Color.new(1, 1, 1, 1),
       textAlign = "center",
-      background = Color.new(0.3, 0.3, 0.3, 1.0),
+      backgroundColor = Color.new(0.3, 0.3, 0.3, 1.0),
       border = { top = true, right = true, bottom = true, left = true },
       borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
       textSize = 10,
@@ -252,7 +250,7 @@ function BottomBar:renderScheduleTab()
         text = isEnabled and "✓" or "",
         textColor = Color.new(0, 1, 0, 1),
         textAlign = "center",
-        background = isEnabled and Color.new(0.2, 0.5, 0.2, 1.0) or Color.new(0.4, 0.4, 0.4, 1.0),
+        backgroundColor = isEnabled and Color.new(0.2, 0.5, 0.2, 1.0) or Color.new(0.4, 0.4, 0.4, 1.0),
         border = { top = true, right = true, bottom = true, left = true },
         borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
         textSize = 12,
@@ -265,7 +263,7 @@ function BottomBar:renderScheduleTab()
           -- Update cell appearance
           local newEnabled = currentSchedule[task.value]
           cell.text = newEnabled and "✓" or ""
-          cell.background = newEnabled and Color.new(0.2, 0.5, 0.2, 1.0) or Color.new(0.4, 0.4, 0.4, 1.0)
+          cell.backgroundColor = newEnabled and Color.new(0.2, 0.5, 0.2, 1.0) or Color.new(0.4, 0.4, 0.4, 1.0)
 
           Logger:debug(string.format("Toggled %s for %s: %s", task.name, name, tostring(newEnabled)))
         end,
