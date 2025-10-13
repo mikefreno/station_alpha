@@ -1,10 +1,10 @@
-local enums = require("game.utils.enums")
+local enums = require("utils.enums")
 local ComponentType = enums.ComponentType
-local ZIndexing = require("game.utils.enums").ZIndexing
-local FlexLove = require("game.libs.FlexLove")
+local ZIndexing = require("utils.enums").ZIndexing
+local FlexLove = require("libs.FlexLove")
 local Gui = FlexLove.GUI
 local Color = FlexLove.Color
-local EventBus = require("game.systems.EventBus")
+local EventBus = require("systems.EventBus")
 
 ---@enum Tabs
 local Tabs = {
@@ -34,10 +34,10 @@ function BottomBar.init()
     x = 0,
     y = "90%",
     z = ZIndexing.BottomBar,
+    themeComponent = "panel",
+    background = Color.new(0.2, 0.2, 0.2, 1.0),
     width = "100%",
     height = "10%",
-    border = { top = true },
-    background = Color.new(0.2, 0.2, 0.2, 1.0),
   })
 
   self.minimizeButton = Gui.new({
@@ -49,9 +49,10 @@ function BottomBar.init()
     text = "-",
     textAlign = "center",
     positioning = "flex",
-    border = { top = true, right = true, bottom = true, left = true },
+    themeComponent = "button",
+    --border = { top = true, right = true, bottom = true, left = true },
     textColor = Color.new(1, 1, 1),
-    borderColor = Color.new(1, 1, 1),
+    --borderColor = Color.new(1, 1, 1),
     callback = function()
       self:toggleWindow()
     end,

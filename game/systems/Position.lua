@@ -1,6 +1,6 @@
-local ComponentType = require("game.utils.enums").ComponentType
-local Vec2 = require("game.utils.Vec2")
-local constants = require("game.utils.constants")
+local ComponentType = require("utils.enums").ComponentType
+local Vec2 = require("utils.Vec2")
+local constants = require("utils.constants")
 local TICKSPEED = constants.TICKSPEED
 
 local PositionSystem = {}

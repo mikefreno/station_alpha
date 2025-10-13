@@ -1,5 +1,5 @@
-local enums = require("game.utils.enums")
-local constants = require("game.utils.constants")
+local enums = require("utils.enums")
+local constants = require("utils.constants")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
 
@@ -164,13 +164,13 @@ function EntityManager:getEntityBounds(entityId)
   end
 
   -- Convert logical position to pixel coordinates
-  local px = position.x * constants.pixelSize
-  local py = position.y * constants.pixelSize
+  local px = position.x * constants.pixelSize - Camera.borderPad * constants.pixelSize
+  local py = position.y * constants.pixelSize - Camera.borderPad * constants.pixelSize
 
   local size = shape.size * constants.pixelSize
   local bounds = {
-    x = px - constants.pixelSize / 2,
-    y = py - constants.pixelSize / 2,
+    x = px,
+    y = py,
     width = size,
     height = size,
   }

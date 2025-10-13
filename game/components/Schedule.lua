@@ -1,24 +1,24 @@
-local enums = require("game.utils.enums")
+local enums = require("utils.enums")
 local TaskType = enums.TaskType
 ---@class Schedule
----@field taskTable table<TaskType, integer> --- 0 = never do, up to 6. 3 is neutral. 6 is emergency - will have visual queue
+---@field taskTable table<TaskType, integer> --- 0 = never do, up to 6. 3 is neutral. 6 is emergency - will have visual queue, -1 is not assignable - it indicates an incapable task
 local Schedule = {}
 Schedule.__index = Schedule
 
 function Schedule.new()
   local self = setmetatable({}, Schedule)
   self.taskTable = {
-    [TaskType.MINE] = 0,
-    [TaskType.CONSTRUCT] = 0,
-    [TaskType.OPERATE] = 0,
-    [TaskType.CROP_TEND] = 0,
-    [TaskType.ANIMAL_TEND] = 0,
-    [TaskType.DOCTOR] = 0,
-    [TaskType.FIREFIGHT] = 0,
-    [TaskType.COMBAT] = 0,
-    [TaskType.GUARD] = 0,
-    [TaskType.RESEARCH] = 0,
-    [TaskType.CLEAN] = 0,
+    [TaskType.MINE] = 3,
+    [TaskType.CONSTRUCT] = 3,
+    [TaskType.OPERATE] = 3,
+    [TaskType.CROP_TEND] = 3,
+    [TaskType.ANIMAL_TEND] = 3,
+    [TaskType.DOCTOR] = 3,
+    [TaskType.FIREFIGHT] = 3,
+    [TaskType.COMBAT] = 3,
+    [TaskType.GUARD] = 3,
+    [TaskType.RESEARCH] = 3,
+    [TaskType.CLEAN] = 3,
   }
   return self
 end

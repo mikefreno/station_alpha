@@ -1,5 +1,5 @@
-local ZIndexing = require("game.utils.enums").ZIndexing
-local FlexLove = require("game.libs.FlexLove")
+local ZIndexing = require("utils.enums").ZIndexing
+local FlexLove = require("libs.FlexLove")
 local enums = FlexLove.enums
 local Gui = FlexLove.GUI
 local Color = FlexLove.Color
@@ -11,7 +11,7 @@ local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems, Text
   enums.AlignItems,
   enums.TextAlign,
   enums.TextSize
-local EventBus = require("game.systems.EventBus")
+local EventBus = require("systems.EventBus")
 
 ---@class PauseMenu
 ---@field visible boolean

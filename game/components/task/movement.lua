@@ -1,6 +1,6 @@
-local Task = require("game.components.task.base")
-local ComponentType = require("game.utils.enums").ComponentType
-local Vec2 = require("game.utils.Vec2")
+local Task = require("components.task.base")
+local ComponentType = require("utils.enums").ComponentType
+local Vec2 = require("utils.Vec2")
 
 ---@class MovementTask: Task
 ---@field startPosition Vec2

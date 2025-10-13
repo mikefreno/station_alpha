@@ -1,5 +1,5 @@
-local enums = require("game.utils.enums")
-local Vec2 = require("game.utils.Vec2")
+local enums = require("utils.enums")
+local Vec2 = require("utils.Vec2")
 local TopographyType = enums.TopographyType
 
 ---@class Tile

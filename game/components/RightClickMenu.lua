@@ -1,18 +1,18 @@
-local EntityManager = require("game.systems.EntityManager")
-local Vec2 = require("game.utils.Vec2")
-local constants = require("game.utils.constants")
-local ComponentType = require("game.utils.enums").ComponentType
-local ZIndexing = require("game.utils.enums").ZIndexing
-local FlexLove = require("game.libs.FlexLove")
-local MovementTask = require("game.components.task.movement")
+local EntityManager = require("systems.EntityManager")
+local Vec2 = require("utils.Vec2")
+local constants = require("utils.constants")
+local ComponentType = require("utils.enums").ComponentType
+local ZIndexing = require("utils.enums").ZIndexing
+local FlexLove = require("libs.FlexLove")
+local MovementTask = require("components.task.movement")
 local Gui = FlexLove.GUI
 local Color = FlexLove.Color
 local enums = FlexLove.enums
 local Positioning, FlexDirection, JustifyContent, AlignContent, AlignItems =
   enums.Positioning, enums.FlexDirection, enums.JustifyContent, enums.AlignContent, enums.AlignItems
-local MapManager = require("game.systems.MapManager")
-local EventBus = require("game.systems.EventBus")
-local Camera = require("game.components.Camera")
+local MapManager = require("systems.MapManager")
+local EventBus = require("systems.EventBus")
+local Camera = require("components.Camera")
 
 ---@class RightClickMenu
 ---@field worldPosition Vec2?

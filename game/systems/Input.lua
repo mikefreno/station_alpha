@@ -1,9 +1,9 @@
-local ComponentType = require("game.utils.enums").ComponentType
-local EntityManager = require("game.systems.EntityManager")
-local PauseMenu = require("game.components.PauseMenu")
-local Vec2 = require("game.utils.Vec2")
-local RightClickMenu = require("game.components.RightClickMenu")
-local EventBus = require("game.systems.EventBus")
+local ComponentType = require("utils.enums").ComponentType
+local EntityManager = require("systems.EntityManager")
+local PauseMenu = require("components.PauseMenu")
+local Vec2 = require("utils.Vec2")
+local RightClickMenu = require("components.RightClickMenu")
+local EventBus = require("systems.EventBus")
 
 local InputSystem = {}
 InputSystem.__index = InputSystem

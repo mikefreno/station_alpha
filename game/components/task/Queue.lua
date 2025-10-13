@@ -1,4 +1,4 @@
-local enums = require("game.utils.enums")
+local enums = require("utils.enums")
 
 ---@class TaskQueue
 ---@field ownerId integer

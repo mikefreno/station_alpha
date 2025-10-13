@@ -1,31 +1,31 @@
-Logger = require("game.logger"):init()
-local Schedule = require("game.components.Schedule")
-local enums = require("game.utils.enums")
-local mapManager = require("game.systems.MapManager")
+Logger = require("logger"):init()
+local Schedule = require("components.Schedule")
+local enums = require("utils.enums")
+local mapManager = require("systems.MapManager")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
-EntityManager = require("game.systems.EntityManager")
-local InputSystem = require("game.systems.Input")
-local LoadingIndicator = require("game.components.LoadingIndicator")
-local PositionSystem = require("game.systems.Position")
-local RenderSystem = require("game.systems.Render")
-local Shape = require("game.components.Shape")
-local TaskQueue = require("game.components.task.Queue")
-local Texture = require("game.components.Texture")
-local Vec2 = require("game.utils.Vec2")
-local camera = require("game.components.Camera")
-local constants = require("game.utils.constants")
-local overlayStats = require("game.libs.OverlayStats")
-local pathfinder = require("game.systems.PathFinder")
-local taskManager = require("game.systems.TaskManager")
-local EventBus = require("game.systems.EventBus")
-local FlexLove = require("game.libs.FlexLove")
+EntityManager = require("systems.EntityManager")
+local InputSystem = require("systems.Input")
+local LoadingIndicator = require("components.LoadingIndicator")
+local PositionSystem = require("systems.Position")
+local RenderSystem = require("systems.Render")
+local Shape = require("components.Shape")
+local TaskQueue = require("components.task.Queue")
+local Texture = require("components.Texture")
+local Vec2 = require("utils.Vec2")
+local camera = require("components.Camera")
+local constants = require("utils.constants")
+local overlayStats = require("libs.OverlayStats")
+local pathfinder = require("systems.PathFinder")
+local taskManager = require("systems.TaskManager")
+local EventBus = require("systems.EventBus")
+local FlexLove = require("libs.FlexLove")
 local Gui = FlexLove.GUI
 
 ---GUI Init---
-require("game.components.PauseMenu")
-require("game.components.RightClickMenu")
-local BottomBar = require("game.components.BottomBar") -- BottomBar relies upon colonists
+require("components.PauseMenu")
+require("components.RightClickMenu")
+local BottomBar = require("components.BottomBar") -- BottomBar relies upon colonists
 --------------
 
 local function isLoading()
@@ -68,11 +68,13 @@ local function initDot()
 end
 
 function love.load()
+  Gui.init({ theme = "space" })
+
   initSystems()
   initDot()
+
   BottomBar:renderCurrentTab()
   overlayStats.load()
-  Gui.init({})
 end
 
 function love.update(dt)

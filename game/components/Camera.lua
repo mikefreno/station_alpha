@@ -1,10 +1,10 @@
-local constants = require("game.utils.constants")
-local enums = require("game.utils.enums")
+local constants = require("utils.constants")
+local enums = require("utils.enums")
 local ComponentType = enums.ComponentType
-local Vec2 = require("game.utils.Vec2")
-local PauseMenu = require("game.components.PauseMenu")
-local BottomBar = require("game.components.BottomBar")
-local EventBus = require("game.systems.EventBus")
+local Vec2 = require("utils.Vec2")
+local PauseMenu = require("components.PauseMenu")
+local BottomBar = require("components.BottomBar")
+local EventBus = require("systems.EventBus")
 
 local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 
@@ -17,6 +17,7 @@ local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
 ---@field panningZoneBuffer number -- How long before panning starts (0=start immediately)
 ---@field selectedEntity integer? -- Entity to track movement of
 ---@field lastEmittedPos Vec2?
+---@field borderPad number
 local Camera = {}
 Camera.__index = Camera
 
@@ -33,6 +34,7 @@ function Camera.new()
   self.zoom = 1
   self.zoomRate = 0.15 -- a bit higher so you see the effect
   self.panningBorder = 0.10
+  self.borderPad = 0.5
   self.panningZoneBuffer = defaultPanningZoneBuffer
   self.lastEmittedPos = self.position:clone()
 
@@ -215,14 +217,11 @@ function Camera:clampPosition()
   local logicalW = love.graphics.getWidth() / (constants.pixelSize * self.zoom)
   local logicalH = love.graphics.getHeight() / (constants.pixelSize * self.zoom)
 
-  -- Padding: half a tile beyond each edge
-  local pad = 0.5
-
-  local minX = 1 - pad
-  local minY = 1 - pad
-  local maxX = MAP_W + pad + 1 - logicalW
+  local minX = 1 - self.borderPad
+  local minY = 1 - self.borderPad
+  local maxX = MAP_W + self.borderPad + 1 - logicalW
   local maxY = MAP_H
-    + pad
+    + self.borderPad
     + 1
     - logicalH
     + ((not BottomBar.minimized and BottomBar.window.height / (constants.pixelSize * self.zoom)) or 0)

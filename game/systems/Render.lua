@@ -1,7 +1,7 @@
-local enums = require("game.utils.enums")
+local enums = require("utils.enums")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
-local constants = require("game.utils.constants")
+local constants = require("utils.constants")
 
 ---@class RenderSystem
 ---@field renderBorderPadding integer
