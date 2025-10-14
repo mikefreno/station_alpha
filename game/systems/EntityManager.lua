@@ -1,7 +1,10 @@
 local enums = require("utils.enums")
 local constants = require("utils.constants")
+local helperFunctions = require("utils.helperFunctions")
+local EventBus = require("systems.EventBus")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
+local switch = helperFunctions.switch
 
 ---@class EntityManager
 ---@field entities   table<number, boolean>
@@ -31,19 +34,24 @@ end
 ---@param type ComponentType
 ---@param data any
 function EntityManager:addComponent(entityId, type, data)
-  --TODO: Will need handling checks if multiple are selected - this will work as last selected
-  -- Check if selecting a colonist, add to camera if so
-  if type == ComponentType.SELECTED then
-    local isColonist = self:getComponent(entityId, ComponentType.COLONIST_TAG)
-    if isColonist then
-      Camera.selectedEntity = entityId
-    end
-  end
-
   if not self.components[type] then
     self.components[type] = {}
   end
   self.components[type][entityId] = data
+
+  switch(type, {
+    [ComponentType.SELECTED] = function()
+      --TODO: Will need handling checks if multiple are selected - this will work as last selected
+      -- Check if selecting a colonist, add to camera if so
+      local isColonist = self:getComponent(entityId, ComponentType.COLONIST_TAG)
+      if isColonist then
+        Camera.selectedEntity = entityId
+      end
+    end,
+    [ComponentType.COLONIST_TAG] = function()
+      EventBus:emit("colonist_added")
+    end,
+  })
 end
 
 function EntityManager:removeComponent(entityId, type)
@@ -141,9 +149,20 @@ function EntityManager:findNearest(type, data, ignoreTypes)
   return nearest
 end
 
----@param entityId integer
----@param type ComponentType
----@return unknown
+---@overload fun(self: EntityManager, entityId: integer, type: 1): Vec2?  -POSITION
+---@overload fun(self: EntityManager, entityId: integer, type: 2): Vec2?  -- VELOCITY
+---@overload fun(self: EntityManager, entityId: integer, type: 3): TaskQueue?  -- TASKQUEUE
+---@overload fun(self: EntityManager, entityId: integer, type: 4): Texture?  -- TEXTURE
+---@overload fun(self: EntityManager, entityId: integer, type: 5): Shape?  -- SHAPE
+---@overload fun(self: EntityManager, entityId: integer, type: 6): Topography?  -- TOPOGRAPHY
+---@overload fun(self: EntityManager, entityId: integer, type: 7): Vec2?  -- MAPTILE_TAG
+---@overload fun(self: EntityManager, entityId: integer, type: 8): number?  -- SPEEDSTAT
+---@overload fun(self: EntityManager, entityId: integer, type: 9): Vec2?  -- MOVETO
+---@overload fun(self: EntityManager, entityId: integer, type: 10): Schedule?  -- SCHEDULE
+---@overload fun(self: EntityManager, entityId: integer, type: 11): boolean?  -- SELECTED
+---@overload fun(self: EntityManager, entityId: integer, type: 12): string?  -- NAME
+---@overload fun(self: EntityManager, entityId: integer, type: 13): boolean?  -- COLONIST_TAG
+---@overload fun(self: EntityManager, entityId: integer, type: 14): number?  -- HEALTH
 function EntityManager:getComponent(entityId, type)
   local byType = self.components[type]
   if not byType then
@@ -174,8 +193,6 @@ function EntityManager:getEntityBounds(entityId)
     width = size,
     height = size,
   }
-  Logger:debug("Bounds: ")
-  Logger:debug(bounds)
   return bounds
 end
 

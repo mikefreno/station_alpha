@@ -34,8 +34,8 @@ enums.TopographyType = {
 --- @enum ZIndexing
 enums.ZIndexing = {
   BottomBar = 0,
-  RightClickMenu = 1,
-  PauseMenu = 2,
+  RightClickMenu = 10,
+  PauseMenu = 20,
 }
 
 --- @enum TaskType

@@ -3,7 +3,6 @@ local enums = require("utils.enums")
 local ComponentType = enums.ComponentType
 local Vec2 = require("utils.Vec2")
 local PauseMenu = require("components.PauseMenu")
-local BottomBar = require("components.BottomBar")
 local EventBus = require("systems.EventBus")
 
 local MAP_W, MAP_H = constants.MAP_W, constants.MAP_H
@@ -130,7 +129,7 @@ function Camera:update(dt)
 
   -- Check if BottomBar is minimized (invisible)
   local bottomBarVisible = not BottomBar.minimized
-  local bottomBarHeight = BottomBar.window.height
+  local bottomBarHeight = BottomBar.mainContainer.height
   local offsetHeight = height - (bottomBarVisible and bottomBarHeight or 0)
 
   -- Check if mouse is over bottom bar
@@ -224,7 +223,7 @@ function Camera:clampPosition()
     + self.borderPad
     + 1
     - logicalH
-    + ((not BottomBar.minimized and BottomBar.window.height / (constants.pixelSize * self.zoom)) or 0)
+    + ((not BottomBar.minimized and BottomBar.mainContainer.height / (constants.pixelSize * self.zoom)) or 0)
 
   -- Clamp the camera’s logical top‑left corner
   self.position.x = math.max(minX, math.min(maxX, self.position.x))

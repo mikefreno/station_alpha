@@ -1,7 +1,7 @@
 local function compareTables(a, b)
   if a == b then
     return true
-  end -- same reference
+  end
   if type(a) ~= "table" or type(b) ~= "table" then
     return false
   end
@@ -21,6 +21,18 @@ local function compareTables(a, b)
   return true
 end
 
+---@param value any
+---@param cases table
+---@return unknown
+local function switch(value, cases)
+  local case = cases[value] or cases.default
+  if type(case) == "function" then
+    return case()
+  end
+  return case
+end
+
 return {
   compareTables = compareTables,
+  switch = switch,
 }

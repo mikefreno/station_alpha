@@ -1,3 +1,4 @@
+local switch = require("utils.helperFunctions").switch
 --- @enum Log_Level
 Log_Level = {
   ERROR = { name = "ERROR", color = { 1, 0, 0, 1 } }, -- Red
@@ -55,28 +56,36 @@ function Logger:_pretty_print_table_recursive(t, indent_str, current_indent, vis
     end
 
     local value_str
-    if type(v) == "table" and v.x ~= nil and v.y ~= nil and getmetatable(v) and getmetatable(v).__index.add then
-      value_str = string.format("Vec2(%.2f, %.2f)", v.x, v.y)
-    elseif type(v) == "table" then
-      value_str = self:_pretty_print_table_recursive(v, indent_str, next_indent, visited)
-    elseif type(v) == "string" then
-      value_str = '"' .. string.gsub(tostring(v), '"', '\\"') .. '"'
-    elseif type(v) == "function" then
-      value_str = "function: " .. tostring(v)
-    elseif type(v) == "userdata" then
-      local v_type_str = ""
-      if v and type(v.typeOf) == "function" then
-        local status, type_name = pcall(function()
-          return v:typeOf()
-        end)
-        if status and type_name then
-          v_type_str = " (" .. tostring(type_name) .. ")"
+    switch(type(v), {
+      ["table"] = function()
+        if v.x ~= nil and v.y ~= nil and getmetatable(v) and getmetatable(v).__index.add then
+          value_str = string.format("Vec2(%.2f, %.2f)", v.x, v.y)
+        else
+          value_str = self:_pretty_print_table_recursive(v, indent_str, next_indent, visited)
         end
-      end
-      value_str = "userdata" .. v_type_str .. ": " .. tostring(v)
-    else
-      value_str = tostring(v)
-    end
+      end,
+      ["string"] = function()
+        value_str = '"' .. string.gsub(tostring(v), '"', '\\"') .. '"'
+      end,
+      ["function"] = function()
+        value_str = "function: " .. tostring(v)
+      end,
+      ["userdata"] = function()
+        local v_type_str = ""
+        if v and type(v.typeOf) == "function" then
+          local status, type_name = pcall(function()
+            return v:typeOf()
+          end)
+          if status and type_name then
+            v_type_str = " (" .. tostring(type_name) .. ")"
+          end
+        end
+        value_str = "userdata" .. v_type_str .. ": " .. tostring(v)
+      end,
+      default = function()
+        value_str = tostring(v)
+      end,
+    })
     table.insert(entries, next_indent .. key_str .. " = " .. value_str)
   end
 

@@ -4,7 +4,9 @@ local ZIndexing = require("utils.enums").ZIndexing
 local FlexLove = require("libs.FlexLove")
 local Gui = FlexLove.GUI
 local Color = FlexLove.Color
+local Theme = FlexLove.Theme
 local EventBus = require("systems.EventBus")
+local switch = require("utils.helperFunctions").switch
 
 ---@enum Tabs
 local Tabs = {
@@ -13,7 +15,9 @@ local Tabs = {
 }
 
 ---@class BottomBar
----@field window Element
+---@field mainContainer Element
+---@field contentContainer Element
+---@field tabContainer Element
 ---@field minimized boolean
 ---@field minimizeButton Element
 ---@field tab Tabs
@@ -30,78 +34,89 @@ function BottomBar.init()
   self.colonistContainer = nil
 
   -- Create the main window with flex layout
-  self.window = Gui.new({
+  self.mainContainer = Gui.new({
     x = 0,
     y = "85%",
     z = ZIndexing.BottomBar,
+    positioning = "flex",
+    flexDirection = "vertical",
+    justifyContent = "center",
     themeComponent = "panel",
-    backgroundColor = Color.new(0.2, 0.2, 0.2, 1.0),
-    padding = { horizontal = "5%", vertical = "10%" },
+    padding = { horizontal = "2%", vertical = "8%" },
+    backgroundColor = Color.new(0, 0, 0, 0.8),
     width = "100%",
     height = "15%",
-    cornerRadius = { topLeft = 20, topRight = 20 },
   })
 
+  self.minimized = false
+
+  -- Create minimize button (always present, positioned absolutely)
   self.minimizeButton = Gui.new({
-    parent = self.window,
-    x = "1%",
-    y = "5%",
-    z = ZIndexing.BottomBar + 20,
+    y = "85%",
+    z = ZIndexing.BottomBar + 5,
+    width = "2vw",
+    height = "2vw",
     padding = { vertical = 4, horizontal = 4 },
-    width = "2.5vh",
-    height = "2.5vh",
     text = "-",
     textAlign = "center",
-    positioning = "flex",
+    positioning = "absolute",
     themeComponent = "button",
-    --border = { top = true, right = true, bottom = true, left = true },
     textColor = Color.new(1, 1, 1),
-    --borderColor = Color.new(1, 1, 1),
     callback = function()
       self:toggleWindow()
     end,
   })
 
-  -- Create a flex container for the menu tabs
-  local menuTab = Gui.new({
-    parent = self.window,
+  self.contentContainer = Gui.new({
+    parent = self.mainContainer,
     width = "100%",
-    height = "100%",
-    alignItems = "flex-end",
+    height = "70%",
+    cornerRadius = { topLeft = 20, topRight = 20 },
+  })
+
+  -- Create a flex container for the menu tabs
+  self.tabContainer = Gui.new({
+    parent = self.mainContainer,
+    width = "100%",
+    height = "20%",
     positioning = "flex",
     flexDirection = "horizontal",
     justifyContent = "center",
+    gap = "5%",
   })
 
   Gui.new({
-    parent = menuTab,
+    parent = self.tabContainer,
     text = "Colonists",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
     padding = { horizontal = 8, vertical = 4 },
     themeComponent = "button",
-    callback = function(ele)
-      Logger:debug("Colonists button: " .. ele.y)
-      self.tab = Tabs.COLONIST
-      self:renderCurrentTab()
+    callback = function(_, event)
+      if event.type == "release" then
+        self.tab = Tabs.COLONIST
+        self:renderCurrentTab()
+      end
     end,
   })
 
   Gui.new({
-    parent = menuTab,
+    parent = self.tabContainer,
     text = "Schedule",
     textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
     padding = { horizontal = 8, vertical = 4 },
     themeComponent = "button",
-    callback = function(ele)
-      Logger:debug("Schedule button: " .. ele.y)
-      self.tab = Tabs.SCHEDULE
-      self:renderCurrentTab()
+    callback = function(_, event)
+      if event.type == "release" then
+        self.tab = Tabs.SCHEDULE
+        self:renderCurrentTab()
+      end
     end,
   })
-
-  --self:renderCurrentTab() -- would prefer this, but based on timing, must be called after dot - may change on actual colonist implementation
+  EventBus:on("colonist_added", function()
+    self:renderCurrentTab()
+  end)
 
   return self
 end
@@ -133,11 +148,9 @@ function BottomBar:tabCleanup()
 end
 
 function BottomBar:renderColonistsTab()
-  Logger:debug("showing colonists tab")
-
   local colonists = EntityManager:query(ComponentType.COLONIST_TAG)
   self.colonistContainer = Gui.new({
-    parent = self.window,
+    parent = self.contentContainer,
     positioning = "flex",
     flexDirection = "horizontal",
     justifyContent = "center",
@@ -149,6 +162,7 @@ function BottomBar:renderColonistsTab()
 
   for _, colonist in pairs(colonists) do
     local name = EntityManager:getComponent(colonist, ComponentType.NAME)
+
     Gui.new({
       parent = self.colonistContainer,
       text = name,
@@ -167,8 +181,6 @@ function BottomBar:renderColonistsTab()
 end
 
 function BottomBar:renderScheduleTab()
-  Logger:debug("showing schedule tab")
-
   local colonists = EntityManager:query(ComponentType.COLONIST_TAG)
   local TaskType = enums.TaskType
 
@@ -193,7 +205,7 @@ function BottomBar:renderScheduleTab()
   local numColumns = #taskTypes + 1 -- +1 for colonist names column
 
   self.scheduleContainer = Gui.new({
-    parent = self.window,
+    parent = self.contentContainer,
     width = "100%",
     height = "80%",
     positioning = "grid",
@@ -201,16 +213,17 @@ function BottomBar:renderScheduleTab()
     gridColumns = numColumns,
     columnGap = 2,
     rowGap = 2,
+    theme = "space",
     alignItems = "stretch",
   })
+
+  local accentColor = Theme.getColor("primary")
+  local textColor = Theme.getColor("text")
 
   -- Create header row (first row)
   -- Top-left corner cell (empty)
   Gui.new({
     parent = self.scheduleContainer,
-    backgroundColor = Color.new(0.3, 0.3, 0.3, 1.0),
-    border = { top = true, right = true, bottom = true, left = true },
-    borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
   })
 
   -- Task type headers
@@ -218,11 +231,11 @@ function BottomBar:renderScheduleTab()
     Gui.new({
       parent = self.scheduleContainer,
       text = taskName,
-      textColor = Color.new(1, 1, 1, 1),
+      textColor = textColor,
       textAlign = "center",
-      backgroundColor = Color.new(0.3, 0.3, 0.3, 1.0),
+      backgroundColor = Color.new(0, 0, 0, 0.3),
       border = { top = true, right = true, bottom = true, left = true },
-      borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
+      borderColor = accentColor,
       textSize = 10,
     })
   end
@@ -235,40 +248,31 @@ function BottomBar:renderScheduleTab()
     Gui.new({
       parent = self.scheduleContainer,
       text = name or "Unknown",
+      backgroundColor = Color.new(0, 0, 0, 0.3),
       textColor = Color.new(1, 1, 1, 1),
       textAlign = "center",
-      backgroundColor = Color.new(0.3, 0.3, 0.3, 1.0),
       border = { top = true, right = true, bottom = true, left = true },
-      borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
+      borderColor = accentColor,
       textSize = 10,
     })
 
     -- Task cells for this colonist
     for _, task in ipairs(taskTypes) do
       local schedule = EntityManager:getComponent(colonist, ComponentType.SCHEDULE)
-      local isEnabled = schedule and schedule[task.value] or false
 
       Gui.new({
         parent = self.scheduleContainer,
-        text = isEnabled and "✓" or "",
+        text = "",
         textColor = Color.new(0, 1, 0, 1),
         textAlign = "center",
-        backgroundColor = isEnabled and Color.new(0.2, 0.5, 0.2, 1.0) or Color.new(0.4, 0.4, 0.4, 1.0),
         border = { top = true, right = true, bottom = true, left = true },
         borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
         textSize = 12,
-        callback = function(cell)
-          -- Toggle task assignment
-          local currentSchedule = EntityManager:getComponent(colonist, ComponentType.SCHEDULE) or {}
-          currentSchedule[task.value] = not currentSchedule[task.value]
-          EntityManager:addComponent(colonist, ComponentType.SCHEDULE, currentSchedule)
-
-          -- Update cell appearance
-          local newEnabled = currentSchedule[task.value]
-          cell.text = newEnabled and "✓" or ""
-          cell.backgroundColor = newEnabled and Color.new(0.2, 0.5, 0.2, 1.0) or Color.new(0.4, 0.4, 0.4, 1.0)
-
-          Logger:debug(string.format("Toggled %s for %s: %s", task.name, name, tostring(newEnabled)))
+        callback = function(_, event)
+          switch(event.type, {
+            ["click"] = function() end,
+            ["rightclick"] = function() end,
+          })
         end,
       })
     end
@@ -283,14 +287,14 @@ function BottomBar:showAdditionSelectedDetails() end
 
 function BottomBar:toggleWindow()
   if self.minimized then
-    self.window:updateOpacity(1)
+    self.mainContainer:updateOpacity(1)
     self.minimizeButton:updateText("-", false)
   else
-    self.window:updateOpacity(0)
+    self.mainContainer:updateOpacity(0)
     self.minimizeButton:updateText("+", false)
     self.minimizeButton:updateOpacity(1)
   end
   self.minimized = not self.minimized
 end
 
-return BottomBar.init()
+return BottomBar

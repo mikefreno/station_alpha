@@ -1,10 +1,11 @@
 Logger = require("logger"):init()
+EntityManager = require("systems.EntityManager")
+BottomBar = require("components.BottomBar").init()
 local Schedule = require("components.Schedule")
 local enums = require("utils.enums")
 local mapManager = require("systems.MapManager")
 local ComponentType = enums.ComponentType
 local ShapeType = enums.ShapeType
-EntityManager = require("systems.EntityManager")
 local InputSystem = require("systems.Input")
 local LoadingIndicator = require("components.LoadingIndicator")
 local PositionSystem = require("systems.Position")
@@ -25,7 +26,6 @@ local Gui = FlexLove.GUI
 ---GUI Init---
 require("components.PauseMenu")
 require("components.RightClickMenu")
-local BottomBar = require("components.BottomBar") -- BottomBar relies upon colonists
 --------------
 
 local function isLoading()
@@ -73,7 +73,6 @@ function love.load()
   initSystems()
   initDot()
 
-  BottomBar:renderCurrentTab()
   overlayStats.load()
 end
 

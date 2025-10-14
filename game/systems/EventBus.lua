@@ -41,7 +41,6 @@ function EventBus:emit(eventType, data)
   if not listeners then
     return
   end
-  Logger:debug("emitting " .. eventType)
 
   for _, callback in ipairs(listeners) do
     callback(data)

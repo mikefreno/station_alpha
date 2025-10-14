@@ -36,10 +36,8 @@ function MovementTask.new(performerEntity, target, priority)
 end
 
 function MovementTask:perform(dt)
-  Logger:debug("performing")
   local moveto = EntityManager:getComponent(self.performerEntity, ComponentType.MOVETO)
   if moveto then
-    Logger:debug("waiting on position system")
     -- The position system removes these when ready
     return
   end
@@ -47,7 +45,6 @@ function MovementTask:perform(dt)
     self.isComplete = true
     return
   end
-  Logger:debug("making moveto")
   self.currentPathIndex = self.currentPathIndex + 1
   local nextPoint = self.path[self.currentPathIndex]
   EntityManager:addComponent(self.performerEntity, ComponentType.MOVETO, nextPoint)

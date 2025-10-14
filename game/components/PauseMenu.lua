@@ -40,38 +40,41 @@ function PauseMenu:toggle()
       z = ZIndexing.PauseMenu,
       width = "100%",
       height = "100%",
-      border = { top = true, right = true, bottom = true, left = true },
-      backgroundColor = Color.new(0, 0, 0, 0.8),
+      themeComponent = "panel",
       textColor = Color.new(1, 1, 1, 1),
       positioning = Positioning.FLEX,
       flexDirection = FlexDirection.VERTICAL,
       justifyContent = JustifyContent.CENTER,
       alignItems = AlignItems.CENTER,
+      padding = { vertical = "10%", horizontal = "10%" },
+      backgroundColor = Color.new(0, 0, 0, 0.8),
       gap = 10,
     })
 
     Gui.new({
       parent = self.window,
       text = "Pause Menu",
-      themeComponent = "panel",
+      margin = { top = "-20vh" },
       padding = { horizontal = 24, vertical = 16 },
       textAlign = TextAlign.CENTER,
       textSize = "4xl",
     })
     Gui.new({
       parent = self.window,
-      x = 40,
-      y = 40,
+      x = "4%",
+      y = "4%",
       themeComponent = "button",
-      width = "7%",
-      height = "9%",
+      width = "4vw",
+      height = "4vw",
       padding = { horizontal = 12, vertical = 12 },
       positioning = Positioning.ABSOLUTE,
       text = "X",
-      textSize = "3xl",
+      textSize = "2xl",
       textAlign = "center",
-      callback = function()
-        self:toggle()
+      callback = function(_, event)
+        if event.type == "release" then
+          self:toggle()
+        end
       end,
     })
     Gui.new({
@@ -82,9 +85,11 @@ function PauseMenu:toggle()
       width = 160,
       height = 40,
       padding = { horizontal = 12, vertical = 8 },
-      callback = function()
-        -- TODO: implement Settings screen function
-        Logger:error("Settings screen not yet implemented")
+      callback = function(_, event)
+        if event.type == "release" then
+          -- TODO: implement Settings screen function
+          Logger:error("Settings screen not yet implemented")
+        end
       end,
     })
     Gui.new({
@@ -95,9 +100,11 @@ function PauseMenu:toggle()
       height = 40,
       padding = { horizontal = 12, vertical = 8 },
       text = "Save Game",
-      callback = function()
-        -- TODO: implement saving function
-        Logger:error("Save function not yet implemented")
+      callback = function(_, event)
+        if event.type == "release" then
+          -- TODO: implement saving function
+          Logger:error("Save function not yet implemented")
+        end
       end,
     })
     Gui.new({
@@ -108,9 +115,11 @@ function PauseMenu:toggle()
       width = 160,
       height = 40,
       padding = { horizontal = 12, vertical = 8 },
-      callback = function()
-        -- TODO: implement loading function
-        Logger:error("Loading function not yet implemented")
+      callback = function(_, event)
+        if event.type == "release" then
+          -- TODO: implement loading function
+          Logger:error("Loading function not yet implemented")
+        end
       end,
     })
     Gui.new({
@@ -121,9 +130,25 @@ function PauseMenu:toggle()
       width = 160,
       height = 40,
       padding = { horizontal = 12, vertical = 8 },
-      callback = function()
-        -- TODO: implement main menu function
-        Logger:error("Main menu not yet implemented")
+      callback = function(_, event)
+        if event.type == "release" then
+          -- TODO: implement main menu function
+          Logger:error("Main menu not yet implemented")
+        end
+      end,
+    })
+    Gui.new({
+      parent = self.window,
+      themeComponent = "button",
+      text = "Quit Game",
+      textAlign = "center",
+      width = 160,
+      height = 40,
+      padding = { horizontal = 12, vertical = 8 },
+      callback = function(_, event)
+        if event.type == "release" then
+          love.event.quit()
+        end
       end,
     })
   else
