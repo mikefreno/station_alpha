@@ -54,7 +54,7 @@ function PauseMenu:toggle()
     Gui.new({
       parent = self.window,
       text = "Pause Menu",
-      margin = { top = "-20vh" },
+      margin = { top = "-15vh", bottom = "15vh" },
       padding = { horizontal = 24, vertical = 16 },
       textAlign = TextAlign.CENTER,
       textSize = "4xl",

@@ -7,6 +7,7 @@ local Color = FlexLove.Color
 local Theme = FlexLove.Theme
 local EventBus = require("systems.EventBus")
 local switch = require("utils.helperFunctions").switch
+local scheduleColors = require("utils.colors").schedule
 
 ---@enum Tabs
 local Tabs = {
@@ -259,20 +260,37 @@ function BottomBar:renderScheduleTab()
     -- Task cells for this colonist
     for _, task in ipairs(taskTypes) do
       local schedule = EntityManager:getComponent(colonist, ComponentType.SCHEDULE)
+      if not task or not schedule then
+        return
+      end
 
       Gui.new({
         parent = self.scheduleContainer,
-        text = "",
-        textColor = Color.new(0, 1, 0, 1),
+        text = schedule:getStrVal(task.value),
+        textColor = schedule:getColor(task.value),
         textAlign = "center",
         border = { top = true, right = true, bottom = true, left = true },
         borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
         textSize = 12,
-        callback = function(_, event)
+        callback = function(elem, event)
           switch(event.type, {
-            ["click"] = function() end,
-            ["rightclick"] = function() end,
+            ["click"] = function()
+              if event.modifiers.shift then
+                schedule:setToMax(task.value)
+                return
+              end
+              schedule:increment(task.value)
+            end,
+            ["rightclick"] = function()
+              if event.modifiers.shift then
+                schedule:setToMin(task.value)
+                return
+              end
+              schedule:decrement(task.value)
+            end,
           })
+          elem.textColor = schedule:getColor(task.value)
+          elem:updateText(schedule:getStrVal(task.value))
         end,
       })
     end
