@@ -42,7 +42,7 @@ function BottomBar.init()
     positioning = "flex",
     flexDirection = "vertical",
     justifyContent = "center",
-    themeComponent = "panel",
+    themeComponent = "card",
     padding = { horizontal = "2%", vertical = "8%" },
     backgroundColor = Color.new(0, 0, 0, 0.8),
     width = "100%",
@@ -72,6 +72,7 @@ function BottomBar.init()
     parent = self.mainContainer,
     width = "100%",
     height = "70%",
+    positioning = "flex",
     cornerRadius = { topLeft = 20, topRight = 20 },
   })
 

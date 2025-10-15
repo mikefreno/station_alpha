@@ -40,7 +40,7 @@ function PauseMenu:toggle()
       z = ZIndexing.PauseMenu,
       width = "100%",
       height = "100%",
-      themeComponent = "panel",
+      themeComponent = "card",
       textColor = Color.new(1, 1, 1, 1),
       positioning = Positioning.FLEX,
       flexDirection = FlexDirection.VERTICAL,

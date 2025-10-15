@@ -63,8 +63,8 @@ function RightClickMenu:set()
     x = self.worldPosition.x,
     y = self.worldPosition.y,
     z = ZIndexing.RightClickMenu,
-    border = { top = true, right = true, bottom = true, left = true },
-    background = Color.new(0.6, 0.6, 0.8, 1),
+    padding = { horizontal = "5vw", vertical = "5vh" },
+    themeComponent = "panel",
     textColor = Color.new(1, 1, 1, 1),
     positioning = Positioning.FLEX,
     flexDirection = FlexDirection.VERTICAL,
@@ -112,19 +112,22 @@ end
 
 ---@param entity integer
 function RightClickMenu:addMoveTo(entity)
-  local function GoTo()
-    local entityTQ = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
-    entityTQ:reset()
-    entityTQ:push(MovementTask.new(entity, self.gridPosition))
-    ButtonPressed = false
-  end
   local entityName = EntityManager:getComponent(entity, ComponentType.NAME)
 
   Gui.new({
     parent = self.window,
-    background = Color.new(0.2, 0.7, 0.7, 0.9),
+    backgroundColor = Color.new(0.2, 0.7, 0.7, 0.9),
     text = "Move " .. entityName .. " To: " .. self.gridPosition.x .. "," .. self.gridPosition.y,
-    callback = GoTo,
+    callback = function(_, event)
+      if event.button == 1 and event.type == "release" then
+        local entityTQ = EntityManager:getComponent(entity, ComponentType.TASKQUEUE)
+        if entityTQ then
+          entityTQ:reset()
+          entityTQ:push(MovementTask.new(entity, self.gridPosition))
+        end
+        ButtonPressed = false
+      end
+    end,
   })
 end
 
