@@ -22,6 +22,7 @@ local Tabs = {
 ---@field minimized boolean
 ---@field minimizeButton Element
 ---@field tab Tabs
+---@field tabButtons table
 local BottomBar = {}
 BottomBar.__index = BottomBar
 local instance
@@ -33,6 +34,7 @@ function BottomBar.init()
   local self = setmetatable({}, BottomBar)
   self.tab = Tabs.COLONIST
   self.colonistContainer = nil
+  self.tabButtons = {}
 
   -- Create the main window with flex layout
   self.mainContainer = Gui.new({
@@ -42,9 +44,8 @@ function BottomBar.init()
     positioning = "flex",
     flexDirection = "vertical",
     justifyContent = "center",
-    themeComponent = "card",
-    padding = { horizontal = "2%", vertical = "8%" },
-    backgroundColor = Color.new(0, 0, 0, 0.8),
+    themeComponent = "framev2",
+    scaleCorners = 1.5,
     width = "100%",
     height = "15%",
   })
@@ -53,16 +54,15 @@ function BottomBar.init()
 
   -- Create minimize button (always present, positioned absolutely)
   self.minimizeButton = Gui.new({
-    y = "85%",
+    x = "0.5vw",
+    y = "85.5vh",
     z = ZIndexing.BottomBar + 5,
     width = "2vw",
     height = "2vw",
-    padding = { vertical = 4, horizontal = 4 },
     text = "-",
     textAlign = "center",
     positioning = "absolute",
-    themeComponent = "button",
-    textColor = Color.new(1, 1, 1),
+    themeComponent = "buttonv1",
     callback = function()
       self:toggleWindow()
     end,
@@ -73,7 +73,6 @@ function BottomBar.init()
     width = "100%",
     height = "70%",
     positioning = "flex",
-    cornerRadius = { topLeft = 20, topRight = 20 },
   })
 
   -- Create a flex container for the menu tabs
@@ -90,10 +89,9 @@ function BottomBar.init()
   Gui.new({
     parent = self.tabContainer,
     text = "Colonists",
-    textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
-    padding = { horizontal = 8, vertical = 4 },
-    themeComponent = "button",
+    themeComponent = "buttonv1",
+    disabled = self.tab == Tabs.COLONIST,
     callback = function(_, event)
       if event.type == "release" then
         self.tab = Tabs.COLONIST
@@ -105,10 +103,9 @@ function BottomBar.init()
   Gui.new({
     parent = self.tabContainer,
     text = "Schedule",
-    textColor = Color.new(1, 1, 1, 1),
     textAlign = "center",
-    padding = { horizontal = 8, vertical = 4 },
-    themeComponent = "button",
+    themeComponent = "buttonv1",
+    disabled = self.tab == Tabs.SCHEDULE,
     callback = function(_, event)
       if event.type == "release" then
         self.tab = Tabs.SCHEDULE
@@ -136,6 +133,7 @@ function BottomBar:renderCurrentTab()
   else
     Logger:error("Invalid tab selected: " .. tostring(self.tab))
   end
+  self:updateTabButtonStates()
 end
 
 function BottomBar:tabCleanup()
@@ -168,10 +166,8 @@ function BottomBar:renderColonistsTab()
     Gui.new({
       parent = self.colonistContainer,
       text = name,
-      padding = { horizontal = 8, vertical = 4 },
-      textColor = Color.new(1, 1, 1, 1),
       textAlign = "center",
-      themeComponent = "button",
+      themeComponent = "buttonv1",
       callback = function()
         EntityManager:addComponent(colonist, ComponentType.SELECTED, true)
         local colPos = EntityManager:getComponent(colonist, ComponentType.POSITION)
@@ -210,6 +206,7 @@ function BottomBar:renderScheduleTab()
     parent = self.contentContainer,
     width = "100%",
     height = "80%",
+    backgroundColor = Color.new(1),
     positioning = "grid",
     gridRows = numRows,
     gridColumns = numColumns,
@@ -314,6 +311,16 @@ function BottomBar:toggleWindow()
     self.minimizeButton:updateOpacity(1)
   end
   self.minimized = not self.minimized
+end
+
+function BottomBar:updateTabButtonStates()
+  for _, button in ipairs(self.tabButtons) do
+    if button then
+      -- Update the disabled state based on current tab selection
+      local isDisabled = (button.tabValue == self.tab)
+      button:updateDisabled(isDisabled)
+    end
+  end
 end
 
 return BottomBar

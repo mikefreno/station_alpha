@@ -40,14 +40,15 @@ function PauseMenu:toggle()
       z = ZIndexing.PauseMenu,
       width = "100%",
       height = "100%",
-      themeComponent = "card",
+      themeComponent = "framev3",
       textColor = Color.new(1, 1, 1, 1),
       positioning = Positioning.FLEX,
       flexDirection = FlexDirection.VERTICAL,
       justifyContent = JustifyContent.CENTER,
       alignItems = AlignItems.CENTER,
-      padding = { vertical = "10%", horizontal = "10%" },
       backgroundColor = Color.new(0, 0, 0, 0.8),
+      scaleCorners = 2,
+      scalingAlgorithm = "bilinear",
       gap = 10,
     })
 
@@ -63,7 +64,7 @@ function PauseMenu:toggle()
       parent = self.window,
       x = "4%",
       y = "4%",
-      themeComponent = "button",
+      themeComponent = "buttonv1",
       width = "4vw",
       height = "4vw",
       padding = { horizontal = 12, vertical = 12 },
@@ -79,7 +80,7 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      themeComponent = "button",
+      themeComponent = "buttonv1",
       text = "Settings",
       textAlign = "center",
       width = 160,
@@ -95,7 +96,7 @@ function PauseMenu:toggle()
     Gui.new({
       parent = self.window,
       textAlign = "center",
-      themeComponent = "button",
+      themeComponent = "buttonv1",
       width = 160,
       height = 40,
       padding = { horizontal = 12, vertical = 8 },
@@ -109,7 +110,7 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      themeComponent = "button",
+      themeComponent = "buttonv1",
       text = "Load Game",
       textAlign = "center",
       width = 160,
@@ -124,7 +125,7 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      themeComponent = "button",
+      themeComponent = "buttonv1",
       text = "Main Menu",
       textAlign = "center",
       width = 160,
@@ -139,7 +140,7 @@ function PauseMenu:toggle()
     })
     Gui.new({
       parent = self.window,
-      themeComponent = "button",
+      themeComponent = "buttonv1",
       text = "Quit Game",
       textAlign = "center",
       width = 160,

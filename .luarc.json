@@ -9,13 +9,12 @@
     "jit"
   ],
   "hint.enable": true,
-  "workspace.checkThirdParty": false,
+  "workspace.checkThirdParty": true,
   "workspace.ignoreDir": [
     ".vscode",
     "builds",
     "resources",
-    "tools",
-    "game/libs/examples"
+    "tools"
   ],
   "workspace.library": [
     "${3rd}/love2d/library",

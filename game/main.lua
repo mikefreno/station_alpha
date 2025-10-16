@@ -68,7 +68,7 @@ local function initDot()
 end
 
 function love.load()
-  Gui.init({ theme = "space" })
+  Gui.init({ theme = "metal" })
 
   initSystems()
   initDot()
