@@ -22,7 +22,7 @@ local Tabs = {
 ---@field minimized boolean
 ---@field minimizeButton Element
 ---@field tab Tabs
----@field tabButtons table
+---@field tabButtons table<Tabs, Element>
 local BottomBar = {}
 BottomBar.__index = BottomBar
 local instance
@@ -85,39 +85,45 @@ function BottomBar.init()
     justifyContent = "center",
     gap = "5%",
   })
+  self:setupTabButtons()
 
-  Gui.new({
-    parent = self.tabContainer,
-    text = "Colonists",
-    textAlign = "center",
-    themeComponent = "buttonv1",
-    disabled = self.tab == Tabs.COLONIST,
-    callback = function(_, event)
-      if event.type == "release" then
-        self.tab = Tabs.COLONIST
-        self:renderCurrentTab()
-      end
-    end,
-  })
-
-  Gui.new({
-    parent = self.tabContainer,
-    text = "Schedule",
-    textAlign = "center",
-    themeComponent = "buttonv1",
-    disabled = self.tab == Tabs.SCHEDULE,
-    callback = function(_, event)
-      if event.type == "release" then
-        self.tab = Tabs.SCHEDULE
-        self:renderCurrentTab()
-      end
-    end,
-  })
   EventBus:on("colonist_added", function()
     self:renderCurrentTab()
   end)
 
   return self
+end
+
+function BottomBar:setupTabButtons()
+  local string_map = {
+    [Tabs.COLONIST] = "Colonists",
+    [Tabs.SCHEDULE] = "Schedule",
+  }
+  print(#string_map)
+  for i = 1, #string_map, 1 do
+    local button = Gui.new({
+      parent = self.tabContainer,
+      text = string_map[i],
+      textAlign = "center",
+      themeComponent = "buttonv1",
+      disabled = self.tab == i,
+      callback = function(_, event)
+        if event.type == "release" then
+          self.tab = i
+          self:renderCurrentTab()
+          EventBus:emit("bottombar_tab_change")
+        end
+      end,
+    })
+    table.insert(self.tabButtons, button)
+    print("inserted")
+  end
+
+  EventBus:on("bottombar_tab_change", function()
+    for tab, element in ipairs(self.tabButtons) do
+      element.disabled = self.tab == tab
+    end
+  end)
 end
 
 function BottomBar:renderCurrentTab()
@@ -133,7 +139,6 @@ function BottomBar:renderCurrentTab()
   else
     Logger:error("Invalid tab selected: " .. tostring(self.tab))
   end
-  self:updateTabButtonStates()
 end
 
 function BottomBar:tabCleanup()
@@ -311,16 +316,6 @@ function BottomBar:toggleWindow()
     self.minimizeButton:updateOpacity(1)
   end
   self.minimized = not self.minimized
-end
-
-function BottomBar:updateTabButtonStates()
-  for _, button in ipairs(self.tabButtons) do
-    if button then
-      -- Update the disabled state based on current tab selection
-      local isDisabled = (button.tabValue == self.tab)
-      button:updateDisabled(isDisabled)
-    end
-  end
 end
 
 return BottomBar
